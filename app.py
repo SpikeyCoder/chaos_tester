@@ -55,6 +55,9 @@ app = Flask(
     static_folder=str(BASE_DIR / "static"),
 )
 app.secret_key = _secret
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024  # 1 MB request body limit
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(message)s")
@@ -113,6 +116,9 @@ def _set_security_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline'; "
@@ -121,7 +127,12 @@ def _set_security_headers(response):
         "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app;"
     )
     # CORS headers for cross-origin SPA (GitHub Pages → localhost backend)
-    response.headers["Access-Control-Allow-Origin"] = "*"
+    origin = request.headers.get("Origin", "")
+    allowed = ["https://website-auditor.io", "https://spikeycoder.github.io", "http://localhost:5000"]
+    if origin in allowed:
+        response.headers["Access-Control-Allow-Origin"] = origin
+    else:
+        response.headers["Access-Control-Allow-Origin"] = "https://website-auditor.io"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Requested-With"
     return response
