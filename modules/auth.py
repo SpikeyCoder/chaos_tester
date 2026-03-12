@@ -166,14 +166,25 @@ class AuthTester(BaseModule):
             )
             return
 
+        raw_sc = resp.headers.get("Set-Cookie", "") if resp else ""
+        raw_hdrs = ""
+        if hasattr(resp, "raw") and resp.raw and hasattr(resp.raw, "headers"):
+            raw_hdrs = "\n".join(v for k, v in resp.raw.headers.items() if k.lower() == "set-cookie").lower()
+        else:
+            raw_hdrs = raw_sc.lower()
         for cookie in cookies:
             issues = []
+            cookie_raw = ""
+            for line in raw_hdrs.split("\n"):
+                if line.strip().startswith(cookie.name.lower() + "="):
+                    cookie_raw = line
+                    break
 
-            if not cookie.secure:
+            if not cookie.secure and "secure" not in cookie_raw:
                 issues.append("Missing 'Secure' flag")
-            if not cookie.has_nonstandard_attr("HttpOnly") and "httponly" not in str(cookie).lower():
+            if not cookie.has_nonstandard_attr("HttpOnly") and "httponly" not in cookie_raw and "httponly" not in str(cookie).lower():
                 issues.append("Missing 'HttpOnly' flag")
-            if "samesite" not in str(cookie).lower():
+            if "samesite" not in cookie_raw:
                 issues.append("Missing 'SameSite' attribute")
 
             if issues:
