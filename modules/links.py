@@ -82,8 +82,11 @@ class BrokenLinkScanner(BaseModule):
             src = urljoin(page_url, s["src"])
             resources.append((src, "script"))
 
-        # <link href> (stylesheets, icons)
+        # <link rel="stylesheet" href> (skip preconnect, dns-prefetch, preload, etc.)
         for link in soup.find_all("link", href=True):
+            rel = " ".join(link.get("rel", []))
+            if rel != "stylesheet":
+                continue
             href = urljoin(page_url, link["href"])
             resources.append((href, "stylesheet"))
 

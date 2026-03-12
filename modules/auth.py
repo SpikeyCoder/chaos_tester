@@ -184,7 +184,7 @@ class AuthTester(BaseModule):
                 issues.append("Missing 'Secure' flag")
             if not cookie.has_nonstandard_attr("HttpOnly") and "httponly" not in cookie_raw and "httponly" not in str(cookie).lower():
                 issues.append("Missing 'HttpOnly' flag")
-            if "samesite" not in cookie_raw:
+            if "samesite" not in cookie_raw and not any(k.lower() == "samesite" for k in getattr(cookie, "_rest", {})):
                 issues.append("Missing 'SameSite' attribute")
 
             if issues:
