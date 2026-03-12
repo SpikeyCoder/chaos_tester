@@ -121,7 +121,7 @@
   <h2>📈 Module Breakdown</h2>
   <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;">
     {% set modules = ['availability','links','forms','chaos','auth','security'] %}
-    {% set icons = {'availability':'🌐','links':'🔗','forms':'📝','chaos':'🐵','auth':'🔒','security':'🛡'} %}
+    {% set icons = {'availability':'🌐','links':'🔗','forms':'📝','chaos':'🤖','auth':'🔒','security':'🛡'} %}
     {% for mod in modules %}
       {% set mod_results = report.results|selectattr('module','equalto',mod)|list %}
       {% if mod_results %}
