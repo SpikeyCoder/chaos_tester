@@ -1,5 +1,5 @@
 """
-Chaos Tester — Flask Web Application
+Website Auditor — Flask Web Application
 
 Provides:
   • Admin dashboard to configure and launch test runs
@@ -411,7 +411,7 @@ def api_runs():
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Chaos Tester — Admin Dashboard")
+    parser = argparse.ArgumentParser(description="Website Auditor — Admin Dashboard")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--debug", action="store_true")
@@ -423,7 +423,7 @@ def main():
             "Debug mode exposes a debugger and auto-reloads."
         )
 
-    print(f"\n🐵 Chaos Tester Dashboard running at http://{args.host}:{args.port}\n")
+    print(f"\n🐵 Website Auditor Dashboard running at http://{args.host}:{args.port}\n")
     app.run(host=args.host, port=args.port, debug=args.debug, threaded=True)
 
 
