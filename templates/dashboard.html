@@ -66,7 +66,7 @@
       </div>
       <div class="form-group">
         <label for="auth_cookie_name">Session Cookie Name</label>
-        <input type="text" id="auth_cookie_name" name="auth_cookie_name" value="sessionid"
+        <input type="text" id="auth_cookie_name" name="auth_cookie_name" value="sessionid" required
                placeholder="sessionid">
       </div>
     </div>
@@ -84,12 +84,12 @@
 
     <h2 class="mt-2">🧪 Test Modules</h2>
     <div class="checkbox-row">
-      <label><input type="checkbox" name="run_availability" checked> Page Availability</label>
-      <label><input type="checkbox" name="run_links" checked> Broken Links</label>
-      <label><input type="checkbox" name="run_forms" checked> Forms &amp; Interactions</label>
-      <label><input type="checkbox" name="run_chaos" checked> Chaos / Failure Injection</label>
-      <label><input type="checkbox" name="run_auth" checked> Auth &amp; Sessions</label>
-      <label><input type="checkbox" name="run_security" checked> Security Scan</label>
+      <label><input type="checkbox" name="run_availability" checked required> Page Availability</label>
+      <label><input type="checkbox" name="run_links" checked required> Broken Links</label>
+      <label><input type="checkbox" name="run_forms" checked required> Forms &amp; Interactions</label>
+      <label><input type="checkbox" name="run_chaos" checked required> Chaos / Failure Injection</label>
+      <label><input type="checkbox" name="run_auth" checked required> Auth &amp; Sessions</label>
+      <label><input type="checkbox" name="run_security" checked required> Security Scan</label>
     </div>
 
     <div class="mt-2">
