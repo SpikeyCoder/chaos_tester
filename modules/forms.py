@@ -93,7 +93,7 @@ class FormInteractionTester(BaseModule):
                 continue
             input_names.append(name)
 
-            if inp.get("required") or inp.get("aria-required") == "true":
+            if inp.has_attr("required") or inp.get("aria-required") == "true":
                 required_fields.append(name)
 
             if name.lower() in ("csrf", "csrfmiddlewaretoken", "_token", "csrf_token", "authenticity_token"):
