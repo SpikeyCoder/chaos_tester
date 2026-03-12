@@ -1,6 +1,8 @@
-# 🐵 Chaos Tester
+# 🛡 Website Auditor
 
-An internal Chaos-Monkey-inspired web testing tool that runs a full automated resilience, QA, and security sweep across any website in a single execution. Point it at a URL, click one button, and get a detailed report covering page availability, broken links, form handling, failure injection, authentication enforcement, and security misconfigurations.
+A comprehensive website testing tool that runs a full automated resilience, QA, and security sweep across any website in a single execution. Point it at a URL, click one button, and get a detailed report covering page availability, broken links, form handling, failure injection, authentication enforcement, and security misconfigurations.
+
+**Live at: [https://website-auditor.io](https://website-auditor.io)**
 
 ## Table of Contents
 
@@ -25,7 +27,7 @@ An internal Chaos-Monkey-inspired web testing tool that runs a full automated re
 ## Quick Start
 
 ```bash
-git clone https://github.com/your-org/chaos-tester.git
+git clone https://github.com/SpikeyCoder/chaos_tester.git
 cd chaos-tester
 pip install -r requirements.txt
 python run.py
@@ -35,7 +37,7 @@ Open **http://127.0.0.1:5000** in your browser. Enter your staging URL, select t
 
 ## Hosted Dashboard (GitHub Pages)
 
-The Chaos Tester dashboard is available as a hosted static SPA at:
+The Website Auditor dashboard is available as a hosted static SPA at:
 
 **https://spikeycoder.github.io/chaos_tester/**
 
@@ -101,7 +103,7 @@ pip install -r requirements.txt
 
 ### Web Dashboard
 
-The primary way to use Chaos Tester. Start the dashboard server:
+The primary way to use Website Auditor. Start the dashboard server:
 
 ```bash
 python run.py
@@ -131,7 +133,7 @@ python run.py --debug                                # Flask debug mode (auto-re
 
 ### Python API
 
-Use Chaos Tester as a library in your own scripts or test suites:
+Use Website Auditor as a library in your own scripts or test suites:
 
 ```python
 from chaos_tester import ChaosConfig, ChaosTestRunner
@@ -198,7 +200,7 @@ The dashboard exposes a JSON API for programmatic access and CI/CD integration:
 **Example: Start a run via curl**
 
 ```bash
-curl -X POST http://127.0.0.1:5000/run \
+curl -X POST https://website-auditor.io/run \
   -d "base_url=https://staging.example.com" \
   -d "environment=staging" \
   -d "max_pages=50" \
@@ -214,15 +216,15 @@ curl -X POST http://127.0.0.1:5000/run \
 **Example: Poll for completion**
 
 ```bash
-curl http://127.0.0.1:5000/api/status
+curl https://website-auditor.io/api/status
 # {"status": "running", "progress": {"module": "security", "pct": 88, "msg": "..."}}
 ```
 
 **Example: Retrieve the report**
 
 ```bash
-curl http://127.0.0.1:5000/api/runs           # find the run_id
-curl http://127.0.0.1:5000/report/abc123/json  # get full report
+curl https://website-auditor.io/api/runs           # find the run_id
+curl https://website-auditor.io/report/abc123/json  # get full report
 ```
 
 ## Test Modules
@@ -293,7 +295,7 @@ Each completed run generates a JSON report saved in the `reports/` directory. Re
 
 ## Safety & Production Guardrails
 
-Chaos Tester is designed as an internal tool that runs against **staging or test environments** by default:
+Website Auditor is designed as an internal tool that runs against **staging or test environments** by default:
 
 - **Production is blocked.** If `environment` is set to `production`, the tool refuses to run unless `allow_production` is explicitly set to `True`. The web dashboard shows a warning banner and requires a confirmation checkbox.
 - **Read-only by default.** The tool primarily uses GET and HEAD requests. POST requests are limited to form testing with obviously non-destructive payloads (empty strings, XSS markers, special characters).
@@ -302,7 +304,7 @@ Chaos Tester is designed as an internal tool that runs against **staging or test
 
 ## CI/CD Integration
 
-You can integrate Chaos Tester into your deployment pipeline by using the Python API and failing the build on a low pass rate:
+You can integrate Website Auditor into your deployment pipeline by using the Python API and failing the build on a low pass rate:
 
 ```python
 import sys
@@ -337,15 +339,15 @@ Or use the REST API with curl in a shell script:
 
 ```bash
 # Start the run
-curl -s -X POST http://127.0.0.1:5000/run -d "base_url=$STAGING_URL&environment=staging&run_availability=on&run_security=on"
+curl -s -X POST https://website-auditor.io/run -d "base_url=$STAGING_URL&environment=staging&run_availability=on&run_security=on"
 
 # Wait and poll
 sleep 30
-STATUS=$(curl -s http://127.0.0.1:5000/api/status | jq -r '.status')
-while [ "$STATUS" = "running" ]; do sleep 5; STATUS=$(curl -s http://127.0.0.1:5000/api/status | jq -r '.status'); done
+STATUS=$(curl -s https://website-auditor.io/api/status | jq -r '.status')
+while [ "$STATUS" = "running" ]; do sleep 5; STATUS=$(curl -s https://website-auditor.io/api/status | jq -r '.status'); done
 
 # Check results
-RATE=$(curl -s http://127.0.0.1:5000/api/runs | jq '.[0].summary.pass_rate')
+RATE=$(curl -s https://website-auditor.io/api/runs | jq '.[0].summary.pass_rate')
 echo "Pass rate: $RATE%"
 ```
 
