@@ -18,7 +18,7 @@
       </div>
       <div class="form-group">
         <label for="environment">Environment</label>
-        <select id="environment" name="environment" onchange="toggleProdWarning()">
+        <select id="environment" name="environment" required onchange="toggleProdWarning()">
           <option value="staging" selected>Staging</option>
           <option value="test">Test</option>
           <option value="production">Production (requires opt-in)</option>
@@ -36,29 +36,29 @@
     <div class="form-row">
       <div class="form-group">
         <label for="max_pages">Max Pages to Crawl</label>
-        <input type="number" id="max_pages" name="max_pages" value="100" min="1" max="1000">
+        <input type="number" id="max_pages" name="max_pages" value="100" required min="1" max="1000">
       </div>
       <div class="form-group">
         <label for="crawl_depth">Crawl Depth</label>
-        <input type="number" id="crawl_depth" name="crawl_depth" value="3" min="1" max="10">
+        <input type="number" id="crawl_depth" name="crawl_depth" value="3" required min="1" max="10">
       </div>
     </div>
 
     <div class="form-row">
       <div class="form-group">
         <label for="request_timeout">Request Timeout (s)</label>
-        <input type="number" id="request_timeout" name="request_timeout" value="15" min="1" max="120">
+        <input type="number" id="request_timeout" name="request_timeout" value="15" required min="1" max="120">
       </div>
       <div class="form-group">
         <label for="concurrency">Concurrency</label>
-        <input type="number" id="concurrency" name="concurrency" value="5" min="1" max="20">
+        <input type="number" id="concurrency" name="concurrency" value="5" required min="1" max="20">
       </div>
     </div>
 
     <div class="form-row">
       <div class="form-group">
         <label for="chaos_intensity">Chaos Intensity</label>
-        <select id="chaos_intensity" name="chaos_intensity">
+        <select id="chaos_intensity" name="chaos_intensity" required>
           <option value="low">Low — gentle probes</option>
           <option value="medium" selected>Medium — standard chaos</option>
           <option value="high">High — aggressive testing</option>

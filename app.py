@@ -131,10 +131,9 @@ def _set_security_headers(response):
     allowed = ["https://website-auditor.io", "https://spikeycoder.github.io", "http://localhost:5000"]
     if origin in allowed:
         response.headers["Access-Control-Allow-Origin"] = origin
-    else:
-        response.headers["Access-Control-Allow-Origin"] = "https://website-auditor.io"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Requested-With"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Requested-With"
+    response.headers["Server"] = "WebAuditor"
     return response
 
 
@@ -417,6 +416,20 @@ def api_runs():
         } for r in reversed(_run_history[-50:])]
     return jsonify(runs)
 
+
+
+# Protected Paths (return 404 instead of 405)
+_PROTECTED = {
+    "/account","/admin","/api/admin","/api/private",
+    "/api/settings","/api/users","/billing","/config",
+    "/dashboard","/internal","/manage","/orders",
+    "/payments","/profile","/settings","/users",
+}
+
+@app.before_request
+def _block_protected():
+    if request.path in _PROTECTED:
+        abort(404)
 
 # ── Entry Point ───────────────────────────────────────────────────
 
