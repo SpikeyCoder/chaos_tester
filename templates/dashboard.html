@@ -147,3 +147,33 @@
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=2"></script>
 {% endblock %}
+
+{% block seo_content %}
+<section class="seo-content">
+    <div class="container">
+        <h2>Free Website Audit Tool</h2>
+        <p>Website Auditor is a comprehensive, free website testing tool that scans your entire site for SEO issues, broken links, security vulnerabilities, form problems, and performance bottlenecks&mdash;all in a single click. Unlike paid tools like Semrush or Ahrefs, there are no page limits, no subscriptions, and no login required.</p>
+
+        <h3>What Website Auditor Checks</h3>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>&#x1F50D; SEO & Broken Links</h3>
+                <p>Find broken internal and external links, redirect chains, 404 errors, and orphan pages that hurt your search engine rankings.</p>
+            </div>
+            <div class="feature-card">
+                <h3>&#x1F512; Security & Headers</h3>
+                <p>Audit HTTPS configuration, security headers, cookie security (SameSite, Secure, HttpOnly), and common vulnerability indicators.</p>
+            </div>
+            <div class="feature-card">
+                <h3>&#x1F4DD; Forms & Accessibility</h3>
+                <p>Validate forms, check for missing labels, test required field validation, and ensure interactive elements are accessible.</p>
+            </div>
+        </div>
+
+        <h3>How It Works</h3>
+        <p>Enter any URL, select which test modules to run, and click the Run button. Website Auditor will crawl your site, test every page, and generate a detailed report organized by issue type and severity. Results are available instantly in your browser or via our REST API for CI/CD integration.</p>
+
+        <p style="margin-top: 24px;"><a href="/features" style="color: var(--accent);">See all features &rarr;</a> &nbsp;&nbsp; <a href="/how-it-works" style="color: var(--accent);">Learn how it works &rarr;</a></p>
+    </div>
+</section>
+{% endblock %}

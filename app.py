@@ -467,5 +467,51 @@ def main():
     app.run(host=args.host, port=args.port, debug=args.debug, threaded=True)
 
 
+
+
+# -- SEO Routes ------------------------------------------------
+@app.route("/robots.txt")
+def robots_txt():
+    content = """User-agent: *
+Allow: /
+Disallow: /run
+Disallow: /api/
+Disallow: /report/
+
+Sitemap: https://website-auditor.io/sitemap.xml
+"""
+    return Response(content, mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    pages = [
+        {"loc": "https://website-auditor.io/", "priority": "1.0", "changefreq": "weekly"},
+        {"loc": "https://website-auditor.io/features", "priority": "0.8", "changefreq": "monthly"},
+        {"loc": "https://website-auditor.io/how-it-works", "priority": "0.8", "changefreq": "monthly"},
+        {"loc": "https://website-auditor.io/latest", "priority": "0.6", "changefreq": "daily"},
+    ]
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for p in pages:
+        xml += f'  <url>\n'
+        xml += f'    <loc>{p["loc"]}</loc>\n'
+        xml += f'    <changefreq>{p["changefreq"]}</changefreq>\n'
+        xml += f'    <priority>{p["priority"]}</priority>\n'
+        xml += f'  </url>\n'
+    xml += '</urlset>'
+    return Response(xml, mimetype="application/xml")
+
+
+@app.route("/features")
+def features_page():
+    return render_template("features.html")
+
+
+@app.route("/how-it-works")
+def how_it_works_page():
+    return render_template("how_it_works.html")
+
+
 if __name__ == "__main__":
     main()

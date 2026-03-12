@@ -1,197 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app;">
-<title>{% block title %}Website Auditor{% endblock %}</title>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Free Website Audit Tool - SEO, Security & Performance Scanner | Website Auditor{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Free website audit tool that checks SEO, broken links, security, forms, and performance in one click. No login required. Get a detailed report instantly.{% endblock %}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://website-auditor.io{{ request.path }}">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Website Auditor">
+    <meta property="og:title" content="{% block og_title %}Free Website Audit Tool - One-Click SEO & Security Scanner{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Audit any website for SEO issues, broken links, security vulnerabilities, and performance problems. Free, instant, no login required.{% endblock %}">
+    <meta property="og:url" content="https://website-auditor.io{{ request.path }}">
+    <meta property="og:image" content="https://website-auditor.io/static/og-image.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Free Website Audit Tool | Website Auditor">
+    <meta name="twitter:description" content="One-click website audit for SEO, security, broken links & performance. Free and instant.">
+    <meta name="twitter:image" content="https://website-auditor.io/static/og-image.png">
+
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Website Auditor",
+        "url": "https://website-auditor.io",
+        "description": "Free website audit tool that checks SEO, broken links, security, forms, and performance in one click.",
+        "applicationCategory": "WebApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "creator": {
+            "@type": "Organization",
+            "name": "Website Auditor"
+        }
+    }
+    </script>
+    {% block extra_schema %}{% endblock %}
+
+    <style>
+/* -- Reset & Base ----------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --surface2: #242836;
-  --border: #2e3348;
-  --text: #e4e6f0;
-  --text-muted: #8b8fa3;
-  --accent: #f97316;
-  --accent-dim: #c2410c;
-  --green: #22c55e;
-  --red: #ef4444;
-  --yellow: #eab308;
-  --blue: #3b82f6;
-  --purple: #a855f7;
-  --cyan: #06b6d4;
-  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --bg:       #0f172a;
+    --surface:  #1e293b;
+    --border:   #334155;
+    --text:     #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent:   #38bdf8;
+    --accent-hover: #7dd3fc;
+    --success:  #4ade80;
+    --warning:  #fbbf24;
+    --danger:   #f87171;
+    --mono:     'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
+html { font-size: 16px; }
 body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+                 Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
 }
-
 a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
+a:hover { color: var(--accent-hover); }
 
-.container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+/* -- Layout ----------------------------------------------- */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+.inner { display: flex; align-items: center; justify-content: space-between; }
 
-/* ── Header ─────────────────────────────────────────── */
+/* -- Header ----------------------------------------------- */
 header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 0;
-  position: sticky; top: 0; z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+    position: sticky; top: 0; z-index: 50;
 }
-header .inner {
-  display: flex; align-items: center; justify-content: space-between;
-}
-header h1 {
-  font-size: 1.25rem; font-weight: 700;
-  display: flex; align-items: center; gap: 10px;
-}
-header h1 .robot { font-size: 1.5rem; }
-header nav { display: flex; gap: 20px; }
-header nav a {
-  color: var(--text-muted); font-size: 0.9rem; font-weight: 500;
-  transition: color 0.15s;
-}
-header nav a:hover { color: var(--accent); text-decoration: none; }
+header h1 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+header h1 .robot { font-size: 1.4rem; }
+nav { display: flex; gap: 18px; }
+nav a { color: var(--text-muted); font-size: 0.9rem; transition: color .2s; }
+nav a:hover, nav a.active { color: var(--accent); }
 
-/* ── Cards ──────────────────────────────────────────── */
+/* -- Cards ------------------------------------------------ */
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
 }
-.card h2 {
-  font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;
-  display: flex; align-items: center; gap: 8px;
-}
+.card h2 { font-size: 1.15rem; margin-bottom: 16px; }
 
-/* ── Forms ──────────────────────────────────────────── */
-label {
-  display: block; font-size: 0.85rem; color: var(--text-muted);
-  margin-bottom: 6px; font-weight: 500;
-}
+/* -- Forms ------------------------------------------------ */
+label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
 input[type="text"], input[type="number"], input[type="url"],
 select, textarea {
-  width: 100%; padding: 10px 14px;
-  background: var(--surface2); color: var(--text);
-  border: 1px solid var(--border); border-radius: 8px;
-  font-size: 0.9rem; font-family: var(--font);
-  transition: border-color 0.15s;
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.95rem;
+    transition: border-color .2s;
 }
 input:focus, select:focus, textarea:focus {
-  outline: none; border-color: var(--accent);
+    outline: none;
+    border-color: var(--accent);
 }
-textarea { resize: vertical; min-height: 70px; }
+textarea { resize: vertical; min-height: 60px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 
-.form-row {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-  margin-bottom: 16px;
-}
-.form-group { margin-bottom: 16px; }
-
-.checkbox-row {
-  display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0;
-}
-.checkbox-row label {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 0.9rem; color: var(--text); cursor: pointer;
-  background: var(--surface2); padding: 8px 14px;
-  border-radius: 8px; border: 1px solid var(--border);
-  transition: border-color 0.15s;
-}
-.checkbox-row label:hover { border-color: var(--accent); }
-.checkbox-row input[type="checkbox"] { accent-color: var(--accent); }
-
-/* ── Buttons ────────────────────────────────────────── */
+/* -- Buttons ---------------------------------------------- */
 .btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 12px 28px; border: none; border-radius: 10px;
-  font-size: 0.95rem; font-weight: 600; cursor: pointer;
-  transition: all 0.15s; font-family: var(--font);
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 22px;
+    border: none; border-radius: 6px;
+    font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; transition: background .2s, transform .1s;
 }
-.btn-primary {
-  background: var(--accent); color: #fff;
-}
-.btn-primary:hover { background: var(--accent-dim); }
-.btn-secondary {
-  background: var(--surface2); color: var(--text);
-  border: 1px solid var(--border);
-}
-.btn-secondary:hover { border-color: var(--accent); }
-.btn-danger {
-  background: #7f1d1d; color: #fca5a5;
-}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--accent); color: var(--bg); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-danger  { background: var(--danger); color: #fff; }
 
-/* ── Badges ─────────────────────────────────────────── */
+/* -- Checkboxes ------------------------------------------- */
+.checkbox-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+.checkbox-grid label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.9rem; color: var(--text); cursor: pointer;
+}
+.checkbox-grid input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; }
+
+/* -- Tables ----------------------------------------------- */
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { text-align: left; padding: 10px 12px; background: var(--bg); color: var(--text-muted);
+     font-weight: 600; border-bottom: 2px solid var(--border); }
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+tr:hover td { background: rgba(56,189,248,0.04); }
+
+/* -- Status badges ---------------------------------------- */
 .badge {
-  display: inline-block; padding: 3px 10px;
-  border-radius: 6px; font-size: 0.75rem; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.05em;
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.8rem; font-weight: 600;
 }
-.badge-passed  { background: #14532d; color: var(--green); }
-.badge-failed  { background: #7f1d1d; color: var(--red); }
-.badge-warning { background: #713f12; color: var(--yellow); }
-.badge-error   { background: #7f1d1d; color: var(--red); }
-.badge-info    { background: #1e3a5f; color: var(--blue); }
-.badge-critical{ background: #7f1d1d; color: #fca5a5; }
-.badge-high    { background: #7f1d1d; color: var(--red); }
-.badge-medium  { background: #713f12; color: var(--yellow); }
-.badge-low     { background: #1e3a5f; color: var(--cyan); }
-.badge-skipped { background: var(--surface2); color: var(--text-muted); }
+.badge-ok      { background: rgba(74,222,128,0.15); color: var(--success); }
+.badge-warn    { background: rgba(251,191,36,0.15); color: var(--warning); }
+.badge-fail    { background: rgba(248,113,113,0.15); color: var(--danger); }
+.badge-running { background: rgba(56,189,248,0.15); color: var(--accent); }
 
-/* ── Tables ─────────────────────────────────────────── */
-table {
-  width: 100%; border-collapse: collapse; font-size: 0.88rem;
-}
-th, td {
-  padding: 10px 14px; text-align: left;
-  border-bottom: 1px solid var(--border);
-}
-th {
-  font-weight: 600; color: var(--text-muted);
-  font-size: 0.8rem; text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-tr:hover { background: var(--surface2); }
+/* -- Stats grid ------------------------------------------- */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+.stat-card .value { font-size: 1.6rem; font-weight: 700; }
+.stat-card .label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
 
-/* ── Progress ───────────────────────────────────────── */
-.progress-bar-bg {
-  width: 100%; height: 10px; background: var(--surface2);
-  border-radius: 5px; overflow: hidden;
-}
-.progress-bar-fill {
-  height: 100%; background: var(--accent);
-  border-radius: 5px; transition: width 0.4s ease;
-}
+/* -- Progress --------------------------------------------- */
+.progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.progress-bar .fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width .4s; }
 
-/* ── Stats Grid ─────────────────────────────────────── */
-.stats-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px; margin-bottom: 24px;
-}
-.stat-card {
-  background: var(--surface2); border-radius: 10px; padding: 18px;
-  text-align: center;
-}
-.stat-card .number {
-  font-size: 2rem; font-weight: 700; line-height: 1.2;
-}
-.stat-card .label {
-  font-size: 0.8rem; color: var(--text-muted);
-  text-transform: uppercase; margin-top: 4px;
-}
-
-/* ── Utility ────────────────────────────────────────── */
+/* -- Utility ---------------------------------------------- */
 .mt-1 { margin-top: 8px; }
 .mt-2 { margin-top: 16px; }
 .mt-3 { margin-top: 24px; }
@@ -201,35 +178,78 @@ tr:hover { background: var(--surface2); }
 .mono { font-family: var(--mono); }
 .hidden { display: none; }
 
-/* ── Responsive ─────────────────────────────────────── */
+/* -- SEO Content Section ---------------------------------- */
+.seo-content {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 48px 0;
+    margin-top: 48px;
+}
+.seo-content h2 { font-size: 1.5rem; margin-bottom: 16px; color: var(--accent); }
+.seo-content h3 { font-size: 1.1rem; margin: 24px 0 8px; color: var(--text); }
+.seo-content p { color: var(--text-muted); margin-bottom: 12px; max-width: 800px; }
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 24px 0; }
+.feature-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+.feature-card h3 { margin-top: 0; font-size: 1rem; }
+.feature-card p { font-size: 0.9rem; }
+
+/* -- Footer ----------------------------------------------- */
+footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    margin-top: 48px;
+    text-align: center;
+}
+footer p { color: var(--text-muted); font-size: 0.85rem; }
+footer a { color: var(--accent); }
+footer nav { justify-content: center; margin-top: 8px; }
+
+/* -- Responsive ------------------------------------------- */
 @media (max-width: 768px) {
-  .form-row { grid-template-columns: 1fr; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-row { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .feature-grid { grid-template-columns: 1fr; }
 }
 </style>
 {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <header>
-    <div class="container inner">
-      <h1><span class="robot">🤖</span> Website Auditor</h1>
-      <nav>
-        <a href="/">Dashboard</a>
-        <a href="/latest">Latest Report</a>
-      </nav>
-    </div>
-  </header>
-  <main class="container" style="padding-top: 28px; padding-bottom: 48px;">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div style="background:{% if category == 'warning' %}#7f1d1d{% else %}#1a3a2a{% endif %};padding:12px 16px;border-radius:8px;margin-bottom:16px;color:{% if category == 'warning' %}#fca5a5{% else %}#86efac{% endif %};font-size:0.9rem;">
-      {{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
-    {% block content %}{% endblock %}
-  </main>
+    <header>
+        <div class="container inner">
+            <h1><span class="robot" aria-hidden="true">&#x1F916;</span> Website Auditor</h1>
+            <nav>
+                <a href="/">Dashboard</a>
+                <a href="/latest">Latest Report</a>
+                <a href="/features">Features</a>
+                <a href="/how-it-works">How It Works</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container" style="padding-top: 28px; padding-bottom: 48px;">
+        {%- with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div style="background:{% if category == 'warning' %}#7f1d1d{% else %}#1a3a2a{% endif %};padding:12px 16px;border-radius:8px;margin-bottom:16px;color:{% if category == 'warning' %}#fca5a5{% else %}#86efac{% endif %};font-size:0.9rem;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block seo_content %}{% endblock %}
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Website Auditor &mdash; Free website audit tool for SEO, security, and performance.</p>
+            <nav>
+                <a href="/features">Features</a>
+                <a href="/how-it-works">How It Works</a>
+                <a href="https://github.com/SpikeyCoder/chaos_tester" rel="noopener" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </footer>
 </body>
 </html>

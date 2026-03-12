@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Features - Free Website Audit Tool | Website Auditor{% endblock %}
+{% block meta_description %}Explore Website Auditor's features: broken link detection, SEO analysis, security scanning, form testing, performance monitoring, and more. All free, no login required.{% endblock %}
+{% block og_title %}Features - Comprehensive Website Audit Tool{% endblock %}
+{% block og_description %}Check broken links, SEO issues, security vulnerabilities, forms, and performance in one click.{% endblock %}
+
+{% block extra_schema %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "What does Website Auditor check?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Website Auditor checks page availability, broken links, forms and interactions, security headers, authentication flows, and overall site performance across your entire website."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Is Website Auditor free?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, Website Auditor is completely free with no page limits, no login required, and no feature restrictions."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How many pages can Website Auditor crawl?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "You can configure the crawler to check up to hundreds of pages per audit, with adjustable crawl depth, concurrency, and timeout settings."
+            }
+        }
+    ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<h2 style="font-size:1.5rem; margin-bottom:24px;">&#x1F50D; Features</h2>
+
+<div class="feature-grid">
+    <div class="feature-card">
+        <h3>&#x2705; Page Availability</h3>
+        <p>Crawl your entire site and detect HTTP errors, redirects, timeouts, and unreachable pages. Know exactly which URLs are broken before your visitors do.</p>
+    </div>
+    <div class="feature-card">
+        <h3>&#x1F517; Broken Link Detection</h3>
+        <p>Find every broken internal and external link across your website. Identify 404 errors, redirect chains, and orphan pages that hurt SEO and user experience.</p>
+    </div>
+    <div class="feature-card">
+        <h3>&#x1F4DD; Form & Interaction Testing</h3>
+        <p>Validate that your forms, buttons, and interactive elements work correctly. Check for missing labels, required field validation, and accessibility compliance.</p>
+    </div>
+    <div class="feature-card">
+        <h3>&#x1F512; Security Analysis</h3>
+        <p>Audit security headers, HTTPS configuration, cookie security (SameSite, Secure, HttpOnly), mixed content warnings, and common vulnerability indicators.</p>
+    </div>
+    <div class="feature-card">
+        <h3>&#x1F504; Chaos & Failure Injection</h3>
+        <p>Test how your site handles failures with configurable chaos intensity. Simulate slow responses, errors, and edge cases to improve resilience.</p>
+    </div>
+    <div class="feature-card">
+        <h3>&#x1F510; Auth & Session Testing</h3>
+        <p>Test authenticated areas of your site by providing login URLs and session cookies. Verify that protected pages behave correctly for logged-in users.</p>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <h2>Why Choose Website Auditor?</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>&#x1F4B0; 100% Free</h3>
+            <p>No subscriptions, no page limits, no feature gates. Every audit capability is available to everyone at no cost.</p>
+        </div>
+        <div class="feature-card">
+            <h3>&#x26A1; One-Click Audits</h3>
+            <p>Enter a URL, select your test modules, and click Run. Get a comprehensive report in minutes with zero configuration required.</p>
+        </div>
+        <div class="feature-card">
+            <h3>&#x1F4CA; Detailed Reports</h3>
+            <p>Every audit generates a structured report with findings organized by severity, module, and page. Export or share results easily.</p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <h2>Frequently Asked Questions</h2>
+    <div style="margin-top: 16px;">
+        <h3 style="color: var(--accent); margin-bottom: 8px;">What does Website Auditor check?</h3>
+        <p class="text-muted">Website Auditor checks page availability, broken links, forms and interactions, security headers, authentication flows, and overall site performance across your entire website.</p>
+
+        <h3 style="color: var(--accent); margin: 24px 0 8px;">Is Website Auditor free?</h3>
+        <p class="text-muted">Yes, Website Auditor is completely free with no page limits, no login required, and no feature restrictions.</p>
+
+        <h3 style="color: var(--accent); margin: 24px 0 8px;">How many pages can Website Auditor crawl?</h3>
+        <p class="text-muted">You can configure the crawler to check up to hundreds of pages per audit, with adjustable crawl depth, concurrency, and timeout settings.</p>
+
+        <h3 style="color: var(--accent); margin: 24px 0 8px;">Do I need to create an account?</h3>
+        <p class="text-muted">No. Website Auditor requires no registration, login, or account creation. Just enter a URL and start auditing.</p>
+
+        <h3 style="color: var(--accent); margin: 24px 0 8px;">How is this different from Semrush or Ahrefs?</h3>
+        <p class="text-muted">Unlike Semrush ($140/mo) or Ahrefs ($99/mo), Website Auditor is completely free. It focuses specifically on comprehensive site auditing with chaos/failure testing capabilities that most SEO tools lack.</p>
+    </div>
+</div>
+{% endblock %}
