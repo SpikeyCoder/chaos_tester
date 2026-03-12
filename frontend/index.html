@@ -404,7 +404,7 @@ tr:hover { background: var(--surface2); }
     <h2>&#x2699;&#xFE0F; Settings</h2>
     <div class="form-group">
       <label for="apiUrlInput">Backend API URL</label>
-      <input type="url" id="apiUrlInput" placeholder="https://chaos-tester-878428558569.us-central1.run.app">
+      <input type="url" id="apiUrlInput" placeholder="https://website-auditor.io">
     </div>
     <p class="text-muted text-sm mb-2">
       The Chaos Tester backend must be running locally. Start it with <code>python run.py</code> and enter the URL here.
@@ -437,7 +437,7 @@ tr:hover { background: var(--surface2); }
    ================================================================== */
 
 // -- State -----------------------------------------------------------
-let apiUrl = localStorage.getItem('chaosApiUrl') || 'https://chaos-tester-878428558569.us-central1.run.app';
+let apiUrl = localStorage.getItem('chaosApiUrl') || 'https://website-auditor.io';
 let currentEventSource = null;
 
 // -- Router ----------------------------------------------------------
