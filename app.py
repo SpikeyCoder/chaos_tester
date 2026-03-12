@@ -25,7 +25,7 @@ from pathlib import Path
 from flask import (
     Flask, render_template, request, jsonify, Response,
     redirect, url_for, send_from_directory, make_response,
-    abort, session,
+    abort, session, flash,
 )
 
 from .config import ChaosConfig
@@ -311,7 +311,19 @@ def view_report(run_id):
         report = _run_index.get(run_id)
     if report:
         return render_template("report.html", report=report)
-    return "Report not found", 404
+    # Fallback: try loading from disk (handles container restarts / new instances)
+    report_file = REPORTS_DIR / f"run_{run_id}.json"
+    if report_file.exists():
+        try:
+            data = json.loads(report_file.read_text())
+            with _lock:
+                _run_index[run_id] = data
+            return render_template("report.html", report=data)
+        except Exception:
+            pass
+    # No report found anywhere - redirect to dashboard instead of 404
+    flash("Report not found. It may have been cleared or has not been generated yet.", "warning")
+    return redirect(url_for("index"))
 
 
 @app.route("/report/<run_id>/json")
