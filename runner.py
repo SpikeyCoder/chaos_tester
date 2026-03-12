@@ -109,12 +109,16 @@ class ChaosTestRunner:
             self.test_run.status = "completed"
 
         except Exception as e:
-            logger.exception(f"Test run failed: {e}")
+            logger.exception("Test run failed: %s", e)
             self.test_run.status = "failed"
+            # Sanitize the error message — strip tracebacks from
+            # user-facing output while keeping the type + summary.
+            err_type = type(e).__name__
+            err_msg = str(e)[:200]  # truncate overly verbose messages
             self.test_run.results.append(TestResult(
                 module="runner",
                 name="Runner error",
-                description=str(e),
+                description=f"{err_type}: {err_msg}",
                 status="error",
                 severity="critical",
             ))

@@ -52,7 +52,21 @@ source.onmessage = function(event) {
   txt.textContent = data.msg;
 
   const line = document.createElement('div');
-  line.innerHTML = `<span style="color:${color};font-weight:600;">[${data.module}]</span> <span style="color:var(--text-muted)">${data.ts ? data.ts.substring(11,19) : ''}</span> ${data.msg}`;
+
+  const modSpan = document.createElement('span');
+  modSpan.style.cssText = 'color:' + color + ';font-weight:600;';
+  modSpan.textContent = '[' + data.module + ']';
+
+  const tsSpan = document.createElement('span');
+  tsSpan.style.color = 'var(--text-muted)';
+  tsSpan.textContent = ' ' + (data.ts ? data.ts.substring(11, 19) : '') + ' ';
+
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = data.msg;
+
+  line.appendChild(modSpan);
+  line.appendChild(tsSpan);
+  line.appendChild(msgSpan);
   log.appendChild(line);
   log.scrollTop = log.scrollHeight;
 

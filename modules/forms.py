@@ -197,7 +197,3 @@ class FormInteractionTester(BaseModule):
     def _button_label(self, btn) -> str:
         text = btn.get_text(strip=True)[:30]
         return text or btn.get("value", btn.get("aria-label", "unlabeled"))
-
-    def _short_path(self, url: str) -> str:
-        from urllib.parse import urlparse
-        return urlparse(url).path or "/"

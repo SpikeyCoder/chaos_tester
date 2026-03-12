@@ -5,6 +5,7 @@ An internal Chaos-Monkey-inspired web testing tool that runs a full automated re
 ## Table of Contents
 
 - [Quick Start](#quick-start)
+- [Hosted Dashboard (GitHub Pages)](#hosted-dashboard-github-pages)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -31,6 +32,34 @@ python run.py
 ```
 
 Open **http://127.0.0.1:5000** in your browser. Enter your staging URL, select the test modules you want, and click **Launch Chaos Test**.
+
+## Hosted Dashboard (GitHub Pages)
+
+The Chaos Tester dashboard is available as a hosted static SPA at:
+
+**https://spikeycoder.github.io/chaos_tester/**
+
+This frontend communicates with your locally running backend — no server deployment required.
+
+### How it works
+
+1. **Start the backend locally:**
+   ```bash
+   cd chaos_tester
+   python run.py
+   ```
+2. **Open the hosted dashboard** at the URL above (or open `frontend/index.html` locally)
+3. **Configure the backend URL** — click **Settings** in the nav bar and enter your backend address (default: `http://localhost:5000`). Click **Test Connection** to verify.
+4. **Run tests** — use the dashboard exactly as you would the localhost version
+
+The frontend auto-deploys to GitHub Pages on every push to `main` that changes files in the `frontend/` directory. The deployment is handled by the GitHub Actions workflow in `.github/workflows/deploy-pages.yml`.
+
+### Architecture
+
+The project uses a split architecture:
+
+- **Frontend (GitHub Pages):** A single-file SPA (`frontend/index.html`) with all UI logic in vanilla HTML/CSS/JS. No build step required.
+- **Backend (local):** The Flask server handles test execution, SSE progress streaming, report storage, and JSON/CSV downloads. CORS headers allow the remote frontend to communicate with the local backend.
 
 ## Requirements
 
@@ -163,7 +192,7 @@ The dashboard exposes a JSON API for programmatic access and CI/CD integration:
 | `/api/status` | GET | Current run status (`idle`, `running`, `completed`, `failed`) and progress |
 | `/api/runs` | GET | List of all past runs with summaries |
 | `/report/<run_id>/json` | GET | Full JSON report for a specific run |
-| `/run` | POST | Start a new test run (accepts form-encoded data) |
+| `/run` | POST | Start a new test run (accepts form-encoded or JSON body) |
 | `/stream` | GET | Server-sent event stream for real-time progress |
 
 **Example: Start a run via curl**
@@ -330,8 +359,14 @@ chaos_tester/
 ├── models.py              # TestResult / TestRun data models
 ├── runner.py              # Orchestrator that runs all modules in sequence
 ├── requirements.txt       # Python dependencies
+├── pyproject.toml         # Python packaging config
 ├── LICENSE                # MIT License
 ├── README.md              # This file
+├── frontend/
+│   └── index.html         # Static SPA dashboard (deployed to GitHub Pages)
+├── .github/
+│   └── workflows/
+│       └── deploy-pages.yml  # Auto-deploy frontend to GitHub Pages
 ├── modules/
 │   ├── __init__.py        # Module exports
 │   ├── base.py            # BaseModule with shared HTTP helpers

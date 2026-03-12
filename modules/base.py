@@ -65,6 +65,10 @@ class BaseModule:
         """Override in subclass."""
         raise NotImplementedError
 
+    def _short_path(self, url: str) -> str:
+        """Return just the path component of a URL for display purposes."""
+        return urlparse(url).path or "/"
+
     def _safe_request(self, method, url, **kwargs):
         """Make a request and return (response, error_string)."""
         try:

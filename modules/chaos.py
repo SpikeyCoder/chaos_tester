@@ -66,7 +66,7 @@ class ChaosInjector(BaseModule):
                     timeout=intensity["latency_s"],
                 )
                 self.add_result(
-                    name=f"Latency resilience: {self._short(url)}",
+                    name=f"Latency resilience: {self._short_path(url)}",
                     description=f"Page responds within aggressive timeout ({intensity['latency_s']}s)",
                     status=TestStatus.PASSED,
                     severity=Severity.INFO,
@@ -76,7 +76,7 @@ class ChaosInjector(BaseModule):
                 )
             except Exception:
                 self.add_result(
-                    name=f"Latency sensitive: {self._short(url)}",
+                    name=f"Latency sensitive: {self._short_path(url)}",
                     description=f"Page failed with {intensity['latency_s']}s timeout",
                     status=TestStatus.WARNING,
                     severity=Severity.MEDIUM,
@@ -159,7 +159,7 @@ class ChaosInjector(BaseModule):
                 resp = self.session.get(url, timeout=0.001)
                 # If this succeeds, the server is extremely fast
                 self.add_result(
-                    name=f"Ultra-fast response: {self._short(url)}",
+                    name=f"Ultra-fast response: {self._short_path(url)}",
                     description="Page responded in under 1ms",
                     status=TestStatus.PASSED,
                     severity=Severity.INFO,
@@ -169,7 +169,7 @@ class ChaosInjector(BaseModule):
             except Exception:
                 # Expected — this is just confirming the site doesn't crash
                 self.add_result(
-                    name=f"Timeout handling: {self._short(url)}",
+                    name=f"Timeout handling: {self._short_path(url)}",
                     description="Verified behavior under extreme timeout (expected failure)",
                     status=TestStatus.PASSED,
                     severity=Severity.INFO,
@@ -266,7 +266,3 @@ class ChaosInjector(BaseModule):
                     details=err,
                     recommendation="Verify server doesn't crash on malformed cookies.",
                 )
-
-    def _short(self, url: str):
-        from urllib.parse import urlparse
-        return urlparse(url).path or "/"

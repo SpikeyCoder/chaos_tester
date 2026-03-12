@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chaos Tester</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #242836;
+  --border: #2e3348;
+  --text: #e4e6f0;
+  --text-muted: #8b8fa3;
+  --accent: #f97316;
+  --accent-dim: #c2410c;
+  --green: #22c55e;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --cyan: #06b6d4;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+/* -- Header ------------------------------------------------- */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+  position: sticky; top: 0; z-index: 100;
+}
+header .inner {
+  display: flex; align-items: center; justify-content: space-between;
+}
+header h1 {
+  font-size: 1.25rem; font-weight: 700;
+  display: flex; align-items: center; gap: 10px;
+}
+header h1 .monkey { font-size: 1.5rem; }
+header nav { display: flex; gap: 20px; align-items: center; }
+header nav a {
+  color: var(--text-muted); font-size: 0.9rem; font-weight: 500;
+  transition: color 0.15s; cursor: pointer;
+}
+header nav a:hover { color: var(--accent); text-decoration: none; }
+header nav a.active { color: var(--accent); }
+
+#connStatus {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.78rem; color: var(--text-muted);
+}
+#connDot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-muted);
+}
+#connDot.ok { background: var(--green); }
+#connDot.err { background: var(--red); }
+
+/* -- Cards -------------------------------------------------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card h2 {
+  font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* -- Forms -------------------------------------------------- */
+label {
+  display: block; font-size: 0.85rem; color: var(--text-muted);
+  margin-bottom: 6px; font-weight: 500;
+}
+input[type="text"], input[type="number"], input[type="url"],
+select, textarea {
+  width: 100%; padding: 10px 14px;
+  background: var(--surface2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-size: 0.9rem; font-family: var(--font);
+  transition: border-color 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--accent);
+}
+textarea { resize: vertical; min-height: 70px; }
+
+.form-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  margin-bottom: 16px;
+}
+.form-group { margin-bottom: 16px; }
+
+.checkbox-row {
+  display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0;
+}
+.checkbox-row label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.9rem; color: var(--text); cursor: pointer;
+  background: var(--surface2); padding: 8px 14px;
+  border-radius: 8px; border: 1px solid var(--border);
+  transition: border-color 0.15s;
+}
+.checkbox-row label:hover { border-color: var(--accent); }
+.checkbox-row input[type="checkbox"] { accent-color: var(--accent); }
+
+/* -- Buttons ------------------------------------------------ */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 28px; border: none; border-radius: 10px;
+  font-size: 0.95rem; font-weight: 600; cursor: pointer;
+  transition: all 0.15s; font-family: var(--font);
+}
+.btn-primary {
+  background: var(--accent); color: #fff;
+}
+.btn-primary:hover { background: var(--accent-dim); }
+.btn-secondary {
+  background: var(--surface2); color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { border-color: var(--accent); }
+.btn-danger {
+  background: #7f1d1d; color: #fca5a5;
+}
+
+/* -- Badges ------------------------------------------------- */
+.badge {
+  display: inline-block; padding: 3px 10px;
+  border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.badge-passed  { background: #14532d; color: var(--green); }
+.badge-failed  { background: #7f1d1d; color: var(--red); }
+.badge-warning { background: #713f12; color: var(--yellow); }
+.badge-error   { background: #7f1d1d; color: var(--red); }
+.badge-info    { background: #1e3a5f; color: var(--blue); }
+.badge-critical{ background: #7f1d1d; color: #fca5a5; }
+.badge-high    { background: #7f1d1d; color: var(--red); }
+.badge-medium  { background: #713f12; color: var(--yellow); }
+.badge-low     { background: #1e3a5f; color: var(--cyan); }
+.badge-skipped { background: var(--surface2); color: var(--text-muted); }
+.badge-completed { background: #14532d; color: var(--green); }
+
+/* -- Tables ------------------------------------------------- */
+table {
+  width: 100%; border-collapse: collapse; font-size: 0.88rem;
+}
+th, td {
+  padding: 10px 14px; text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  font-weight: 600; color: var(--text-muted);
+  font-size: 0.8rem; text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+tr:hover { background: var(--surface2); }
+
+/* -- Progress ----------------------------------------------- */
+.progress-bar-bg {
+  width: 100%; height: 10px; background: var(--surface2);
+  border-radius: 5px; overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%; background: var(--accent);
+  border-radius: 5px; transition: width 0.4s ease;
+}
+
+/* -- Stats Grid --------------------------------------------- */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px; margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface2); border-radius: 10px; padding: 18px;
+  text-align: center;
+}
+.stat-card .number {
+  font-size: 2rem; font-weight: 700; line-height: 1.2;
+}
+.stat-card .label {
+  font-size: 0.8rem; color: var(--text-muted);
+  text-transform: uppercase; margin-top: 4px;
+}
+
+/* -- Utility ------------------------------------------------ */
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mb-2 { margin-bottom: 16px; }
+.text-muted { color: var(--text-muted); }
+.text-sm { font-size: 0.85rem; }
+.mono { font-family: var(--mono); }
+.hidden { display: none; }
+
+/* -- Views -------------------------------------------------- */
+.view { display: none; }
+.view.active { display: block; }
+
+/* -- Filter buttons ----------------------------------------- */
+.filter-btn.active, .module-btn.active {
+  border-color: var(--accent) !important;
+  color: var(--accent);
+}
+
+/* -- Connection banner -------------------------------------- */
+.conn-banner {
+  background: #7f1d1d; color: #fca5a5; padding: 12px 16px;
+  border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;
+}
+.conn-banner a { color: #fca5a5; text-decoration: underline; }
+
+/* -- Responsive --------------------------------------------- */
+@media (max-width: 768px) {
+  .form-row { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container inner">
+    <h1><span class="monkey">&#x1F435;</span> Chaos Tester</h1>
+    <nav>
+      <a href="#dashboard" id="nav-dashboard">Dashboard</a>
+      <a href="#latest" id="nav-latest">Latest Report</a>
+      <a href="#settings" id="nav-settings">Settings</a>
+      <span id="connStatus"><span id="connDot"></span><span id="connLabel">checking...</span></span>
+    </nav>
+  </div>
+</header>
+
+<main class="container" style="padding-top: 28px; padding-bottom: 48px;">
+
+<!-- ============================================================ -->
+<!--  DASHBOARD VIEW                                              -->
+<!-- ============================================================ -->
+<div id="view-dashboard" class="view">
+  <div class="card">
+    <h2>&#x1F680; Launch Test Run</h2>
+    <form id="runForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="base_url">Target URL</label>
+          <input type="url" id="base_url" name="base_url"
+                 value="http://localhost:8000"
+                 placeholder="https://staging.example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="environment">Environment</label>
+          <select id="environment" name="environment">
+            <option value="staging" selected>Staging</option>
+            <option value="test">Test</option>
+            <option value="production">Production (requires opt-in)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="prod-warning" class="hidden" style="background:#7f1d1d;padding:12px 16px;border-radius:8px;margin-bottom:16px;color:#fca5a5;font-size:0.9rem;">
+        &#x26A0; <strong>Production mode:</strong> Tests will run against live infrastructure. Check the box below to confirm.
+        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;color:#fca5a5;">
+          <input type="checkbox" name="allow_production" id="allow_production"> I understand and want to test production
+        </label>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="max_pages">Max Pages to Crawl</label>
+          <input type="number" id="max_pages" name="max_pages" value="100" min="1" max="1000">
+        </div>
+        <div class="form-group">
+          <label for="crawl_depth">Crawl Depth</label>
+          <input type="number" id="crawl_depth" name="crawl_depth" value="3" min="1" max="10">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="request_timeout">Request Timeout (s)</label>
+          <input type="number" id="request_timeout" name="request_timeout" value="15" min="1" max="120">
+        </div>
+        <div class="form-group">
+          <label for="concurrency">Concurrency</label>
+          <input type="number" id="concurrency" name="concurrency" value="5" min="1" max="20">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="chaos_intensity">Chaos Intensity</label>
+          <select id="chaos_intensity" name="chaos_intensity">
+            <option value="low">Low &mdash; gentle probes</option>
+            <option value="medium" selected>Medium &mdash; standard chaos</option>
+            <option value="high">High &mdash; aggressive testing</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="auth_cookie_name">Session Cookie Name</label>
+          <input type="text" id="auth_cookie_name" name="auth_cookie_name" value="sessionid"
+                 placeholder="sessionid">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="auth_url">Auth / Login URL (optional)</label>
+        <input type="url" id="auth_url" name="auth_url" placeholder="https://staging.example.com/login">
+      </div>
+
+      <div class="form-group">
+        <label for="seed_urls">Additional Seed URLs (one per line, optional)</label>
+        <textarea id="seed_urls" name="seed_urls"
+                  placeholder="https://staging.example.com/products&#10;https://staging.example.com/checkout"></textarea>
+      </div>
+
+      <h2 class="mt-2">&#x1F9EA; Test Modules</h2>
+      <div class="checkbox-row">
+        <label><input type="checkbox" name="run_availability" id="run_availability" checked> Page Availability</label>
+        <label><input type="checkbox" name="run_links" id="run_links" checked> Broken Links</label>
+        <label><input type="checkbox" name="run_forms" id="run_forms" checked> Forms &amp; Interactions</label>
+        <label><input type="checkbox" name="run_chaos" id="run_chaos" checked> Chaos / Failure Injection</label>
+        <label><input type="checkbox" name="run_auth" id="run_auth" checked> Auth &amp; Sessions</label>
+        <label><input type="checkbox" name="run_security" id="run_security" checked> Security Scan</label>
+      </div>
+
+      <div class="mt-2">
+        <button type="submit" class="btn btn-primary" id="launchBtn">&#x1F435; Launch Chaos Test</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Run History -->
+  <div class="card">
+    <h2>&#x1F4CB; Run History</h2>
+    <div id="historyContent">
+      <p class="text-muted">Loading...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  PROGRESS VIEW                                               -->
+<!-- ============================================================ -->
+<div id="view-progress" class="view">
+  <div class="card">
+    <h2>&#x1F435; Test Run in Progress</h2>
+
+    <div class="progress-bar-bg mt-2">
+      <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+    </div>
+
+    <div class="mt-2" style="display:flex;justify-content:space-between;align-items:center;">
+      <span id="progressText" class="text-muted text-sm">Starting...</span>
+      <span id="progressPct" style="font-size:1.5rem;font-weight:700;color:var(--accent);">0%</span>
+    </div>
+
+    <div class="mt-3" id="logBox"
+         style="background:var(--surface2);border-radius:8px;padding:16px;max-height:400px;overflow-y:auto;font-family:var(--mono);font-size:0.82rem;line-height:1.8;">
+    </div>
+
+    <div class="mt-2">
+      <a class="btn btn-primary" id="viewReportBtn" style="display:none;" href="#dashboard">&#x1F4CA; View Report</a>
+      <a href="#dashboard" class="btn btn-secondary" style="margin-left:8px;">&larr; Dashboard</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  REPORT VIEW                                                 -->
+<!-- ============================================================ -->
+<div id="view-report" class="view">
+  <div id="reportHeader"></div>
+  <div id="reportStats"></div>
+  <div id="reportFilters"></div>
+  <div id="reportResults"></div>
+  <div id="reportModules"></div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SETTINGS VIEW                                               -->
+<!-- ============================================================ -->
+<div id="view-settings" class="view">
+  <div class="card">
+    <h2>&#x2699;&#xFE0F; Settings</h2>
+    <div class="form-group">
+      <label for="apiUrlInput">Backend API URL</label>
+      <input type="url" id="apiUrlInput" placeholder="http://localhost:5000">
+    </div>
+    <p class="text-muted text-sm mb-2">
+      The Chaos Tester backend must be running locally. Start it with <code>python run.py</code> and enter the URL here.
+    </p>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary" id="testConnBtn">Test Connection</button>
+      <button class="btn btn-secondary" id="saveApiBtn">Save</button>
+    </div>
+    <div id="connTestResult" class="mt-2 text-sm"></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  ERROR VIEW                                                  -->
+<!-- ============================================================ -->
+<div id="view-error" class="view">
+  <div class="conn-banner">
+    <strong>Backend Unreachable</strong> &mdash; The Chaos Tester API server is not responding.
+    Make sure it's running (<code>python run.py</code>) and the URL is correct in
+    <a href="#settings">Settings</a>.
+  </div>
+</div>
+
+</main>
+
+<script>
+/* ==================================================================
+   Chaos Tester — Static SPA
+   Communicates with the Flask backend via fetch / EventSource.
+   ================================================================== */
+
+// -- State -----------------------------------------------------------
+let apiUrl = localStorage.getItem('chaosApiUrl') || 'http://localhost:5000';
+let currentEventSource = null;
+
+// -- Router ----------------------------------------------------------
+function navigate(hash) {
+  if (!hash || hash === '#') hash = '#dashboard';
+
+  // Hide all views
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+
+  // Update nav
+  document.querySelectorAll('header nav a[id]').forEach(a => a.classList.remove('active'));
+
+  if (hash === '#dashboard') {
+    show('view-dashboard');
+    setNav('nav-dashboard');
+    loadHistory();
+  } else if (hash === '#progress') {
+    show('view-progress');
+  } else if (hash === '#latest') {
+    setNav('nav-latest');
+    loadLatestReport();
+    return; // loadLatestReport will navigate
+  } else if (hash.startsWith('#report/')) {
+    show('view-report');
+    setNav('nav-latest');
+    var runId = hash.substring(8);
+    loadReport(runId);
+  } else if (hash === '#settings') {
+    show('view-settings');
+    setNav('nav-settings');
+    document.getElementById('apiUrlInput').value = apiUrl;
+  } else {
+    show('view-dashboard');
+    setNav('nav-dashboard');
+    loadHistory();
+  }
+}
+
+function show(id) { document.getElementById(id).classList.add('active'); }
+function setNav(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+window.addEventListener('hashchange', function() { navigate(location.hash); });
+
+// -- API helper ------------------------------------------------------
+function api(path, opts) {
+  var url = apiUrl.replace(/\/+$/, '') + path;
+  return fetch(url, opts);
+}
+
+// -- Connection check ------------------------------------------------
+function checkConnection() {
+  var dot = document.getElementById('connDot');
+  var label = document.getElementById('connLabel');
+  api('/api/status')
+    .then(function(r) {
+      if (!r.ok) throw new Error('Bad status');
+      dot.className = 'ok';
+      label.textContent = 'connected';
+    })
+    .catch(function() {
+      dot.className = 'err';
+      label.textContent = 'disconnected';
+    });
+}
+
+// -- Dashboard: load history -----------------------------------------
+function loadHistory() {
+  var container = document.getElementById('historyContent');
+  api('/api/runs')
+    .then(function(r) { return r.json(); })
+    .then(function(runs) {
+      if (!runs || runs.length === 0) {
+        container.textContent = '';
+        var p = document.createElement('p');
+        p.className = 'text-muted';
+        p.textContent = 'No test runs yet. Launch your first one above!';
+        container.appendChild(p);
+        return;
+      }
+      // Build table via DOM
+      var table = document.createElement('table');
+      var thead = document.createElement('thead');
+      var headRow = document.createElement('tr');
+      ['Run ID','Target','Env','Time','Tests','Pass Rate','Status',''].forEach(function(h) {
+        var th = document.createElement('th');
+        th.textContent = h;
+        headRow.appendChild(th);
+      });
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      var tbody = document.createElement('tbody');
+      runs.forEach(function(r) {
+        var tr = document.createElement('tr');
+
+        var tdId = document.createElement('td');
+        tdId.className = 'mono text-sm';
+        tdId.textContent = r.run_id;
+        tr.appendChild(tdId);
+
+        var tdUrl = document.createElement('td');
+        tdUrl.className = 'text-sm';
+        tdUrl.textContent = (r.base_url || '').substring(0, 40);
+        tr.appendChild(tdUrl);
+
+        var tdEnv = document.createElement('td');
+        var envBadge = document.createElement('span');
+        envBadge.className = 'badge badge-info';
+        envBadge.textContent = r.environment;
+        tdEnv.appendChild(envBadge);
+        tr.appendChild(tdEnv);
+
+        var tdTime = document.createElement('td');
+        tdTime.className = 'text-sm text-muted';
+        tdTime.textContent = (r.started_at || '').substring(0, 19);
+        tr.appendChild(tdTime);
+
+        var tdTests = document.createElement('td');
+        tdTests.textContent = r.summary ? r.summary.total : '?';
+        tr.appendChild(tdTests);
+
+        var tdRate = document.createElement('td');
+        var rate = r.summary ? r.summary.pass_rate : 0;
+        var rateSpan = document.createElement('span');
+        rateSpan.style.fontWeight = '600';
+        rateSpan.style.color = rate >= 90 ? 'var(--green)' : rate >= 70 ? 'var(--yellow)' : 'var(--red)';
+        rateSpan.textContent = rate + '%';
+        tdRate.appendChild(rateSpan);
+        tr.appendChild(tdRate);
+
+        var tdStatus = document.createElement('td');
+        var statusBadge = document.createElement('span');
+        var badgeClass = r.status === 'completed' ? 'badge-passed' : 'badge-' + r.status;
+        statusBadge.className = 'badge ' + badgeClass;
+        statusBadge.textContent = r.status;
+        tdStatus.appendChild(statusBadge);
+        tr.appendChild(tdStatus);
+
+        var tdLink = document.createElement('td');
+        var link = document.createElement('a');
+        link.href = '#report/' + r.run_id;
+        link.textContent = 'View \u2192';
+        tdLink.appendChild(link);
+        tr.appendChild(tdLink);
+
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+
+      container.textContent = '';
+      container.appendChild(table);
+    })
+    .catch(function() {
+      container.textContent = '';
+      var p = document.createElement('p');
+      p.className = 'text-muted';
+      p.textContent = 'Could not load run history. Is the backend running?';
+      container.appendChild(p);
+    });
+}
+
+// -- Dashboard: submit run -------------------------------------------
+document.getElementById('runForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  var body = {
+    base_url: document.getElementById('base_url').value,
+    environment: document.getElementById('environment').value,
+    allow_production: document.getElementById('allow_production').checked,
+    max_pages: parseInt(document.getElementById('max_pages').value, 10) || 100,
+    crawl_depth: parseInt(document.getElementById('crawl_depth').value, 10) || 3,
+    request_timeout: parseInt(document.getElementById('request_timeout').value, 10) || 15,
+    concurrency: parseInt(document.getElementById('concurrency').value, 10) || 5,
+    chaos_intensity: document.getElementById('chaos_intensity').value,
+    auth_cookie_name: document.getElementById('auth_cookie_name').value,
+    auth_url: document.getElementById('auth_url').value,
+    seed_urls: document.getElementById('seed_urls').value,
+    run_availability: document.getElementById('run_availability').checked,
+    run_links: document.getElementById('run_links').checked,
+    run_forms: document.getElementById('run_forms').checked,
+    run_chaos: document.getElementById('run_chaos').checked,
+    run_auth: document.getElementById('run_auth').checked,
+    run_security: document.getElementById('run_security').checked
+  };
+
+  var btn = document.getElementById('launchBtn');
+  btn.disabled = true;
+  btn.textContent = 'Starting...';
+
+  api('/run', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(body)
+  })
+  .then(function(r) {
+    if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || 'Unknown error'); });
+    location.hash = '#progress';
+  })
+  .catch(function(err) {
+    alert('Failed to start run: ' + err.message);
+  })
+  .finally(function() {
+    btn.disabled = false;
+    btn.textContent = '\uD83D\uDC35 Launch Chaos Test';
+  });
+});
+
+// Production warning toggle
+document.getElementById('environment').addEventListener('change', function() {
+  var warn = document.getElementById('prod-warning');
+  warn.classList.toggle('hidden', this.value !== 'production');
+});
+
+// -- Progress: SSE ---------------------------------------------------
+var moduleColors = {
+  availability: '#3b82f6',
+  links: '#a855f7',
+  forms: '#06b6d4',
+  chaos: '#f97316',
+  auth: '#eab308',
+  security: '#ef4444',
+  runner: '#22c55e',
+  done: '#22c55e'
+};
+
+function startSSE() {
+  var bar = document.getElementById('progressBar');
+  var pctEl = document.getElementById('progressPct');
+  var txt = document.getElementById('progressText');
+  var logBox = document.getElementById('logBox');
+  var reportBtn = document.getElementById('viewReportBtn');
+
+  // Reset
+  bar.style.width = '0%';
+  pctEl.textContent = '0%';
+  pctEl.style.color = 'var(--accent)';
+  txt.textContent = 'Starting...';
+  logBox.textContent = '';
+  reportBtn.style.display = 'none';
+
+  if (currentEventSource) {
+    currentEventSource.close();
+  }
+
+  var streamUrl = apiUrl.replace(/\/+$/, '') + '/stream';
+  currentEventSource = new EventSource(streamUrl);
+
+  currentEventSource.onmessage = function(event) {
+    var data = JSON.parse(event.data);
+    var color = moduleColors[data.module] || '#8b8fa3';
+
+    bar.style.width = data.pct + '%';
+    pctEl.textContent = data.pct + '%';
+    txt.textContent = data.msg;
+
+    // Build log line safely (no innerHTML)
+    var line = document.createElement('div');
+
+    var modSpan = document.createElement('span');
+    modSpan.style.cssText = 'color:' + color + ';font-weight:600;';
+    modSpan.textContent = '[' + data.module + ']';
+
+    var tsSpan = document.createElement('span');
+    tsSpan.style.color = 'var(--text-muted)';
+    tsSpan.textContent = ' ' + (data.ts ? data.ts.substring(11, 19) : '') + ' ';
+
+    var msgSpan = document.createElement('span');
+    msgSpan.textContent = data.msg;
+
+    line.appendChild(modSpan);
+    line.appendChild(tsSpan);
+    line.appendChild(msgSpan);
+    logBox.appendChild(line);
+    logBox.scrollTop = logBox.scrollHeight;
+
+    if (data.module === 'done') {
+      currentEventSource.close();
+      currentEventSource = null;
+      pctEl.style.color = data.msg === 'completed' ? 'var(--green)' : 'var(--red)';
+      txt.textContent = data.msg === 'completed' ? 'All tests complete!' : 'Run failed \u2014 see logs.';
+
+      // Fetch runs to get the latest run_id
+      api('/api/runs').then(function(r) { return r.json(); }).then(function(runs) {
+        if (runs && runs.length > 0) {
+          reportBtn.href = '#report/' + runs[0].run_id;
+          reportBtn.style.display = 'inline-flex';
+        }
+      }).catch(function() {});
+    }
+  };
+
+  currentEventSource.onerror = function() {
+    currentEventSource.close();
+    currentEventSource = null;
+    txt.textContent = 'Connection lost. Refresh to check status.';
+  };
+}
+
+// -- Report: load and render -----------------------------------------
+function loadReport(runId) {
+  api('/report/' + encodeURIComponent(runId) + '/json')
+    .then(function(r) {
+      if (!r.ok) throw new Error('Not found');
+      return r.json();
+    })
+    .then(function(report) {
+      renderReport(report);
+    })
+    .catch(function() {
+      var header = document.getElementById('reportHeader');
+      header.textContent = '';
+      var p = document.createElement('p');
+      p.className = 'text-muted';
+      p.textContent = 'Report not found or backend unreachable.';
+      header.appendChild(p);
+    });
+}
+
+function loadLatestReport() {
+  api('/api/runs')
+    .then(function(r) { return r.json(); })
+    .then(function(runs) {
+      if (runs && runs.length > 0) {
+        location.hash = '#report/' + runs[0].run_id;
+      } else {
+        location.hash = '#dashboard';
+      }
+    })
+    .catch(function() {
+      location.hash = '#dashboard';
+    });
+}
+
+function renderReport(report) {
+  var s = report.summary || {};
+
+  // Header
+  var header = document.getElementById('reportHeader');
+  header.textContent = '';
+  var headerDiv = document.createElement('div');
+  headerDiv.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;';
+
+  var leftDiv = document.createElement('div');
+  var h2 = document.createElement('h2');
+  h2.style.cssText = 'font-size:1.4rem;font-weight:700;';
+  h2.textContent = '\uD83D\uDCCA Test Report ';
+  var statusBadge = document.createElement('span');
+  statusBadge.className = 'badge ' + (report.status === 'completed' ? 'badge-passed' : 'badge-failed');
+  statusBadge.style.cssText = 'font-size:0.75rem;margin-left:8px;';
+  statusBadge.textContent = report.status;
+  h2.appendChild(statusBadge);
+  leftDiv.appendChild(h2);
+
+  var info = document.createElement('p');
+  info.className = 'text-muted text-sm mt-1';
+  info.textContent = 'Run ' + report.run_id + ' \u00B7 ' + report.base_url + ' \u00B7 ' + report.environment + ' \u00B7 ' + (report.started_at || '').substring(0, 19) + ' \u00B7 ' + (report.duration_s || 0) + 's';
+  leftDiv.appendChild(info);
+  headerDiv.appendChild(leftDiv);
+
+  var rightDiv = document.createElement('div');
+  rightDiv.style.cssText = 'display:flex;gap:8px;align-items:center;';
+
+  var jsonLink = document.createElement('a');
+  jsonLink.href = apiUrl.replace(/\/+$/, '') + '/report/' + report.run_id + '/download/json';
+  jsonLink.className = 'btn btn-secondary text-sm';
+  jsonLink.textContent = '\u2B07 JSON';
+  jsonLink.setAttribute('download', '');
+  rightDiv.appendChild(jsonLink);
+
+  var csvLink = document.createElement('a');
+  csvLink.href = apiUrl.replace(/\/+$/, '') + '/report/' + report.run_id + '/download/csv';
+  csvLink.className = 'btn btn-secondary text-sm';
+  csvLink.textContent = '\u2B07 CSV';
+  csvLink.setAttribute('download', '');
+  rightDiv.appendChild(csvLink);
+
+  var backLink = document.createElement('a');
+  backLink.href = '#dashboard';
+  backLink.className = 'btn btn-secondary text-sm';
+  backLink.textContent = '\u2190 Dashboard';
+  rightDiv.appendChild(backLink);
+
+  headerDiv.appendChild(rightDiv);
+  header.appendChild(headerDiv);
+
+  // Stats
+  var statsDiv = document.getElementById('reportStats');
+  statsDiv.textContent = '';
+  var grid = document.createElement('div');
+  grid.className = 'stats-grid';
+
+  var statItems = [
+    { value: s.total || 0, label: 'Total Tests', color: 'var(--text)' },
+    { value: s.passed || 0, label: 'Passed', color: 'var(--green)' },
+    { value: s.failed || 0, label: 'Failed', color: 'var(--red)' },
+    { value: s.warnings || 0, label: 'Warnings', color: 'var(--yellow)' },
+    { value: s.errors || 0, label: 'Errors', color: 'var(--red)' },
+    { value: (s.pass_rate || 0) + '%', label: 'Pass Rate', color: (s.pass_rate || 0) >= 90 ? 'var(--green)' : (s.pass_rate || 0) >= 70 ? 'var(--yellow)' : 'var(--red)' }
+  ];
+
+  statItems.forEach(function(item) {
+    var card = document.createElement('div');
+    card.className = 'stat-card';
+    var num = document.createElement('div');
+    num.className = 'number';
+    num.style.color = item.color;
+    num.textContent = item.value;
+    card.appendChild(num);
+    var lbl = document.createElement('div');
+    lbl.className = 'label';
+    lbl.textContent = item.label;
+    card.appendChild(lbl);
+    grid.appendChild(card);
+  });
+  statsDiv.appendChild(grid);
+
+  // Filters
+  var filtersDiv = document.getElementById('reportFilters');
+  filtersDiv.textContent = '';
+  var filterCard = document.createElement('div');
+  filterCard.className = 'card';
+  filterCard.style.padding = '14px 20px';
+  var filterWrap = document.createElement('div');
+  filterWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;';
+
+  var span1 = document.createElement('span');
+  span1.className = 'text-muted text-sm';
+  span1.style.marginRight = '8px';
+  span1.textContent = 'Filter:';
+  filterWrap.appendChild(span1);
+
+  var statusFilters = ['all','failed','warning','passed'];
+  statusFilters.forEach(function(f) {
+    var btn = document.createElement('button');
+    btn.className = 'btn btn-secondary text-sm filter-btn' + (f === 'all' ? ' active' : '');
+    btn.setAttribute('data-filter', f);
+    btn.textContent = f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1);
+    if (f === 'failed') btn.style.borderColor = '#7f1d1d';
+    if (f === 'warning') btn.style.borderColor = '#713f12';
+    if (f === 'passed') btn.style.borderColor = '#14532d';
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      applyReportFilters();
+    });
+    filterWrap.appendChild(btn);
+  });
+
+  var span2 = document.createElement('span');
+  span2.className = 'text-muted text-sm';
+  span2.style.cssText = 'margin-left:16px;margin-right:8px;';
+  span2.textContent = 'Module:';
+  filterWrap.appendChild(span2);
+
+  var modFilters = ['all','availability','links','forms','chaos','auth','security'];
+  modFilters.forEach(function(m) {
+    var btn = document.createElement('button');
+    btn.className = 'btn btn-secondary text-sm module-btn' + (m === 'all' ? ' active' : '');
+    btn.setAttribute('data-module', m);
+    btn.textContent = m === 'all' ? 'All' : m.charAt(0).toUpperCase() + m.slice(1);
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.module-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      applyReportFilters();
+    });
+    filterWrap.appendChild(btn);
+  });
+
+  filterCard.appendChild(filterWrap);
+  filtersDiv.appendChild(filterCard);
+
+  // Results table
+  var resultsDiv = document.getElementById('reportResults');
+  resultsDiv.textContent = '';
+  var resultsCard = document.createElement('div');
+  resultsCard.className = 'card';
+
+  var rh2 = document.createElement('h2');
+  rh2.textContent = '\uD83D\uDCDD Detailed Results (' + (report.results || []).length + ')';
+  resultsCard.appendChild(rh2);
+
+  var rtable = document.createElement('table');
+  rtable.id = 'resultsTable';
+  var rthead = document.createElement('thead');
+  var rhr = document.createElement('tr');
+  ['#','Status','Severity','Module','Test','Details','Time'].forEach(function(h) {
+    var th = document.createElement('th');
+    th.textContent = h;
+    if (h === '#') th.style.width = '50px';
+    if (h === 'Time') th.style.width = '80px';
+    rhr.appendChild(th);
+  });
+  rthead.appendChild(rhr);
+  rtable.appendChild(rthead);
+
+  var rtbody = document.createElement('tbody');
+  var modColors = {availability:'#3b82f6',links:'#a855f7',forms:'#06b6d4',chaos:'#f97316',auth:'#eab308',security:'#ef4444'};
+
+  (report.results || []).forEach(function(r, idx) {
+    var tr = document.createElement('tr');
+    tr.className = 'result-row';
+    tr.setAttribute('data-status', r.status || '');
+    tr.setAttribute('data-module', r.module || '');
+
+    var tdIdx = document.createElement('td');
+    tdIdx.className = 'text-muted mono text-sm';
+    tdIdx.textContent = idx + 1;
+    tr.appendChild(tdIdx);
+
+    var tdStatus = document.createElement('td');
+    var sb = document.createElement('span');
+    sb.className = 'badge badge-' + (r.status || 'info');
+    sb.textContent = r.status || '';
+    tdStatus.appendChild(sb);
+    tr.appendChild(tdStatus);
+
+    var tdSev = document.createElement('td');
+    var sevb = document.createElement('span');
+    sevb.className = 'badge badge-' + (r.severity || 'info');
+    sevb.textContent = r.severity || '';
+    tdSev.appendChild(sevb);
+    tr.appendChild(tdSev);
+
+    var tdMod = document.createElement('td');
+    tdMod.className = 'text-sm';
+    var modSpan = document.createElement('span');
+    modSpan.style.cssText = 'color:' + (modColors[r.module] || '#8b8fa3') + ';font-weight:600;';
+    modSpan.textContent = r.module || '';
+    tdMod.appendChild(modSpan);
+    tr.appendChild(tdMod);
+
+    var tdTest = document.createElement('td');
+    var nameDiv = document.createElement('div');
+    nameDiv.style.fontWeight = '500';
+    nameDiv.textContent = r.name || '';
+    tdTest.appendChild(nameDiv);
+    if (r.description) {
+      var descDiv = document.createElement('div');
+      descDiv.className = 'text-muted text-sm';
+      descDiv.textContent = (r.description || '').substring(0, 120);
+      tdTest.appendChild(descDiv);
+    }
+    tr.appendChild(tdTest);
+
+    var tdDetails = document.createElement('td');
+    tdDetails.className = 'text-sm';
+    if (r.details) {
+      var detDiv = document.createElement('div');
+      detDiv.style.marginBottom = '4px';
+      detDiv.textContent = (r.details || '').substring(0, 200);
+      tdDetails.appendChild(detDiv);
+    }
+    if (r.recommendation) {
+      var recDiv = document.createElement('div');
+      recDiv.style.cssText = 'color:var(--cyan);font-size:0.8rem;';
+      recDiv.textContent = '\uD83D\uDCA1 ' + (r.recommendation || '').substring(0, 200);
+      tdDetails.appendChild(recDiv);
+    }
+    if (r.url) {
+      var urlDiv = document.createElement('div');
+      urlDiv.className = 'text-muted';
+      urlDiv.style.fontSize = '0.78rem';
+      urlDiv.textContent = (r.url || '').substring(0, 80);
+      tdDetails.appendChild(urlDiv);
+    }
+    tr.appendChild(tdDetails);
+
+    var tdTime = document.createElement('td');
+    tdTime.className = 'mono text-sm text-muted';
+    tdTime.textContent = Math.round(r.duration_ms || 0) + 'ms';
+    tr.appendChild(tdTime);
+
+    rtbody.appendChild(tr);
+  });
+
+  rtable.appendChild(rtbody);
+  resultsCard.appendChild(rtable);
+  resultsDiv.appendChild(resultsCard);
+
+  // Module breakdown
+  var modulesDiv = document.getElementById('reportModules');
+  modulesDiv.textContent = '';
+  var modCard = document.createElement('div');
+  modCard.className = 'card';
+  var mh2 = document.createElement('h2');
+  mh2.textContent = '\uD83D\uDCC8 Module Breakdown';
+  modCard.appendChild(mh2);
+
+  var modGrid = document.createElement('div');
+  modGrid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;';
+
+  var modIcons = {availability:'\uD83C\uDF10',links:'\uD83D\uDD17',forms:'\uD83D\uDCDD',chaos:'\uD83D\uDC35',auth:'\uD83D\uDD12',security:'\uD83D\uDEE1'};
+  var modNames = ['availability','links','forms','chaos','auth','security'];
+
+  modNames.forEach(function(mod) {
+    var modResults = (report.results || []).filter(function(r) { return r.module === mod; });
+    if (modResults.length === 0) return;
+
+    var mp = modResults.filter(function(r) { return r.status === 'passed'; }).length;
+    var mf = modResults.filter(function(r) { return r.status === 'failed'; }).length;
+    var mw = modResults.filter(function(r) { return r.status === 'warning'; }).length;
+
+    var box = document.createElement('div');
+    box.style.cssText = 'background:var(--surface2);border-radius:10px;padding:16px;';
+
+    var title = document.createElement('div');
+    title.style.cssText = 'font-weight:600;margin-bottom:8px;';
+    title.textContent = (modIcons[mod] || '') + ' ' + mod.charAt(0).toUpperCase() + mod.slice(1) + ' (' + modResults.length + ')';
+    box.appendChild(title);
+
+    var counts = document.createElement('div');
+    counts.style.cssText = 'display:flex;gap:12px;font-size:0.85rem;';
+    var sp1 = document.createElement('span'); sp1.style.color = 'var(--green)'; sp1.textContent = '\u2713 ' + mp; counts.appendChild(sp1);
+    var sp2 = document.createElement('span'); sp2.style.color = 'var(--red)'; sp2.textContent = '\u2717 ' + mf; counts.appendChild(sp2);
+    var sp3 = document.createElement('span'); sp3.style.color = 'var(--yellow)'; sp3.textContent = '\u26A0 ' + mw; counts.appendChild(sp3);
+    box.appendChild(counts);
+
+    var barBg = document.createElement('div');
+    barBg.className = 'progress-bar-bg mt-1';
+    barBg.style.height = '6px';
+    var barFill = document.createElement('div');
+    barFill.className = 'progress-bar-fill';
+    barFill.style.cssText = 'width:' + (modResults.length ? (mp / modResults.length * 100) : 0) + '%;background:var(--green);';
+    barBg.appendChild(barFill);
+    box.appendChild(barBg);
+
+    modGrid.appendChild(box);
+  });
+
+  modCard.appendChild(modGrid);
+  modulesDiv.appendChild(modCard);
+}
+
+function applyReportFilters() {
+  var activeStatus = document.querySelector('.filter-btn.active');
+  var activeMod = document.querySelector('.module-btn.active');
+  var statusFilter = activeStatus ? activeStatus.getAttribute('data-filter') : 'all';
+  var modFilter = activeMod ? activeMod.getAttribute('data-module') : 'all';
+
+  document.querySelectorAll('.result-row').forEach(function(row) {
+    var matchStatus = statusFilter === 'all' || row.getAttribute('data-status') === statusFilter;
+    var matchModule = modFilter === 'all' || row.getAttribute('data-module') === modFilter;
+    row.style.display = (matchStatus && matchModule) ? '' : 'none';
+  });
+}
+
+// -- Settings --------------------------------------------------------
+document.getElementById('testConnBtn').addEventListener('click', function() {
+  var urlInput = document.getElementById('apiUrlInput');
+  var result = document.getElementById('connTestResult');
+  var testUrl = urlInput.value.replace(/\/+$/, '') + '/api/status';
+
+  result.textContent = 'Testing...';
+  result.style.color = 'var(--text-muted)';
+
+  fetch(testUrl)
+    .then(function(r) {
+      if (!r.ok) throw new Error('Bad response');
+      return r.json();
+    })
+    .then(function(data) {
+      result.style.color = 'var(--green)';
+      result.textContent = '\u2705 Connected! Backend status: ' + data.status;
+    })
+    .catch(function() {
+      result.style.color = 'var(--red)';
+      result.textContent = '\u274C Could not reach backend at ' + urlInput.value;
+    });
+});
+
+document.getElementById('saveApiBtn').addEventListener('click', function() {
+  var urlInput = document.getElementById('apiUrlInput');
+  apiUrl = urlInput.value.replace(/\/+$/, '');
+  localStorage.setItem('chaosApiUrl', apiUrl);
+  var result = document.getElementById('connTestResult');
+  result.style.color = 'var(--green)';
+  result.textContent = 'Saved!';
+  checkConnection();
+});
+
+// -- Init ------------------------------------------------------------
+(function init() {
+  checkConnection();
+  setInterval(checkConnection, 30000);
+
+  // Watch for progress view activation to start SSE
+  var observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      if (m.target.id === 'view-progress' && m.target.classList.contains('active')) {
+        startSSE();
+      }
+    });
+  });
+  observer.observe(document.getElementById('view-progress'), { attributes: true, attributeFilter: ['class'] });
+
+  navigate(location.hash || '#dashboard');
+})();
+</script>
+</body>
+</html>
