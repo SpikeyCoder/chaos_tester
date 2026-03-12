@@ -76,7 +76,7 @@ for f in sorted(REPORTS_DIR.glob("*.json")):
     try:
         data = json.loads(f.read_text())
         _run_history.append(data)
-            _run_index[data["run_id"]] = data
+        _run_index[data["run_id"]] = data
     except Exception:
         pass
 
