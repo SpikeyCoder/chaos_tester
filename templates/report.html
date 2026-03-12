@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Report {{ report.run_id }} — Chaos Tester{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+  <div>
+    <h2 style="font-size:1.4rem;font-weight:700;">
+      📊 Test Report
+      <span class="badge badge-{{ 'passed' if report.status == 'completed' else 'failed' }}" style="font-size:0.75rem;margin-left:8px;">{{ report.status }}</span>
+    </h2>
+    <p class="text-muted text-sm mt-1">
+      Run <code>{{ report.run_id }}</code> &middot;
+      {{ report.base_url }} &middot;
+      <span class="badge badge-info">{{ report.environment }}</span> &middot;
+      {{ report.started_at[:19] }} &middot;
+      {{ report.duration_s }}s
+    </p>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <a href="/report/{{ report.run_id }}/download/json" class="btn btn-secondary text-sm" download>⬇ JSON</a>
+    <a href="/report/{{ report.run_id }}/download/csv" class="btn btn-secondary text-sm" download>⬇ CSV</a>
+    <a href="/" class="btn btn-secondary text-sm">← Dashboard</a>
+  </div>
+</div>
+
+<!-- ── Summary Stats ──────────────────────────────────────── -->
+{% set s = report.summary %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="number" style="color:var(--text)">{{ s.total }}</div>
+    <div class="label">Total Tests</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:var(--green)">{{ s.passed }}</div>
+    <div class="label">Passed</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:var(--red)">{{ s.failed }}</div>
+    <div class="label">Failed</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:var(--yellow)">{{ s.warnings }}</div>
+    <div class="label">Warnings</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:var(--red)">{{ s.errors }}</div>
+    <div class="label">Errors</div>
+  </div>
+  <div class="stat-card">
+    {% set rate = s.pass_rate %}
+    <div class="number" style="color:{% if rate >= 90 %}var(--green){% elif rate >= 70 %}var(--yellow){% else %}var(--red){% endif %}">{{ rate }}%</div>
+    <div class="label">Pass Rate</div>
+  </div>
+</div>
+
+<!-- ── Filters ────────────────────────────────────────────── -->
+<div class="card" style="padding:14px 20px;">
+  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+    <span class="text-muted text-sm" style="margin-right:8px;">Filter:</span>
+    <button class="btn btn-secondary text-sm filter-btn active" data-filter="all" onclick="filterResults('all', this)">All</button>
+    <button class="btn btn-secondary text-sm filter-btn" data-filter="failed" onclick="filterResults('failed', this)" style="border-color:#7f1d1d;">Failed</button>
+    <button class="btn btn-secondary text-sm filter-btn" data-filter="warning" onclick="filterResults('warning', this)" style="border-color:#713f12;">Warnings</button>
+    <button class="btn btn-secondary text-sm filter-btn" data-filter="passed" onclick="filterResults('passed', this)" style="border-color:#14532d;">Passed</button>
+
+    <span class="text-muted text-sm" style="margin-left:16px;margin-right:8px;">Module:</span>
+    <button class="btn btn-secondary text-sm module-btn active" data-module="all" onclick="filterModule('all', this)">All</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="availability" onclick="filterModule('availability', this)">Availability</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="links" onclick="filterModule('links', this)">Links</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="forms" onclick="filterModule('forms', this)">Forms</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="chaos" onclick="filterModule('chaos', this)">Chaos</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="auth" onclick="filterModule('auth', this)">Auth</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="security" onclick="filterModule('security', this)">Security</button>
+  </div>
+</div>
+
+<!-- ── Results Table ──────────────────────────────────────── -->
+<div class="card">
+  <h2>📝 Detailed Results ({{ report.results|length }})</h2>
+  <table id="resultsTable">
+    <thead>
+      <tr>
+        <th style="width:50px">#</th>
+        <th>Status</th>
+        <th>Severity</th>
+        <th>Module</th>
+        <th>Test</th>
+        <th>Details</th>
+        <th style="width:80px">Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in report.results %}
+      <tr class="result-row" data-status="{{ r.status }}" data-module="{{ r.module }}">
+        <td class="text-muted mono text-sm">{{ loop.index }}</td>
+        <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+        <td><span class="badge badge-{{ r.severity }}">{{ r.severity }}</span></td>
+        <td class="text-sm">
+          {% set mc = {'availability':'#3b82f6','links':'#a855f7','forms':'#06b6d4','chaos':'#f97316','auth':'#eab308','security':'#ef4444'} %}
+          <span style="color:{{ mc.get(r.module, '#8b8fa3') }};font-weight:600;">{{ r.module }}</span>
+        </td>
+        <td>
+          <div style="font-weight:500;">{{ r.name }}</div>
+          {% if r.description %}<div class="text-muted text-sm">{{ r.description[:120] }}</div>{% endif %}
+        </td>
+        <td class="text-sm">
+          {% if r.details %}<div style="margin-bottom:4px;">{{ r.details[:200] }}</div>{% endif %}
+          {% if r.recommendation %}
+          <div style="color:var(--cyan);font-size:0.8rem;">💡 {{ r.recommendation[:200] }}</div>
+          {% endif %}
+          {% if r.url %}<div class="text-muted" style="font-size:0.78rem;">{{ r.url[:80] }}</div>{% endif %}
+        </td>
+        <td class="mono text-sm text-muted">{{ r.duration_ms|round(0)|int }}ms</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Module Breakdown ───────────────────────────────────── -->
+<div class="card">
+  <h2>📈 Module Breakdown</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;">
+    {% set modules = ['availability','links','forms','chaos','auth','security'] %}
+    {% set icons = {'availability':'🌐','links':'🔗','forms':'📝','chaos':'🐵','auth':'🔒','security':'🛡'} %}
+    {% for mod in modules %}
+      {% set mod_results = report.results|selectattr('module','equalto',mod)|list %}
+      {% if mod_results %}
+      <div style="background:var(--surface2);border-radius:10px;padding:16px;">
+        <div style="font-weight:600;margin-bottom:8px;">
+          {{ icons.get(mod,'') }} {{ mod|capitalize }}
+          <span class="text-muted text-sm">({{ mod_results|length }})</span>
+        </div>
+        {% set mp = mod_results|selectattr('status','equalto','passed')|list|length %}
+        {% set mf = mod_results|selectattr('status','equalto','failed')|list|length %}
+        {% set mw = mod_results|selectattr('status','equalto','warning')|list|length %}
+        <div style="display:flex;gap:12px;font-size:0.85rem;">
+          <span style="color:var(--green)">✓ {{ mp }}</span>
+          <span style="color:var(--red)">✗ {{ mf }}</span>
+          <span style="color:var(--yellow)">⚠ {{ mw }}</span>
+        </div>
+        {% set mod_total = mod_results|length %}
+        <div class="progress-bar-bg mt-1" style="height:6px;">
+          <div class="progress-bar-fill" style="width:{{ (mp / mod_total * 100) if mod_total else 0 }}%;background:var(--green);"></div>
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+let currentStatus = 'all';
+let currentModule = 'all';
+
+function filterResults(status, btn) {
+  currentStatus = status;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function filterModule(mod, btn) {
+  currentModule = mod;
+  document.querySelectorAll('.module-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  document.querySelectorAll('.result-row').forEach(row => {
+    const matchStatus = currentStatus === 'all' || row.dataset.status === currentStatus;
+    const matchModule = currentModule === 'all' || row.dataset.module === currentModule;
+    row.style.display = (matchStatus && matchModule) ? '' : 'none';
+  });
+}
+</script>
+
+<style>
+.filter-btn.active, .module-btn.active {
+  border-color: var(--accent) !important;
+  color: var(--accent);
+}
+</style>
+{% endblock %}
