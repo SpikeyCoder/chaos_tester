@@ -145,10 +145,113 @@
   {% endif %}
 </div>
 
+
 <script>
 function toggleProdWarning() {
   const env = document.getElementById('environment').value;
   document.getElementById('prod-warning').classList.toggle('hidden', env !== 'production');
 }
+
+// Intercept form submit to use JSON + X-Requested-With (avoids CSRF cookie issues with proxied domains)
+document.getElementById('runForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var form = e.target;
+  var btn = form.querySelector('button[type="submit"]');
+  var origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Starting...';
+
+  var data = {};
+  var formData = new FormData(form);
+  formData.forEach(function(value, key) {
+    if (key === 'csrf_token') return;
+    if (form.querySelector('[name="' + key + '"]')?.type === 'checkbox') {
+      data[key] = form.querySelector('[name="' + key + '"]').checked;
+    } else {
+      data[key] = value;
+    }
+  });
+
+  fetch('/run', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(function(r)c a{t
+  >   / timfp /(f!orr.mo_kf)i xr.eptyu r<n<  r'.PjYsEoOnF(')
+.itmhpeonr(tf urnec
+twiiotnh( do)p e{n (t'htreomwp lnaetwe sE/rdraosrh(bdo.aerrdr.ohrt m|l|' ,r .'srt'a)t uassT efx:t
+) ;   } )c;o
+n t e n tw i=n dfo.wr.elaodc(a)t
+i
+o#n .Chhreecfk  =i f' /aplrroegardeys sh'a;s
+  t h}e) 
+f o r.mc aitncthe(rfcuenpcttoiro
+ni(fe r'rr)u n{F
+o r m '  ailne rcto(n'tFeanitl eadn dt o' asdtdaErvte:n t'L i+s teernre.rm'e sisna gceo)n;t
+e n t : 
+b t n . dpirsianbtl(e"dA l=r efaadlys ep;a
+t c h e db!t"n).
+teelxsteC:o
+n t e n tj s=_ bolroicgkT e=x t";"
+" 
+ <}s)c;r
+i}p)t;>
+
+<f/usnccrtiipotn> 
+t{o%g gelnedPbrloodcWka r%n}i"n"g"(
+)   { 
+  #  cRoenpslta ceen vo l=d  dsoccruimpetn tb.lgoectkE l+e meenndtbBlyoIcdk(
+' e n v icroonntmeenntt '=) .rvea.lsuueb;(
+r ' <dsoccruimpetn>t\.sg*eftuEnlcetmieonnt BtyoIgdg(l'epPrroodd-Wwaarrnniinngg'()\.)c.l*a?s{s%L iesntd.btloogcgkl e%(}''h,i djdse_nb'l,o cekn,v  c!o=n=t e'nptr,o dfulcatgiso=nr'e).;D
+O}T
+A
+L/L/) 
+I n t e rwcietpht  ofpoernm( 'stuebmmpilta tteos /udsaes hJbSoOaNr d+. hXt-mRle'q,u e'swt'e)d -aWsi tfh: 
+( a v o i d s   CfS.RwFr ictoeo(kcioen tiesnstu)e
+s   w i tphr ipnrto(x"iPeadt cdhoemda isnusc)c
+edsoscfuumlelnyt!."g)e
+tPEYlEeOmFe
+nptyBtyhIodn(3' r/utnmFpo/rfmo'r)m._afdidxE.vpeyn
+tListener('submit', function(e) {
+  e.preventDefault();
+  var form = e.target;
+  var btn = form.querySelector('button[type="submit"]');
+  var origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Starting...';
+
+  var data = {};
+  var formData = new FormData(form);
+  formData.forEach(function(value, key) {
+    if (key === 'csrf_token') return;
+    if (form.querySelector('[name="' + key + '"]')?.type === 'checkbox') {
+      data[key] = form.querySelector('[name="' + key + '"]').checked;
+    } else {
+      data[key] = value;
+    }
+  });
+
+  fetch('/run', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(function(r) {
+    if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || r.statusText); });
+    window.location.href = '/progress';
+  })
+  .catch(function(err) {
+    alert('Failed to start: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = origText;
+  });
+});
 </script>
 {% endblock %}

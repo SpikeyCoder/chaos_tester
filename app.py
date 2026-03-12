@@ -118,7 +118,7 @@ def _set_security_headers(response):
         "script-src 'self' 'unsafe-inline'; "
         "style-src 'self' 'unsafe-inline'; "
         "img-src 'self' data:; "
-        "connect-src 'self';"
+        "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app;"
     )
     # CORS headers for cross-origin SPA (GitHub Pages → localhost backend)
     response.headers["Access-Control-Allow-Origin"] = "*"
