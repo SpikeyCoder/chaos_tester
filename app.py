@@ -276,6 +276,7 @@ def start_run():
         config.seed_urls = [s.strip() for s in seeds.split("\n") if s.strip()]
 
     try:
+        import sys; print(f"[DEBUG /run] env={config.environment}, allow_prod={config.allow_production}, is_json={is_json}", file=sys.stderr)
         config.validate()
     except (RuntimeError, ValueError) as e:
         return jsonify({"error": str(e)}), 400

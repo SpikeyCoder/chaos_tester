@@ -23,6 +23,7 @@ document.getElementById('runForm').addEventListener('submit', function(e) {
     }
   });
 
+  console.log("[DEBUG] Sending data:", JSON.stringify(data));
   fetch('/run', {
     method: 'POST',
     headers: {
