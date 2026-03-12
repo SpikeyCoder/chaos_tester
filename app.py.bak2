@@ -68,7 +68,6 @@ _current_run = None          # TestRun | None
 _current_status = "idle"     # idle | running | completed | failed
 _progress = []               # list of {module, pct, msg, ts}
 _run_history = []             # list of saved TestRun dicts
-_run_index = {}              # run_id -> report dict for O(1) lookup
 _lock = threading.Lock()
 
 # Load existing reports on startup
@@ -76,7 +75,6 @@ for f in sorted(REPORTS_DIR.glob("*.json")):
     try:
         data = json.loads(f.read_text())
         _run_history.append(data)
-            _run_index[data["run_id"]] = data
     except Exception:
         pass
 
@@ -133,9 +131,10 @@ def _set_security_headers(response):
     allowed = ["https://website-auditor.io", "https://spikeycoder.github.io", "http://localhost:5000"]
     if origin in allowed:
         response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Requested-With"
-    response.headers["Server"] = "WebAuditor"
+    else:
+        response.headers["Access-Control-Allow-Origin"] = "https://website-auditor.io"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Requested-With"
     return response
 
 
@@ -209,7 +208,6 @@ def _run_tests(config: ChaosConfig):
 
     with _lock:
         _run_history.append(report_data)
-        _run_index[report_data["run_id"]] = report_data
 
     logger.info("Report saved: %s", report_file)
 
@@ -308,9 +306,9 @@ def stream():
 def view_report(run_id):
     _validate_run_id(run_id)
     with _lock:
-        report = _run_index.get(run_id)
-    if report:
-        return render_template("report.html", report=report)
+        for report in _run_history:
+            if report.get("run_id") == run_id:
+                return render_template("report.html", report=report)
     return "Report not found", 404
 
 
@@ -419,20 +417,6 @@ def api_runs():
         } for r in reversed(_run_history[-50:])]
     return jsonify(runs)
 
-
-
-# Protected Paths (return 404 instead of 405)
-_PROTECTED = {
-    "/account","/admin","/api/admin","/api/private",
-    "/api/settings","/api/users","/billing","/config",
-    "/dashboard","/internal","/manage","/orders",
-    "/payments","/profile","/settings","/users",
-}
-
-@app.before_request
-def _block_protected():
-    if request.path in _PROTECTED:
-        abort(404)
 
 # ── Entry Point ───────────────────────────────────────────────────
 

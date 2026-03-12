@@ -54,7 +54,7 @@
 </div>
 
 <!-- ── Filters ────────────────────────────────────────────── -->
-<div class="card" style="padding:14px 20px;">
+<form onsubmit="return false"><div class="card" style="padding:14px 20px;">
   <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
     <span class="text-muted text-sm" style="margin-right:8px;">Filter:</span>
     <button class="btn btn-secondary text-sm filter-btn active" data-filter="all" onclick="filterResults('all', this)">All</button>
@@ -72,6 +72,7 @@
     <button class="btn btn-secondary text-sm module-btn" data-module="security" onclick="filterModule('security', this)">Security</button>
   </div>
 </div>
+</form>
 
 <!-- ── Results Table ──────────────────────────────────────── -->
 <div class="card">
