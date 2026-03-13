@@ -1,5 +1,5 @@
 """
-Chaos Tester — Test Runner
+Chaos Tester â Test Runner
 
 Orchestrates all test modules in sequence, collects results,
 and produces a TestRun object.
@@ -54,7 +54,7 @@ class ChaosTestRunner:
         try:
             discovered_pages = []
 
-            # ── Phase 1: Availability + Discovery ─────────────────
+            # ââ Phase 1: Availability + Discovery âââââââââââââââââ
             if self.config.run_availability:
                 self._emit("availability", 5, "Scanning pages and checking availability...")
                 scanner = AvailabilityScanner(self.config)
@@ -65,47 +65,47 @@ class ChaosTestRunner:
                     r.url for r in results
                     if r.module == "availability" and "Page load" in r.name and r.status.value == "passed"
                 })
-                self._emit("availability", 20, f"Done — {len(discovered_pages)} pages OK, {len(results)} checks.")
+                self._emit("availability", 20, f"Done â {len(discovered_pages)} pages OK, {len(results)} checks.")
 
-            # ── Phase 2: Broken Links ─────────────────────────────
+            # ââ Phase 2: Broken Links âââââââââââââââââââââââââââââ
             if self.config.run_links:
                 self._emit("links", 25, "Checking links, images, scripts, stylesheets...")
                 link_scanner = BrokenLinkScanner(self.config)
                 results = link_scanner.run(discovered_pages)
                 self.test_run.results.extend(results)
-                self._emit("links", 40, f"Done — {len(results)} resources checked.")
+                self._emit("links", 40, f"Done â {len(results)} resources checked.")
 
-            # ── Phase 3: Forms & Interactions ─────────────────────
+            # ââ Phase 3: Forms & Interactions âââââââââââââââââââââ
             if self.config.run_forms:
                 self._emit("forms", 45, "Testing forms, buttons, and input handling...")
                 form_tester = FormInteractionTester(self.config)
                 results = form_tester.run(discovered_pages)
                 self.test_run.results.extend(results)
-                self._emit("forms", 55, f"Done — {len(results)} interaction tests.")
+                self._emit("forms", 55, f"Done â {len(results)} interaction tests.")
 
-            # ── Phase 4: Chaos / Failure Injection ────────────────
+            # ââ Phase 4: Chaos / Failure Injection ââââââââââââââââ
             if self.config.run_chaos:
                 self._emit("chaos", 60, "Running chaos / failure injection scenarios...")
                 chaos = ChaosInjector(self.config)
                 results = chaos.run(discovered_pages)
                 self.test_run.results.extend(results)
-                self._emit("chaos", 72, f"Done — {len(results)} chaos tests.")
+                self._emit("chaos", 72, f"Done â {len(results)} chaos tests.")
 
-            # ── Phase 5: Auth & Session ───────────────────────────
+            # ââ Phase 5: Auth & Session âââââââââââââââââââââââââââ
             if self.config.run_auth:
                 self._emit("auth", 75, "Testing authentication and authorization...")
                 auth_tester = AuthTester(self.config)
                 results = auth_tester.run(discovered_pages)
                 self.test_run.results.extend(results)
-                self._emit("auth", 85, f"Done — {len(results)} auth tests.")
+                self._emit("auth", 85, f"Done â {len(results)} auth tests.")
 
-            # ── Phase 6: Security ─────────────────────────────────
+            # ââ Phase 6: Security âââââââââââââââââââââââââââââââââ
             if self.config.run_security:
                 self._emit("security", 88, "Running security scans...")
                 sec = SecurityScanner(self.config)
                 results = sec.run(discovered_pages)
                 self.test_run.results.extend(results)
-                self._emit("security", 97, f"Done — {len(results)} security checks.")
+                self._emit("security", 97, f"Done â {len(results)} security checks.")
 
 
             # Phase 7: Performance Metrics
@@ -113,7 +113,15 @@ class ChaosTestRunner:
             try:
                 perf = fetch_performance_metrics(self.config.base_url)
                 self.test_run.performance_metrics = perf
-                self._emit('performance', 99, 'Done - performance metrics collected.')
+                has_data = any(
+                    perf.get(s, {}).get("score") is not None
+                    for s in ("mobile", "desktop")
+                )
+                if has_data:
+                    self._emit('performance', 99, 'Done \u2014 performance metrics collected.')
+                else:
+                    logger.warning("PSI returned empty data for %s", self.config.base_url)
+                    self._emit('performance', 99, 'Performance data empty (API may be rate-limited).')
             except Exception as exc:
                 logger.warning('Performance metrics failed: %s', exc)
                 self._emit('performance', 99, 'Performance metrics unavailable.')
@@ -123,7 +131,7 @@ class ChaosTestRunner:
         except Exception as e:
             logger.exception("Test run failed: %s", e)
             self.test_run.status = "failed"
-            # Sanitize the error message — strip tracebacks from
+            # Sanitize the error message â strip tracebacks from
             # user-facing output while keeping the type + summary.
             err_type = type(e).__name__
             err_msg = str(e)[:200]  # truncate overly verbose messages
@@ -138,6 +146,6 @@ class ChaosTestRunner:
         elapsed = time.perf_counter() - t0
         self.test_run.duration_s = elapsed
         self.test_run.finished_at = datetime.utcnow().isoformat()
-        self._emit("runner", 100, f"Complete — {len(self.test_run.results)} total checks in {elapsed:.1f}s")
+        self._emit("runner", 100, f"Complete â {len(self.test_run.results)} total checks in {elapsed:.1f}s")
 
         return self.test_run
