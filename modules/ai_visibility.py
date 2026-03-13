@@ -23,31 +23,54 @@ AI_PLATFORMS = [
     {"name": "Gemini", "icon": "\u2728", "color": "#4285f4"},
 ]
 
-INDUSTRY_KEYWORDS = {
-    "roofing": ["roofing company", "roof repair", "roof replacement", "roofer"],
-    "plumbing": ["plumber", "plumbing company", "plumbing repair", "emergency plumber"],
-    "hvac": ["HVAC company", "AC repair", "heating and cooling", "furnace repair"],
-    "dental": ["dentist", "dental clinic", "dental office", "family dentist"],
-    "legal": ["lawyer", "law firm", "attorney", "legal services"],
-    "restaurant": ["restaurant", "best food", "dining", "eatery"],
-    "auto": ["auto repair", "mechanic", "car repair", "auto body shop"],
-    "real_estate": ["real estate agent", "realtor", "real estate company", "property management"],
-    "landscaping": ["landscaping company", "lawn care", "landscaper", "yard maintenance"],
-    "cleaning": ["cleaning service", "house cleaning", "janitorial service", "maid service"],
-    "construction": ["construction company", "general contractor", "builder", "home builder"],
-    "electrical": ["electrician", "electrical contractor", "electrical repair", "wiring service"],
-    "pest_control": ["pest control", "exterminator", "bug removal", "termite treatment"],
-    "marketing": ["marketing agency", "digital marketing", "SEO company", "advertising agency"],
-    "accounting": ["accountant", "CPA", "tax preparation", "bookkeeper"],
-    "insurance": ["insurance agent", "insurance company", "insurance broker"],
-    "fitness": ["gym", "fitness center", "personal trainer", "yoga studio"],
-    "salon": ["hair salon", "barber shop", "beauty salon", "spa"],
-    "photography": ["photographer", "photography studio", "wedding photographer"],
-    "veterinary": ["veterinarian", "vet clinic", "animal hospital", "pet care"],
-    "technology": ["IT company", "tech support", "software company", "web design"],
-    "holding": ["holding company", "investment firm", "portfolio company", "venture capital"],
-    "consulting": ["consulting firm", "management consulting", "business consulting", "advisory"],
-    "default": ["local business", "company", "service provider", "professional services"],
+# ── Sector-specific search keywords ────────────────────────────────
+# Maps sector labels (from BusinessIdentifier.detect_sector) to query keywords
+SECTOR_QUERY_KEYWORDS = {
+    "holding company services":     ["holding company", "investment firm", "portfolio company", "venture capital"],
+    "financial services":           ["financial advisor", "financial planning", "wealth management", "financial services"],
+    "venture capital":              ["venture capital firm", "startup investor", "VC firm", "investment fund"],
+    "investment services":          ["investment firm", "investment advisor", "asset management", "investment services"],
+    "real estate":                  ["real estate agent", "realtor", "real estate company", "property management"],
+    "construction":                 ["construction company", "general contractor", "builder", "home builder"],
+    "technology":                   ["IT company", "tech company", "software company", "technology services"],
+    "technology and product development": ["tech company", "product development", "software company", "technology services"],
+    "mobile app development":       ["app developer", "mobile app company", "iOS developer", "app development"],
+    "ecommerce and payments":       ["ecommerce company", "payment solutions", "online store", "ecommerce platform"],
+    "AI and technology":            ["AI company", "artificial intelligence", "machine learning", "tech company"],
+    "digital services":             ["digital agency", "digital services", "web services", "online services"],
+    "media and advertising":        ["media company", "advertising agency", "media agency", "ad firm"],
+    "healthcare":                   ["healthcare provider", "medical practice", "doctor", "healthcare services"],
+    "dental services":              ["dentist", "dental clinic", "dental office", "family dentist"],
+    "legal services":               ["lawyer", "law firm", "attorney", "legal services"],
+    "consulting":                   ["consulting firm", "management consulting", "business consulting", "advisory"],
+    "restaurant":                   ["restaurant", "best food", "dining", "eatery"],
+    "food services":                ["catering", "food service", "meal prep", "food delivery"],
+    "automotive services":          ["auto repair", "mechanic", "car repair", "auto body shop"],
+    "electrical services":          ["electrician", "electrical contractor", "electrical repair", "wiring service"],
+    "plumbing":                     ["plumber", "plumbing company", "plumbing repair", "emergency plumber"],
+    "roofing":                      ["roofing company", "roof repair", "roof replacement", "roofer"],
+    "heating and cooling":          ["HVAC company", "AC repair", "heating and cooling", "furnace repair"],
+    "cleaning services":            ["cleaning service", "house cleaning", "janitorial service", "maid service"],
+    "landscaping":                  ["landscaping company", "lawn care", "landscaper", "yard maintenance"],
+    "pest control":                 ["pest control", "exterminator", "bug removal", "termite treatment"],
+    "marketing and advertising":    ["marketing agency", "digital marketing", "SEO company", "advertising agency"],
+    "digital marketing":            ["SEO company", "digital marketing agency", "online marketing", "PPC agency"],
+    "accounting and tax":           ["accountant", "CPA", "tax preparation", "bookkeeper"],
+    "insurance":                    ["insurance agent", "insurance company", "insurance broker", "insurance agency"],
+    "fitness and wellness":         ["gym", "fitness center", "personal trainer", "yoga studio"],
+    "beauty and wellness":          ["hair salon", "beauty salon", "spa", "wellness center"],
+    "beauty and personal care":     ["hair salon", "barber shop", "beauty salon", "spa"],
+    "photography":                  ["photographer", "photography studio", "wedding photographer", "photo studio"],
+    "media production":             ["video production", "media production", "film company", "videographer"],
+    "veterinary services":          ["veterinarian", "vet clinic", "animal hospital", "pet care"],
+    "education":                    ["school", "tutoring service", "education center", "learning academy"],
+    "child care":                   ["daycare", "child care center", "preschool", "after school program"],
+    "professional services":        ["professional services", "business services", "consulting", "advisory"],
+    "local business services":      ["local business", "company", "service provider", "professional services"],
+    "logistics and shipping":       ["logistics company", "shipping service", "freight company", "delivery service"],
+    "transportation":               ["transportation company", "taxi service", "shuttle service", "limo service"],
+    "energy services":              ["energy company", "utility company", "power company", "energy services"],
+    "solar energy":                 ["solar company", "solar installer", "solar energy", "solar panel company"],
 }
 
 QUERY_TEMPLATES = [
@@ -65,7 +88,7 @@ class AIVisibilityScanner(BaseModule):
     def __init__(self, config, session=None):
         super().__init__(config, session)
         self.business_name = ""
-        self.industry = "default"
+        self.sector = "local business services"
         self.location = ""
         self.ai_results = []
         self._identifier = BusinessIdentifier(session=self.session, timeout=config.request_timeout)
@@ -73,13 +96,16 @@ class AIVisibilityScanner(BaseModule):
 
     def _extract_business_info(self, url, page_content=""):
         """
-        Extract business name, industry, and location from URL and page content.
+        Extract business name, sector, and location from URL and page content.
         Uses the BusinessIdentifier pipeline:
           1. Scrape candidate names from headers, footers, legal text, entity suffixes
           2. Score and rank candidates
           3. Pick highest-confidence business name
-          4. Reverse-lookup headquarters city from business records
-          5. Use headquarters city as the dashboard location
+          4. Multi-source headquarters city lookup (structured data, HTML patterns,
+             OpenCorporates, IRS EO, secondary pages, WHOIS/RDAP)
+          5. Detect business sector from IRS NTEE codes, business name analysis,
+             JSON-LD @type, and page content keyword analysis
+          6. Use HQ city + sector keywords in AI visibility queries
         """
         # --- Run the full identification pipeline ---------------------
         try:
@@ -90,6 +116,8 @@ class AIVisibilityScanner(BaseModule):
                 self.business_name = result["business_name"]
             if result["location"]:
                 self.location = result["location"]
+            if result.get("sector"):
+                self.sector = result["sector"]
         except Exception as exc:
             logger.warning("BusinessIdentifier failed: %s -- falling back to domain parse", exc)
 
@@ -104,32 +132,24 @@ class AIVisibilityScanner(BaseModule):
         if not self.location:
             self.location = "your area"
 
-        # --- Detect industry from domain + page content ---------------
-        combined = (url + " " + page_content).lower()
-        for ind, keywords in INDUSTRY_KEYWORDS.items():
-            if ind == "default":
-                continue
-            for kw in keywords:
-                if kw.lower() in combined:
-                    self.industry = ind
-                    break
-            if self.industry != "default":
-                break
-
         logger.info(
-            "AI Visibility business info: name=%r industry=%r location=%r",
-            self.business_name, self.industry, self.location,
+            "AI Visibility business info: name=%r sector=%r location=%r",
+            self.business_name, self.sector, self.location,
         )
 
         return {
             "business_name": self.business_name,
-            "industry": self.industry,
+            "sector": self.sector,
             "location": self.location,
         }
 
     def _generate_queries(self):
-        """Generate realistic search queries based on business info."""
-        keywords = INDUSTRY_KEYWORDS.get(self.industry, INDUSTRY_KEYWORDS["default"])
+        """Generate realistic search queries based on business sector and location."""
+        # Get sector-specific keywords, fall back to generic
+        keywords = SECTOR_QUERY_KEYWORDS.get(
+            self.sector,
+            SECTOR_QUERY_KEYWORDS["local business services"],
+        )
         queries = []
         for kw in keywords[:3]:
             for template in QUERY_TEMPLATES[:3]:
@@ -147,9 +167,13 @@ class AIVisibilityScanner(BaseModule):
         appears = (seed_int % 5) < 2  # ~40% chance of appearing
         position = (seed_int % 7) + 1 if appears else 0
 
-        # Generate plausible competitor names
+        # Generate plausible competitor names using sector keywords
         competitor_seeds = ["Alpha", "Premier", "Elite", "Pro", "Metro", "Summit", "Pacific", "National"]
-        industry_label = INDUSTRY_KEYWORDS.get(self.industry, INDUSTRY_KEYWORDS["default"])[0].title()
+        sector_keywords = SECTOR_QUERY_KEYWORDS.get(
+            self.sector,
+            SECTOR_QUERY_KEYWORDS["local business services"],
+        )
+        industry_label = sector_keywords[0].title() if sector_keywords else "Services"
         competitors = []
         for i in range(3):
             idx = (seed_int + i * 7) % len(competitor_seeds)

@@ -1,15 +1,16 @@
 """
 Business Identifier Module
-Extracts the correct business name and headquarters city from a website
-by scraping page content, scoring candidate names, and performing
-a reverse lookup against IRS business records.
+Extracts the correct business name, headquarters city, and business sector
+from a website by scraping page content, scoring candidate names, and
+performing reverse lookups against multiple business-record sources.
 """
 
 import logging
 import re
+import json
 import requests
 from collections import Counter
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
@@ -38,14 +39,168 @@ PERSON_NAME_RE = re.compile(
     r"^[A-Z][a-z]+\s+(?:[A-Z]\.?\s+)?[A-Z][a-z]+$"
 )
 
-# IRS Exempt Organizations data (free, public CSV hosted by IRS)
+# IRS Exempt Organizations data (free, public)
 IRS_EO_SEARCH_URL = "https://apps.irs.gov/app/eos/allSearch"
-# Fallback: OpenCorporates API (free tier, no key needed for basic lookups)
+# OpenCorporates API (may require API key now)
 OPENCORP_SEARCH_URL = "https://api.opencorporates.com/v0.4/companies/search"
+
+# ── NTEE code → sector label ───────────────────────────────────────
+NTEE_SECTOR_MAP = {
+    "A": "arts and culture",
+    "B": "education",
+    "C": "environmental services",
+    "D": "animal welfare",
+    "E": "healthcare",
+    "F": "mental health services",
+    "G": "disease research",
+    "H": "medical research",
+    "I": "legal services",
+    "J": "employment services",
+    "K": "food and agriculture",
+    "L": "housing services",
+    "M": "public safety",
+    "N": "recreation and sports",
+    "O": "youth development",
+    "P": "human services",
+    "Q": "international affairs",
+    "R": "civil rights services",
+    "S": "community development",
+    "T": "philanthropy",
+    "U": "science and technology",
+    "V": "social science research",
+    "W": "public policy",
+    "X": "religious services",
+    "Y": "mutual benefit services",
+    "Z": "general services",
+}
+
+# ── Business-name keywords → sector label ──────────────────────────
+NAME_SECTOR_KEYWORDS = {
+    "holdco":       "holding company services",
+    "holding":      "holding company services",
+    "holdings":     "holding company services",
+    "capital":      "financial services",
+    "ventures":     "venture capital",
+    "invest":       "investment services",
+    "realty":       "real estate",
+    "properties":   "real estate",
+    "property":     "real estate",
+    "construction": "construction",
+    "builders":     "construction",
+    "tech":         "technology",
+    "software":     "technology",
+    "digital":      "digital services",
+    "media":        "media and advertising",
+    "health":       "healthcare",
+    "medical":      "healthcare",
+    "dental":       "dental services",
+    "law":          "legal services",
+    "legal":        "legal services",
+    "consult":      "consulting",
+    "advisory":     "consulting",
+    "restaurant":   "restaurant",
+    "food":         "food services",
+    "auto":         "automotive services",
+    "motor":        "automotive services",
+    "electric":     "electrical services",
+    "plumb":        "plumbing",
+    "roof":         "roofing",
+    "clean":        "cleaning services",
+    "landscape":    "landscaping",
+    "insur":        "insurance",
+    "account":      "accounting",
+    "market":       "marketing",
+    "design":       "design services",
+    "photo":        "photography",
+    "salon":        "beauty and wellness",
+    "spa":          "beauty and wellness",
+    "fitness":      "fitness",
+    "gym":          "fitness",
+    "vet":          "veterinary services",
+    "pet":          "pet services",
+    "logistics":    "logistics and shipping",
+    "transport":    "transportation",
+    "energy":       "energy services",
+    "solar":        "solar energy",
+}
+
+# ── Page-content keywords → sector label ───────────────────────────
+PAGE_SECTOR_KEYWORDS = {
+    "product management":   "technology and product development",
+    "software development": "technology",
+    "web development":      "technology",
+    "ios development":      "mobile app development",
+    "mobile app":           "mobile app development",
+    "ecommerce":            "ecommerce and payments",
+    "e-commerce":           "ecommerce and payments",
+    "payment":              "ecommerce and payments",
+    "artificial intelligence": "AI and technology",
+    "machine learning":     "AI and technology",
+    "real estate":          "real estate",
+    "property management":  "real estate",
+    "legal services":       "legal services",
+    "law firm":             "legal services",
+    "attorney":             "legal services",
+    "healthcare":           "healthcare",
+    "medical practice":     "healthcare",
+    "dental":               "dental services",
+    "orthodont":            "dental services",
+    "roofing":              "roofing",
+    "roof repair":          "roofing",
+    "plumbing":             "plumbing",
+    "hvac":                 "heating and cooling",
+    "air conditioning":     "heating and cooling",
+    "construction":         "construction",
+    "general contractor":   "construction",
+    "restaurant":           "restaurant",
+    "catering":             "food services",
+    "marketing agency":     "marketing and advertising",
+    "digital marketing":    "marketing and advertising",
+    "seo":                  "digital marketing",
+    "consulting":           "consulting",
+    "management consulting":"consulting",
+    "financial planning":   "financial services",
+    "investment":           "financial services",
+    "wealth management":    "financial services",
+    "insurance":            "insurance",
+    "accounting":           "accounting and tax",
+    "tax preparation":      "accounting and tax",
+    "bookkeeping":          "accounting and tax",
+    "photography":          "photography",
+    "videography":          "media production",
+    "fitness":              "fitness and wellness",
+    "personal training":    "fitness and wellness",
+    "salon":                "beauty and personal care",
+    "landscaping":          "landscaping",
+    "lawn care":            "landscaping",
+    "pest control":         "pest control",
+    "exterminator":         "pest control",
+    "cleaning service":     "cleaning services",
+    "janitorial":           "cleaning services",
+    "auto repair":          "automotive services",
+    "mechanic":             "automotive services",
+    "veterinary":           "veterinary services",
+    "animal hospital":      "veterinary services",
+    "education":            "education",
+    "tutoring":             "education",
+    "child care":           "child care",
+    "daycare":              "child care",
+}
+
+# Secondary pages that commonly contain addresses
+_SECONDARY_PATHS = ["/contact", "/about", "/contact-us", "/about-us", "/locations"]
+
+# US state abbreviations for validation
+_US_STATES = {
+    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN",
+    "IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV",
+    "NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN",
+    "TX","UT","VT","VA","WA","WV","WI","WY","DC",
+}
 
 
 class BusinessIdentifier:
-    """Identifies the business name and headquarters city for a given website."""
+    """Identifies the business name, headquarters city, and sector for a given website."""
 
     def __init__(self, session: requests.Session = None, timeout: int = 10):
         self.session = session or requests.Session()
@@ -122,7 +277,6 @@ class BusinessIdentifier:
         # --- Structured data (JSON-LD) --------------------------------
         for script in soup.find_all("script", type="application/ld+json"):
             try:
-                import json
                 ld = json.loads(script.string or "")
                 items = ld if isinstance(ld, list) else [ld]
                 for item in items:
@@ -160,18 +314,14 @@ class BusinessIdentifier:
     # ------------------------------------------------------------------
     def _classify(self, name: str) -> str:
         """Return 'business', 'person', or 'phrase'."""
-        # If it contains a legal entity suffix -> definitely business
         for suffix in ENTITY_SUFFIXES:
             if suffix.lower() in name.lower():
                 return "business"
-        # If it matches "Firstname Lastname" pattern -> likely person
         if PERSON_NAME_RE.match(name):
             return "person"
-        # Heuristic: mostly lowercase words with common filler -> phrase
         words = name.split()
         if len(words) > 6:
             return "phrase"
-        # Default to business for shorter proper-cased strings
         return "business"
 
     # ------------------------------------------------------------------
@@ -182,52 +332,360 @@ class BusinessIdentifier:
         for c in candidates:
             if c["classification"] == "business" and c["score"] >= 2.0:
                 return c["name"]
-        # Fallback: first candidate regardless of type
         return candidates[0]["name"] if candidates else ""
 
     # ------------------------------------------------------------------
-    # Step 5: Reverse-lookup headquarters city
+    # Step 5: Multi-source headquarters city lookup
     # ------------------------------------------------------------------
-    def lookup_headquarters(self, business_name: str) -> str:
+    def lookup_headquarters(self, business_name: str, url: str = "", html: str = "") -> tuple:
         """
-        Look up the headquarters city for *business_name* via public
-        business-record sources.  Returns 'City, ST' or empty string.
+        Look up the headquarters city using multiple sources in priority order.
+        Returns (city_string, source_label) or ("", "").
         """
-        city = self._lookup_opencorporates(business_name)
-        if city:
-            return city
-        city = self._lookup_irs_eo(business_name)
-        if city:
-            return city
+        # Source 1: JSON-LD / Schema.org structured data on the page
+        if html:
+            loc = self._extract_location_from_structured_data(html)
+            if loc:
+                logger.info("Location from structured data: %r", loc)
+                return loc, "structured_data"
+
+        # Source 2: Address / location patterns in page HTML
+        if html:
+            loc = self._extract_location_from_html(html)
+            if loc:
+                logger.info("Location from HTML patterns: %r", loc)
+                return loc, "page_content"
+
+        # Source 3: OpenCorporates API
+        loc = self._lookup_opencorporates(business_name)
+        if loc:
+            logger.info("Location from OpenCorporates: %r", loc)
+            return loc, "opencorporates"
+
+        # Source 4: IRS Exempt Organizations
+        loc = self._lookup_irs_eo_location(business_name)
+        if loc:
+            logger.info("Location from IRS EO: %r", loc)
+            return loc, "irs_eo"
+
+        # Source 5: Scrape secondary pages (/about, /contact)
+        if url:
+            loc = self._scrape_secondary_pages(url)
+            if loc:
+                logger.info("Location from secondary page: %r", loc)
+                return loc, "secondary_page"
+
+        # Source 6: Try to infer from domain WHOIS region
+        if url:
+            loc = self._infer_location_from_whois(url)
+            if loc:
+                logger.info("Location from WHOIS: %r", loc)
+                return loc, "whois"
+
+        return "", ""
+
+    # ------------------------------------------------------------------
+    # Step 6: Sector / business purpose detection
+    # ------------------------------------------------------------------
+    def detect_sector(self, business_name: str, html: str = "") -> str:
+        """
+        Detect the business sector/purpose from multiple signals.
+        Returns a human-readable sector phrase for use in search queries.
+        """
+        # Signal 1: IRS NTEE code (for tax-exempt organisations)
+        ntee = self._lookup_irs_eo_ntee(business_name)
+        if ntee:
+            sector_letter = ntee[0].upper()
+            sector = NTEE_SECTOR_MAP.get(sector_letter, "")
+            if sector:
+                logger.info("Sector from IRS NTEE (%s): %r", ntee, sector)
+                return sector
+
+        # Signal 2: Business name keyword analysis
+        name_lower = business_name.lower()
+        for keyword, sector in NAME_SECTOR_KEYWORDS.items():
+            if keyword in name_lower:
+                logger.info("Sector from business name keyword %r: %r", keyword, sector)
+                return sector
+
+        # Signal 3: JSON-LD @type on the page
+        if html:
+            sector = self._detect_sector_from_jsonld(html)
+            if sector:
+                logger.info("Sector from JSON-LD @type: %r", sector)
+                return sector
+
+        # Signal 4: Page content keyword frequency analysis
+        if html:
+            sector = self._detect_sector_from_content(html)
+            if sector:
+                logger.info("Sector from page content: %r", sector)
+                return sector
+
+        return "local business services"
+
+    # ------------------------------------------------------------------
+    # Main entry point
+    # ------------------------------------------------------------------
+    def identify(self, url: str, html: str = "") -> dict:
+        """
+        Full pipeline: scrape → score → pick → lookup city → detect sector.
+        Returns {
+          "business_name": str,
+          "location": str,
+          "sector": str,
+          "candidates": list[dict],
+          "lookup_source": str,
+        }
+        """
+        candidates = self.scrape_candidates(url, html)
+        business_name = self.pick_best(candidates)
+        location = ""
+        lookup_source = ""
+        sector = "local business services"
+
+        if business_name:
+            location, lookup_source = self.lookup_headquarters(
+                business_name, url=url, html=html
+            )
+            sector = self.detect_sector(business_name, html=html)
+
+        # Fallback: try to extract location from the page itself
+        # (already tried in lookup_headquarters, but just in case)
+        if not location and html:
+            location = self._extract_location_from_html(html)
+            if location:
+                lookup_source = "page_content"
+
+        logger.info(
+            "BusinessIdentifier result: name=%r location=%r sector=%r source=%r "
+            "(top candidates: %s)",
+            business_name, location, sector, lookup_source,
+            [c["name"] for c in candidates[:5]],
+        )
+
+        return {
+            "business_name": business_name,
+            "location": location,
+            "sector": sector,
+            "candidates": candidates[:10],
+            "lookup_source": lookup_source,
+        }
+
+    # ==================================================================
+    # Location extraction helpers
+    # ==================================================================
+
+    def _extract_location_from_structured_data(self, html: str) -> str:
+        """Extract location from JSON-LD / Schema.org structured data."""
+        try:
+            soup = BeautifulSoup(html, "html.parser")
+            for script in soup.find_all("script", type="application/ld+json"):
+                try:
+                    ld = json.loads(script.string or "")
+                    items = ld if isinstance(ld, list) else [ld]
+                    for item in items:
+                        # Direct address on the org/business
+                        loc = self._parse_schema_address(item.get("address"))
+                        if loc:
+                            return loc
+                        # Nested location
+                        loc_obj = item.get("location")
+                        if isinstance(loc_obj, dict):
+                            loc = self._parse_schema_address(loc_obj.get("address"))
+                            if loc:
+                                return loc
+                            # location might itself have name (city)
+                            loc_name = loc_obj.get("name", "")
+                            if loc_name and len(loc_name) < 60:
+                                return loc_name
+                        # areaServed
+                        area = item.get("areaServed")
+                        if isinstance(area, dict):
+                            area_name = area.get("name", "")
+                            if area_name:
+                                return area_name
+                        elif isinstance(area, str) and area:
+                            return area
+                except Exception:
+                    continue
+        except Exception as exc:
+            logger.debug("Structured data extraction failed: %s", exc)
         return ""
+
+    def _parse_schema_address(self, addr) -> str:
+        """Parse a Schema.org PostalAddress object into 'City, ST'."""
+        if not addr or not isinstance(addr, dict):
+            return ""
+        city = addr.get("addressLocality", "")
+        region = addr.get("addressRegion", "")
+        if city and region:
+            return f"{city}, {region}"
+        if city:
+            return city
+        if region:
+            return region
+        # Sometimes the address is just a text string
+        text = addr.get("streetAddress", "") or addr.get("name", "")
+        if text:
+            # Try to extract city, state from the text
+            m = re.search(r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*),\s*([A-Z]{2})", text)
+            if m and m.group(2) in _US_STATES:
+                return f"{m.group(1)}, {m.group(2)}"
+        return ""
+
+    def _extract_location_from_html(self, html: str) -> str:
+        """Extract a location from page text using regex patterns."""
+        # Pattern 1: Explicit location phrases
+        location_patterns = [
+            r"(?:located in|serving|based in|proudly serving|headquartered in|"
+            r"headquarters?\s+in|offices?\s+in|main\s+office\s+in)\s+"
+            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:,\s*[A-Z]{2})?)",
+        ]
+        for pattern in location_patterns:
+            match = re.search(pattern, html)
+            if match:
+                loc = match.group(1).strip()
+                # Validate state abbreviation if present
+                parts = loc.split(",")
+                if len(parts) == 2:
+                    state = parts[1].strip()
+                    if state in _US_STATES:
+                        return loc
+                elif loc:
+                    return loc
+
+        # Pattern 2: Full address with ZIP (City, ST ZIP)
+        m = re.search(
+            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*,\s*([A-Z]{2})\s+\d{5}",
+            html,
+        )
+        if m and m.group(2) in _US_STATES:
+            return f"{m.group(1)}, {m.group(2)}"
+
+        # Pattern 3: Street address → City, ST
+        m = re.search(
+            r"\d{1,5}\s+[A-Z][A-Za-z\s\.]+(?:Street|St|Avenue|Ave|Boulevard|Blvd|"
+            r"Road|Rd|Drive|Dr|Lane|Ln|Way|Court|Ct|Place|Pl)\.?"
+            r"\s*,?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*,\s*([A-Z]{2})",
+            html,
+        )
+        if m and m.group(2) in _US_STATES:
+            return f"{m.group(1)}, {m.group(2)}"
+
+        return ""
+
+    def _scrape_secondary_pages(self, url: str) -> str:
+        """Fetch /about, /contact, etc. and look for address info."""
+        parsed = urlparse(url)
+        base = f"{parsed.scheme}://{parsed.netloc}"
+
+        for path in _SECONDARY_PATHS:
+            try:
+                page_url = urljoin(base, path)
+                resp = self.session.get(
+                    page_url, timeout=self.timeout, verify=True,
+                    allow_redirects=True,
+                )
+                if resp.status_code != 200:
+                    continue
+
+                page_html = resp.text[:15000]
+
+                # Try structured data first
+                loc = self._extract_location_from_structured_data(page_html)
+                if loc:
+                    return loc
+
+                # Then regex patterns
+                loc = self._extract_location_from_html(page_html)
+                if loc:
+                    return loc
+
+            except Exception as exc:
+                logger.debug("Secondary page %s failed: %s", path, exc)
+                continue
+
+        return ""
+
+    def _infer_location_from_whois(self, url: str) -> str:
+        """Try to get registrant location from WHOIS lookup via RDAP."""
+        try:
+            parsed = urlparse(url)
+            domain = parsed.hostname or ""
+            domain = re.sub(r"^www\.", "", domain)
+            # Use RDAP (Registration Data Access Protocol) — public, machine-readable
+            rdap_url = f"https://rdap.org/domain/{domain}"
+            resp = self.session.get(rdap_url, timeout=self.timeout)
+            if resp.status_code == 200:
+                data = resp.json()
+                # Look in entities for registrant vCard
+                for entity in data.get("entities", []):
+                    roles = entity.get("roles", [])
+                    if "registrant" in roles:
+                        vcard = entity.get("vcardArray", [])
+                        if len(vcard) >= 2:
+                            for field in vcard[1]:
+                                if field[0] == "adr" and len(field) >= 4:
+                                    addr = field[3] if isinstance(field[3], dict) else {}
+                                    city = addr.get("locality", "")
+                                    region = addr.get("region", "")
+                                    if city and region:
+                                        return f"{city}, {region}"
+        except Exception as exc:
+            logger.debug("RDAP/WHOIS lookup failed: %s", exc)
+        return ""
+
+    # ==================================================================
+    # API lookups
+    # ==================================================================
 
     def _lookup_opencorporates(self, name: str) -> str:
         """Search OpenCorporates for the company and return registered city."""
-        try:
-            resp = self.session.get(
-                OPENCORP_SEARCH_URL,
-                params={"q": name, "jurisdiction_code": "us_*", "per_page": 1},
-                timeout=self.timeout,
-            )
-            if resp.status_code == 200:
-                data = resp.json()
-                companies = (
-                    data.get("results", {}).get("companies", [])
+        # Try multiple API URL patterns (v0.4 may require auth now)
+        urls_to_try = [
+            OPENCORP_SEARCH_URL,
+            "https://api.opencorporates.com/companies/search",
+        ]
+        for api_url in urls_to_try:
+            try:
+                resp = self.session.get(
+                    api_url,
+                    params={"q": name, "jurisdiction_code": "us_*", "per_page": 1},
+                    timeout=self.timeout,
                 )
-                if companies:
-                    co = companies[0].get("company", {})
-                    addr = co.get("registered_address", {}) or {}
-                    city = addr.get("locality", "")
-                    region = addr.get("region", "")
-                    if city and region:
-                        return f"{city}, {region}"
-                    if city:
-                        return city
-        except Exception as exc:
-            logger.debug("OpenCorporates lookup failed for %r: %s", name, exc)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    companies = data.get("results", {}).get("companies", [])
+                    if companies:
+                        co = companies[0].get("company", {})
+                        addr = co.get("registered_address", {}) or {}
+                        city = addr.get("locality", "")
+                        region = addr.get("region", "")
+                        if city and region:
+                            return f"{city}, {region}"
+                        if city:
+                            return city
+                        # Sometimes jurisdiction gives us the state
+                        jurisdiction = co.get("jurisdiction_code", "")
+                        if jurisdiction.startswith("us_"):
+                            state = jurisdiction.replace("us_", "").upper()
+                            if state in _US_STATES:
+                                # We at least know the state
+                                inc_date = co.get("incorporation_date", "")
+                                company_name = co.get("name", "")
+                                if company_name:
+                                    return state  # Return state as fallback
+                elif resp.status_code == 401:
+                    logger.debug("OpenCorporates %s returned 401 (auth required)", api_url)
+                    continue
+                else:
+                    logger.debug("OpenCorporates %s returned %d", api_url, resp.status_code)
+            except Exception as exc:
+                logger.debug("OpenCorporates lookup failed at %s for %r: %s", api_url, name, exc)
         return ""
 
-    def _lookup_irs_eo(self, name: str) -> str:
+    def _lookup_irs_eo_location(self, name: str) -> str:
         """Search IRS Exempt Organizations database for city/state."""
         try:
             resp = self.session.get(
@@ -251,71 +709,121 @@ class BusinessIdentifier:
             logger.debug("IRS EO lookup failed for %r: %s", name, exc)
         return ""
 
-    # ------------------------------------------------------------------
-    # Main entry point
-    # ------------------------------------------------------------------
-    def identify(self, url: str, html: str = "") -> dict:
-        """
-        Full pipeline: scrape ➜ score ➜ pick ➜ lookup.
-        Returns {
-          "business_name": str,
-          "location": str,
-          "candidates": list[dict],
-          "lookup_source": str,
+    def _lookup_irs_eo_ntee(self, name: str) -> str:
+        """Search IRS EO for NTEE classification code."""
+        try:
+            resp = self.session.get(
+                IRS_EO_SEARCH_URL,
+                params={
+                    "names": name, "resultsPerPage": 1,
+                    "orgTags": "", "type": "charities",
+                },
+                timeout=self.timeout,
+                headers={"Accept": "application/json"},
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                orgs = data.get("organizations", [])
+                if orgs:
+                    ntee = orgs[0].get("nteeCode", "") or orgs[0].get("nteeCd", "")
+                    if ntee:
+                        return ntee
+        except Exception as exc:
+            logger.debug("IRS EO NTEE lookup failed for %r: %s", name, exc)
+        return ""
+
+    # ==================================================================
+    # Sector detection helpers
+    # ==================================================================
+
+    def _detect_sector_from_jsonld(self, html: str) -> str:
+        """Extract sector from JSON-LD @type (Schema.org business types)."""
+        schema_type_map = {
+            "Restaurant": "restaurant",
+            "Dentist": "dental services",
+            "DentalClinic": "dental services",
+            "LegalService": "legal services",
+            "Attorney": "legal services",
+            "RealEstateAgent": "real estate",
+            "InsuranceAgency": "insurance",
+            "FinancialService": "financial services",
+            "AccountingService": "accounting",
+            "AutoRepair": "automotive services",
+            "AutoDealer": "automotive services",
+            "HealthAndBeautyBusiness": "beauty and wellness",
+            "HairSalon": "beauty and wellness",
+            "DaySpa": "beauty and wellness",
+            "MedicalBusiness": "healthcare",
+            "Physician": "healthcare",
+            "Hospital": "healthcare",
+            "VeterinaryCare": "veterinary services",
+            "SportsActivityLocation": "fitness and wellness",
+            "ExerciseGym": "fitness and wellness",
+            "EducationalOrganization": "education",
+            "HomeAndConstructionBusiness": "construction",
+            "Electrician": "electrical services",
+            "Plumber": "plumbing",
+            "RoofingContractor": "roofing",
+            "LandscapingBusiness": "landscaping",
+            "HVACBusiness": "heating and cooling",
+            "ProfessionalService": "professional services",
+            "LocalBusiness": "",  # too generic
+            "Organization": "",
         }
-        """
-        candidates = self.scrape_candidates(url, html)
-        business_name = self.pick_best(candidates)
-        location = ""
-        lookup_source = ""
+        try:
+            soup = BeautifulSoup(html, "html.parser")
+            for script in soup.find_all("script", type="application/ld+json"):
+                try:
+                    ld = json.loads(script.string or "")
+                    items = ld if isinstance(ld, list) else [ld]
+                    for item in items:
+                        schema_type = item.get("@type", "")
+                        if isinstance(schema_type, list):
+                            schema_type = schema_type[0] if schema_type else ""
+                        sector = schema_type_map.get(schema_type, "")
+                        if sector:
+                            return sector
+                except Exception:
+                    continue
+        except Exception:
+            pass
+        return ""
 
-        if business_name:
-            location = self.lookup_headquarters(business_name)
-            if location:
-                lookup_source = "business_records"
+    def _detect_sector_from_content(self, html: str) -> str:
+        """Analyze page content keywords to determine business sector."""
+        text_lower = html.lower() if isinstance(html, str) else ""
+        sector_scores = Counter()
 
-        # Fallback: try to extract location from the page itself
-        if not location and html:
-            location = self._extract_location_from_html(html)
-            if location:
-                lookup_source = "page_content"
+        for keyword, sector in PAGE_SECTOR_KEYWORDS.items():
+            count = text_lower.count(keyword.lower())
+            if count > 0:
+                sector_scores[sector] += count
 
-        logger.info(
-            "BusinessIdentifier result: name=%r location=%r source=%r (top candidates: %s)",
-            business_name, location, lookup_source,
-            [c["name"] for c in candidates[:5]],
-        )
+        if sector_scores:
+            return sector_scores.most_common(1)[0][0]
+        return ""
 
-        return {
-            "business_name": business_name,
-            "location": location,
-            "candidates": candidates[:10],
-            "lookup_source": lookup_source,
-        }
+    # ==================================================================
+    # General helpers
+    # ==================================================================
 
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
     def _normalise(self, text: str) -> str:
         """Strip whitespace, collapse runs of spaces, drop stray punctuation."""
         text = text.strip()
         text = re.sub(r"\s+", " ", text)
         text = text.strip(".,;:!?\"'")
-        # Drop very short or very long junk
         if len(text) < 2 or len(text) > 80:
             return ""
         return text
 
     def _extract_from_region(self, tag, label, add_fn, weight=1.0):
         """Pull candidate names from a BeautifulSoup tag region."""
-        # Check for entity suffix matches first (highest value)
         region_text = tag.get_text(separator="\n")
         for m in ENTITY_RE.finditer(region_text):
             raw = m.group(0).strip().rstrip(".,")
             add_fn(raw, f"{label}_entity", weight + 3.0)
         for m in COPYRIGHT_RE.finditer(region_text):
             add_fn(m.group(1), f"{label}_copyright", weight + 2.0)
-        # Check prominent text (h1-h3, a with class containing 'brand'/'logo')
         for el in tag.find_all(["h1", "h2", "h3"]):
             text = el.get_text(strip=True)
             if text:
@@ -326,24 +834,8 @@ class BusinessIdentifier:
                 text = el.get_text(strip=True)
                 if text:
                     add_fn(text, f"{label}_brand_link", weight + 1.0)
-        # img alt text for logos
         for img in tag.find_all("img"):
             alt = img.get("alt", "")
             cls = " ".join(img.get("class", []))
             if re.search(r"logo|brand", cls + " " + alt, re.IGNORECASE) and alt:
                 add_fn(alt, f"{label}_logo_alt", weight + 0.5)
-
-    def _extract_location_from_html(self, html: str) -> str:
-        """Fallback: extract a location from page text using regex patterns."""
-        location_patterns = [
-            r"(?:located in|serving|based in|proudly serving|headquarters?\s+in)\s+"
-            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:,\s*[A-Z]{2})?)",
-            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*),\s*([A-Z]{2})\s+\d{5}",
-        ]
-        for pattern in location_patterns:
-            match = re.search(pattern, html)
-            if match:
-                if match.lastindex == 1:
-                    return match.group(1)
-                return f"{match.group(1)}, {match.group(2)}"
-        return ""
