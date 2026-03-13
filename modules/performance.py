@@ -110,4 +110,6 @@ def fetch_performance_metrics(url, timeout=90):
     result = {}
     for strategy in ("mobile", "desktop"):
         result[strategy] = _fetch_strategy(url, strategy, timeout=timeout)
+    if not any(result.get(s, {}).get("score") is not None for s in result):
+        logger.warning("PSI returned no usable data for %s \u2013 both strategies empty", url)
     return result
