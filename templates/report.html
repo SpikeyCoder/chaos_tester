@@ -291,8 +291,9 @@ function switchPerfTab(strategy) {
     if (!cfg) return;
 
     /* Dimensions */
-    var W = 200, H = big ? 140 : 128;
-    var CX = 100, CY = big ? 105 : 98;
+    var PAD = big ? 20 : 14;
+    var W = 200 + PAD * 2, H = big ? 150 : 134;
+    var CX = 100 + PAD, CY = big ? 115 : 104;
     var R  = big ? 80 : 70;
     var SW = big ? 16 : 12;
     var ARC = Math.PI * R;
@@ -328,7 +329,7 @@ function switchPerfTab(strategy) {
     /* Build SVG */
     var svg = el('svg', {viewBox: '0 0 ' + W + ' ' + H});
     svg.style.width = '100%';
-    svg.style.maxWidth = big ? '230px' : '175px';
+    svg.style.maxWidth = big ? '260px' : '195px';
 
     var arcD = 'M ' + (CX - R) + ',' + CY +
                ' A ' + R + ',' + R + ' 0 0,1 ' + (CX + R) + ',' + CY;
@@ -472,5 +473,21 @@ function switchPerfTab(strategy) {
 }
 .gauge-container { display: flex; justify-content: center; }
 .gauge-label { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
-</style>
+
+  /* Results table - prevent Details column overflow */
+  #resultsTable {
+    table-layout: fixed;
+    width: 100%;
+  }
+  #resultsTable th:nth-child(1) { width: 40px; }
+  #resultsTable th:nth-child(2) { width: 72px; }
+  #resultsTable th:nth-child(3) { width: 72px; }
+  #resultsTable th:nth-child(4) { width: 80px; }
+  #resultsTable th:nth-child(5) { width: 28%; }
+  #resultsTable th:nth-child(7) { width: 60px; }
+  #resultsTable td {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  </style>
 {% endblock %}
