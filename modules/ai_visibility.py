@@ -4,7 +4,7 @@ import json
 import hashlib
 from urllib.parse import urlparse
 from .base import BaseModule
-from ..models import TestResult
+from ..models import TestResult, TestStatus, Severity
 
 logger = logging.getLogger(__name__)
 
@@ -219,8 +219,8 @@ class AIVisibilityScanner(BaseModule):
                 })
 
         # Add a summary test result
-        status = "passed" if overall_score >= 50 else ("warning" if overall_score >= 25 else "failed")
-        severity = "info" if overall_score >= 50 else ("medium" if overall_score >= 25 else "high")
+        status = TestStatus.PASSED if overall_score >= 50 else (TestStatus.WARNING if overall_score >= 25 else TestStatus.FAILED)
+        severity = Severity.INFO if overall_score >= 50 else (Severity.MEDIUM if overall_score >= 25 else Severity.HIGH)
         self.add_result(
             name="AI Visibility Score",
             description=f"Business appears in {total_appearances}/{total_queries} AI recommendations ({overall_score}% visibility)",
