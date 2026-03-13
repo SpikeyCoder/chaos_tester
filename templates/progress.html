@@ -19,7 +19,7 @@
   </div>
 
   <div class="mt-2" id="doneActions" class="hidden">
-    <a href="/latest" class="btn btn-primary" id="viewReportBtn" style="display:none;">📊 View Report</a>
+    <a href="#" class="btn btn-primary" id="viewReportBtn" style="display:none;">📊 View Report</a>
     <a href="/" class="btn btn-secondary" style="margin-left:8px;">← Dashboard</a>
   </div>
 </div>
@@ -73,6 +73,7 @@ source.onmessage = function(event) {
   if (data.module === 'done') {
     source.close();
     reportBtn.style.display = 'inline-flex';
+      if (data.run_id) { reportBtn.href = '/report/' + data.run_id; }
     pct.style.color = data.msg === 'completed' ? 'var(--green)' : 'var(--red)';
     txt.textContent = data.msg === 'completed' ? 'All tests complete!' : 'Run failed — see logs.';
   }

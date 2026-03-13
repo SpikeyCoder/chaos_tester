@@ -171,11 +171,12 @@ def _event_stream():
         with _lock:
             events = _progress[idx:]
             status = _current_status
+            run_id = _current_run.run_id if _current_run else None
         for e in events:
             yield f"data: {json.dumps(e)}\n\n"
             idx += 1
         if status in ("completed", "failed", "idle") and idx >= len(_progress):
-            yield f"data: {json.dumps({'module': 'done', 'pct': 100, 'msg': status})}\n\n"
+            yield f"data: {json.dumps({'module': 'done', 'pct': 100, 'msg': status, 'run_id': run_id})}\n\n"
             break
         time.sleep(0.5)
 
