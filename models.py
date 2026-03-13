@@ -84,6 +84,7 @@ class TestRun:
             self.run_id = str(uuid.uuid4())[:12]
         if not self.started_at:
             self.started_at = datetime.utcnow().isoformat()
+        self.performance_metrics = {}
 
     @property
     def passed(self):
@@ -124,4 +125,5 @@ class TestRun:
             "status": self.status,
             "summary": self.summary,
             "results": [r.to_dict() for r in self.results],
+            "performance_metrics": self.performance_metrics,
         }

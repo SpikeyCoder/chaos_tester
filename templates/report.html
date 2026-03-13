@@ -53,6 +53,58 @@
   </div>
 </div>
 
+<!-- ── Performance Dashboard ──────────────────────────────── -->
+{% set perf = report.get("performance_metrics", {}) if report.get("performance_metrics") else {} %}
+{% if perf %}
+<div id="perf-dashboard" class="card" style="margin-bottom:24px">
+  <h2 style="margin:0 0 16px">⚡ Performance Metrics</h2>
+  <div class="perf-tabs">
+    <button class="perf-tab active" onclick="switchPerfTab('mobile')" id="tab-mobile">📱 Mobile</button>
+    <button class="perf-tab" onclick="switchPerfTab('desktop')" id="tab-desktop">🖥 Desktop</button>
+  </div>
+  {% for strategy in ["mobile","desktop"] %}
+  {% set sdata = perf.get(strategy, {}) %}
+  <div class="perf-panel" id="panel-{{strategy}}" style="{% if strategy=='desktop' %}display:none{% endif %}">
+    {% if sdata and sdata.get("score") is not none %}
+    <div style="text-align:center;margin-bottom:16px">
+      {% set sc = (sdata.score * 100)|int %}
+      {% set col = "#0cce6b" if sc >= 90 else "#ffa400" if sc >= 50 else "#ff4e42" %}
+      <svg width="120" height="70" viewBox="0 0 120 70">
+        <path d="M10,65 A50,50 0 0,1 110,65" fill="none" stroke="var(--border)" stroke-width="8"/>
+        <path d="M10,65 A50,50 0 0,1 110,65" fill="none" stroke="{{col}}" stroke-width="8"
+              stroke-dasharray="157" stroke-dashoffset="{{157 - (sc/100*157)}}"/>
+        <text x="60" y="55" text-anchor="middle" fill="{{col}}" font-size="28" font-weight="bold">{{sc}}</text>
+      </svg>
+      <div style="color:var(--text-muted);font-size:13px">Overall Score</div>
+    </div>
+    <div class="perf-grid">
+      {% for mid, mdata in sdata.get("metrics", {}).items() %}
+      {% set ms = mdata.get("score", 0) or 0 %}
+      {% set pct = (ms * 100)|int %}
+      {% set mcol = "#0cce6b" if pct >= 90 else "#ffa400" if pct >= 50 else "#ff4e42" %}
+      <div class="gauge-card">
+        <svg class="gauge-svg" viewBox="0 0 100 60">
+          <path d="M10,55 A40,40 0 0,1 90,55" fill="none" stroke="var(--border)" stroke-width="6"/>
+          <path d="M10,55 A40,40 0 0,1 90,55" fill="none" stroke="{{mcol}}" stroke-width="6"
+                stroke-dasharray="126" stroke-dashoffset="{{126 - (pct/100*126)}}"/>
+          <text x="50" y="45" text-anchor="middle" fill="var(--text)" font-size="16" font-weight="bold">
+            {{mdata.value}}{{mdata.unit}}
+          </text>
+        </svg>
+        <div class="gauge-label">{{mdata.label}}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted);text-align:center;padding:24px 0">
+      No {{strategy}} performance data available.
+    </p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <!-- ── Filters ────────────────────────────────────────────── -->
 <form onsubmit="return false"><div class="card" style="padding:14px 20px;">
   <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
@@ -209,10 +261,46 @@ function applyFilters() {
 }
 </script>
 
+<script>
+function switchPerfTab(strategy) {
+  document.querySelectorAll('.perf-panel').forEach(function(p) { p.style.display = 'none'; });
+  document.querySelectorAll('.perf-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('panel-' + strategy).style.display = 'block';
+  document.getElementById('tab-' + strategy).classList.add('active');
+}
+</script>
+
 <style>
 .filter-btn.active, .module-btn.active {
   border-color: var(--accent) !important;
   color: var(--accent);
 }
+
+/* Performance Dashboard */
+.perf-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.perf-tab {
+  padding: 8px 20px; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text); cursor: pointer; font-size: 14px;
+  transition: all .2s;
+}
+.perf-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.perf-tab:hover:not(.active) { background: rgba(99,102,241,.15); }
+
+.perf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) { .perf-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .perf-grid { grid-template-columns: 1fr; } }
+
+.gauge-card {
+  text-align: center; padding: 16px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: rgba(255,255,255,.03);
+}
+.gauge-svg { width: 100%; max-width: 140px; height: auto; }
+.gauge-label { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
 </style>
 {% endblock %}

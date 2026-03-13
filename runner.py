@@ -18,6 +18,7 @@ from .modules.forms import FormInteractionTester
 from .modules.chaos import ChaosInjector
 from .modules.auth import AuthTester
 from .modules.security import SecurityScanner
+from .modules.performance import fetch_performance_metrics
 
 logger = logging.getLogger("chaos_tester")
 
@@ -105,6 +106,17 @@ class ChaosTestRunner:
                 results = sec.run(discovered_pages)
                 self.test_run.results.extend(results)
                 self._emit("security", 97, f"Done — {len(results)} security checks.")
+
+
+            # Phase 7: Performance Metrics
+            self._emit('performance', 98, 'Fetching Lighthouse metrics...')
+            try:
+                perf = fetch_performance_metrics(self.config.base_url)
+                self.test_run.performance_metrics = perf
+                self._emit('performance', 99, 'Done - performance metrics collected.')
+            except Exception as exc:
+                logger.warning('Performance metrics failed: %s', exc)
+                self._emit('performance', 99, 'Performance metrics unavailable.')
 
             self.test_run.status = "completed"
 
