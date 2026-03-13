@@ -20,7 +20,7 @@
   </div>
 </div>
 
-<!-- ── Summary Stats ──────────────────────────────────────── -->
+<!-- -- Summary Stats ---------------------------------------- -->
 {% set s = report.summary %}
 <div class="stats-grid">
   <div class="stat-card">
@@ -50,7 +50,7 @@
   </div>
 </div>
 
-<!-- ── Performance Dashboard ──────────────────────────────── -->
+<!-- -- Performance Dashboard -------------------------------- -->
 {% set perf = report.get("performance_metrics", {}) if report.get("performance_metrics") else {} %}
 {% if perf %}
 <div id="perf-dashboard" class="card" style="margin-bottom:24px">
@@ -93,7 +93,7 @@
 </div>
 {% endif %}
 
-<!-- ── Filters ────────────────────────────────────────────── -->
+<!-- -- Filters ---------------------------------------------- -->
 <form onsubmit="return false"><div class="card" style="padding:14px 20px;">
   <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
     <span class="text-muted text-sm" style="margin-right:8px;">Filter:</span>
@@ -113,7 +113,7 @@
 </div>
 </form>
 
-<!-- ── Results Table ──────────────────────────────────────── -->
+<!-- -- Results Table ---------------------------------------- -->
 <div class="card">
   <h2>📝 Detailed Results ({{ report.results|length }})</h2>
   <table id="resultsTable">
@@ -156,7 +156,7 @@
   </table>
 </div>
 
-<!-- ── Module Breakdown ───────────────────────────────────── -->
+<!-- -- Module Breakdown ------------------------------------- -->
 <div class="card">
   <h2>📈 Module Breakdown</h2>
   <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;">
@@ -361,7 +361,7 @@ function switchPerfTab(strategy) {
       'stroke-dasharray': '0.001 ' + (gL + yL) + ' ' + rL + ' ' + (ARC * 3)
     }));
 
-    /* ── Transition tick marks & labels ─────────────────── */
+    /* -- Transition tick marks & labels ------------------- */
     function addTick(prop, label) {
       var oP = arcPt(CX, CY, R + SW / 2 + 1, prop);
       var iP = arcPt(CX, CY, R - SW / 2 - 1, prop);
@@ -384,7 +384,7 @@ function switchPerfTab(strategy) {
     addTick(gP, cfg.gl);
     addTick(gP + yP, cfg.yl);
 
-    /* ── Moylan Arrow needle ────────────────────────────── */
+    /* -- Moylan Arrow needle ------------------------------ */
     var NL = R - 16;
     var nw = big ? 4.5 : 3.5;
 
@@ -421,7 +421,7 @@ function switchPerfTab(strategy) {
 
     svg.appendChild(g);
 
-    /* ── Value display ──────────────────────────────────── */
+    /* -- Value display ------------------------------------ */
     var vt = el('text', {
       x: CX, y: CY + (big ? 28 : 22),
       'text-anchor': 'middle', fill: nCol,

@@ -2,10 +2,10 @@
 Module 1 -- Page Availability Scanner
 
 Crawls from the base URL, discovers pages, and checks:
-  • HTTP status codes (200, 3xx, 4xx, 5xx)
-  • Response time thresholds
-  • Expected content presence
-  • Redirect chains
+  - HTTP status codes (200, 3xx, 4xx, 5xx)
+  - Response time thresholds
+  - Expected content presence
+  - Redirect chains
 """
 
 import logging
@@ -39,7 +39,7 @@ class AvailabilityScanner(BaseModule):
 
         return self.results
 
-    # ── Crawler ───────────────────────────────────────────────────────
+    # -- Crawler -------------------------------------------------------
 
     def _crawl(self) -> List[str]:
         """BFS crawl from base_url, returning a list of internal URLs."""
@@ -83,7 +83,7 @@ class AvailabilityScanner(BaseModule):
         logger.info(f"[availability] Discovered {len(visited)} pages")
         return sorted(visited)
 
-    # ── Individual page test ──────────────────────────────────────────
+    # -- Individual page test ------------------------------------------
 
     def _test_page(self, url: str):
         resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
@@ -103,7 +103,7 @@ class AvailabilityScanner(BaseModule):
 
         status = resp.status_code
 
-        # ── Status code check ─────────────────────────────────────
+        # -- Status code check -------------------------------------
         if 200 <= status < 300:
             test_status = TestStatus.PASSED
             sev = Severity.INFO
@@ -147,7 +147,7 @@ class AvailabilityScanner(BaseModule):
             duration_ms=dt,
         )
 
-        # ── Response time check ───────────────────────────────────
+        # -- Response time check -----------------------------------
         if dt > self.VERY_SLOW_THRESHOLD_MS:
             self.add_result(
                 name=f"Slow response: {self._short(url)}",
@@ -171,7 +171,7 @@ class AvailabilityScanner(BaseModule):
                 duration_ms=dt,
             )
 
-        # ── Check for error text in HTML ──────────────────────────
+        # -- Check for error text in HTML --------------------------
         if 200 <= status < 300 and "text/html" in resp.headers.get("content-type", ""):
             body_lower = resp.text[:5000].lower()
             error_patterns = [

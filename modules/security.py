@@ -2,14 +2,14 @@
 Module 6 -- Security Scanner
 
 Checks for common security misconfigurations:
-  • Missing security headers
-  • Exposed server info / debug output
-  • Directory listing enabled
-  • Sensitive file exposure (.env, .git, etc.)
-  • HTTPS enforcement
-  • CORS misconfiguration
-  • Content-Type sniffing
-  • Clickjacking protection
+  - Missing security headers
+  - Exposed server info / debug output
+  - Directory listing enabled
+  - Sensitive file exposure (.env, .git, etc.)
+  - HTTPS enforcement
+  - CORS misconfiguration
+  - Content-Type sniffing
+  - Clickjacking protection
 """
 
 import logging
@@ -102,7 +102,7 @@ class SecurityScanner(BaseModule):
 
         return self.results
 
-    # ── Security Headers ──────────────────────────────────────────
+    # -- Security Headers ------------------------------------------
 
     def _test_security_headers(self):
         url = self.config.base_url
@@ -158,7 +158,7 @@ class SecurityScanner(BaseModule):
                         url=url,
                     )
 
-    # ── Information Leakage ───────────────────────────────────────
+    # -- Information Leakage ---------------------------------------
 
     def _test_info_leakage(self):
         url = self.config.base_url
@@ -179,7 +179,7 @@ class SecurityScanner(BaseModule):
                     recommendation=f"Remove or obfuscate the '{header_name}' header in production.",
                 )
 
-    # ── Sensitive File Exposure ───────────────────────────────────
+    # -- Sensitive File Exposure -----------------------------------
 
     def _test_sensitive_files(self):
         base = self.config.base_url.rstrip("/")
@@ -231,7 +231,7 @@ class SecurityScanner(BaseModule):
                     duration_ms=dt,
                 )
 
-    # ── CORS Misconfiguration ─────────────────────────────────────
+    # -- CORS Misconfiguration -------------------------------------
 
     def _test_cors(self):
         url = self.config.base_url
@@ -286,7 +286,7 @@ class SecurityScanner(BaseModule):
                 url=url,
             )
 
-    # ── HTTPS Enforcement ─────────────────────────────────────────
+    # -- HTTPS Enforcement -----------------------------------------
 
     def _test_https_enforcement(self):
         url = self.config.base_url
@@ -326,7 +326,7 @@ class SecurityScanner(BaseModule):
             except Exception:
                 pass  # HTTP port may be closed, which is fine
 
-    # ── Directory Listing ─────────────────────────────────────────
+    # -- Directory Listing -----------------------------------------
 
     def _test_directory_listing(self):
         base = self.config.base_url.rstrip("/")
@@ -351,7 +351,7 @@ class SecurityScanner(BaseModule):
                     duration_ms=dt,
                 )
 
-    # ── Error Disclosure ──────────────────────────────────────────
+    # -- Error Disclosure ------------------------------------------
 
     def _test_error_disclosure(self):
         """Trigger errors and check if stack traces or debug info leak."""

@@ -2,13 +2,13 @@
 Module 4 -- Chaos / Failure Injection
 
 Simulates failure conditions to test resilience:
-  • Inject artificial latency into requests
-  • Simulate API errors (500, 502, 503)
-  • Simulate timeouts
-  • Corrupt cookies / sessions
-  • Request missing or renamed assets
-  • Test with disabled JavaScript markers
-  • Send malformed headers
+  - Inject artificial latency into requests
+  - Simulate API errors (500, 502, 503)
+  - Simulate timeouts
+  - Corrupt cookies / sessions
+  - Request missing or renamed assets
+  - Test with disabled JavaScript markers
+  - Send malformed headers
 """
 
 import logging
@@ -52,7 +52,7 @@ class ChaosInjector(BaseModule):
 
         return self.results
 
-    # ── Scenario: API Latency ─────────────────────────────────────
+    # -- Scenario: API Latency -------------------------------------
 
     def _chaos_api_latency(self, pages: list, intensity: dict):
         """Test how pages handle slow responses by using very short timeouts."""
@@ -85,7 +85,7 @@ class ChaosInjector(BaseModule):
                     recommendation="Implement request timeouts, loading states, and graceful degradation.",
                 )
 
-    # ── Scenario: API Error (5xx) ─────────────────────────────────
+    # -- Scenario: API Error (5xx) ---------------------------------
 
     def _chaos_api_error_500(self, pages: list, intensity: dict):
         """Check if the site has custom error pages for 5xx codes."""
@@ -150,7 +150,7 @@ class ChaosInjector(BaseModule):
                     duration_ms=dt,
                 )
 
-    # ── Scenario: Timeout ─────────────────────────────────────────
+    # -- Scenario: Timeout -----------------------------------------
 
     def _chaos_api_timeout(self, pages: list, intensity: dict):
         """Test near-zero timeout to verify the site handles connection issues."""
@@ -178,7 +178,7 @@ class ChaosInjector(BaseModule):
                     recommendation="Ensure frontend shows loading/error states when backend is slow.",
                 )
 
-    # ── Scenario: Missing Assets ──────────────────────────────────
+    # -- Scenario: Missing Assets ----------------------------------
 
     def _chaos_missing_assets(self, pages: list, intensity: dict):
         """Request known-bad asset paths to test fallback behavior."""
@@ -215,7 +215,7 @@ class ChaosInjector(BaseModule):
                         duration_ms=dt,
                     )
 
-    # ── Scenario: Corrupted Cookies ───────────────────────────────
+    # -- Scenario: Corrupted Cookies -------------------------------
 
     def _chaos_corrupted_cookies(self, pages: list, intensity: dict):
         """Send garbage cookies and see how the server handles them."""

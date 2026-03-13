@@ -2,10 +2,10 @@
 Website Auditor -- Flask Web Application
 
 Provides:
-  • Admin dashboard to configure and launch test runs
-  • Real-time progress via SSE (Server-Sent Events)
-  • Report viewer for past runs
-  • JSON API for programmatic access
+  - Admin dashboard to configure and launch test runs
+  - Real-time progress via SSE (Server-Sent Events)
+  - Report viewer for past runs
+  - JSON API for programmatic access
 """
 
 import hashlib
@@ -32,7 +32,7 @@ from .config import ChaosConfig
 from .runner import ChaosTestRunner
 from .models import TestRun
 
-# ── Setup ─────────────────────────────────────────────────────────
+# -- Setup ---------------------------------------------------------
 
 BASE_DIR = Path(__file__).parent
 REPORTS_DIR = BASE_DIR / "reports"
@@ -81,7 +81,7 @@ for f in sorted(REPORTS_DIR.glob("*.json")):
         pass
 
 
-# ── Security Helpers ─────────────────────────────────────────────
+# -- Security Helpers ---------------------------------------------
 
 _RUN_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 
@@ -155,7 +155,7 @@ def _clamp_int(raw: str, default: int, lo: int, hi: int) -> int:
     return max(lo, min(hi, v))
 
 
-# ── SSE Progress Stream ──────────────────────────────────────────
+# -- SSE Progress Stream ------------------------------------------
 
 def _progress_callback(module: str, pct: int, msg: str):
     global _progress
@@ -181,7 +181,7 @@ def _event_stream():
         time.sleep(0.5)
 
 
-# ── Background Runner ────────────────────────────────────────────
+# -- Background Runner --------------------------------------------
 
 def _run_tests(config: ChaosConfig):
     global _current_run, _current_status, _progress
@@ -215,7 +215,7 @@ def _run_tests(config: ChaosConfig):
     logger.info("Report saved: %s", report_file)
 
 
-# ── Routes ────────────────────────────────────────────────────────
+# -- Routes --------------------------------------------------------
 
 @app.route("/")
 def index():
@@ -448,7 +448,7 @@ def _block_protected():
     if request.path in _PROTECTED:
         abort(404)
 
-# ── Entry Point ───────────────────────────────────────────────────
+# -- Entry Point ---------------------------------------------------
 
 def main():
     import argparse

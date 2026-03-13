@@ -2,12 +2,12 @@
 Module 5 -- Authentication & Authorization Tester
 
 Tests:
-  • Unauthenticated access to protected routes
-  • Session fixation / manipulation
-  • Token expiry behavior
-  • Privilege escalation paths
-  • Cookie security flags (Secure, HttpOnly, SameSite)
-  • Login/logout flow integrity
+  - Unauthenticated access to protected routes
+  - Session fixation / manipulation
+  - Token expiry behavior
+  - Privilege escalation paths
+  - Cookie security flags (Secure, HttpOnly, SameSite)
+  - Login/logout flow integrity
 """
 
 import logging
@@ -47,7 +47,7 @@ class AuthTester(BaseModule):
 
         return self.results
 
-    # ── Unauthenticated Access ────────────────────────────────────
+    # -- Unauthenticated Access ------------------------------------
 
     def _test_unauthenticated_access(self, discovered_pages: list):
         """Hit protected routes without auth and check we get 401/403."""
@@ -137,7 +137,7 @@ class AuthTester(BaseModule):
             except Exception as e:
                 logger.debug(f"[auth] Error testing {url}: {e}")
 
-    # ── Cookie Security Flags ─────────────────────────────────────
+    # -- Cookie Security Flags -------------------------------------
 
     def _test_cookie_security(self):
         """Check that session cookies have Secure, HttpOnly, SameSite."""
@@ -206,7 +206,7 @@ class AuthTester(BaseModule):
                     url=url,
                 )
 
-    # ── Session Manipulation ──────────────────────────────────────
+    # -- Session Manipulation --------------------------------------
 
     def _test_session_manipulation(self):
         """Test if the server handles tampered session tokens safely."""
@@ -246,7 +246,7 @@ class AuthTester(BaseModule):
                         duration_ms=dt,
                     )
 
-    # ── HTTP Method Testing ───────────────────────────────────────
+    # -- HTTP Method Testing ---------------------------------------
 
     def _test_http_methods(self):
         """Test that sensitive endpoints reject unexpected HTTP methods."""
@@ -284,7 +284,7 @@ class AuthTester(BaseModule):
                 except Exception:
                     pass  # endpoint doesn't exist
 
-    # ── Auth Header Tests ─────────────────────────────────────────
+    # -- Auth Header Tests -----------------------------------------
 
     def _test_auth_headers(self):
         """Send malformed Authorization headers."""

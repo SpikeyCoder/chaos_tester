@@ -2,11 +2,11 @@
 Module 3 -- Form & Button Interaction Tester
 
 Discovers forms and interactive elements across pages and tests:
-  • Form submission with empty fields (validation check)
-  • Form submission with invalid data (XSS-like, SQL-like)
-  • Button clickability and action endpoints
-  • CSRF token presence
-  • Required field enforcement
+  - Form submission with empty fields (validation check)
+  - Form submission with invalid data (XSS-like, SQL-like)
+  - Button clickability and action endpoints
+  - CSRF token presence
+  - Required field enforcement
 """
 
 import logging
@@ -101,7 +101,7 @@ class FormInteractionTester(BaseModule):
             if inp.get("type", "").lower() == "hidden" and "csrf" in name.lower():
                 has_csrf = True
 
-        # ── CSRF check ────────────────────────────────────────────
+        # -- CSRF check --------------------------------------------
         if method == "post" and not has_csrf:
             self.add_result(
                 name=f"Missing CSRF token: {form_id}",
@@ -113,7 +113,7 @@ class FormInteractionTester(BaseModule):
                 recommendation="Add CSRF token to all POST forms to prevent cross-site request forgery.",
             )
 
-        # ── Empty submission test ─────────────────────────────────
+        # -- Empty submission test ---------------------------------
         if method == "post" and input_names:
             empty_data = {name: "" for name in input_names}
             resp, err, dt = self._safe_request(
@@ -154,7 +154,7 @@ class FormInteractionTester(BaseModule):
                         duration_ms=dt,
                     )
 
-        # ── XSS / injection payload test ──────────────────────────
+        # -- XSS / injection payload test --------------------------
         if method == "post" and input_names:
             xss_data = {name: self.FUZZ_PAYLOADS["xss_basic"] for name in input_names}
             resp, err, dt = self._safe_request(
@@ -173,7 +173,7 @@ class FormInteractionTester(BaseModule):
                     duration_ms=dt,
                 )
 
-        # ── Required fields check ─────────────────────────────────
+        # -- Required fields check ---------------------------------
         if required_fields:
             self.add_result(
                 name=f"Required fields: {form_id}",
