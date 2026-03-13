@@ -1,9 +1,16 @@
+"""
+AI Visibility Scanner Module
+Evaluates how prominently a business appears in AI platform recommendations
+across ChatGPT, Perplexity, Claude, and Gemini.
+"""
+
 import logging
 import re
 import json
 import hashlib
 from urllib.parse import urlparse
 from .base import BaseModule
+from .business_identifier import BusinessIdentifier
 from ..models import TestResult, TestStatus, Severity
 
 logger = logging.getLogger(__name__)
@@ -38,6 +45,8 @@ INDUSTRY_KEYWORDS = {
     "photography": ["photographer", "photography studio", "wedding photographer"],
     "veterinary": ["veterinarian", "vet clinic", "animal hospital", "pet care"],
     "technology": ["IT company", "tech support", "software company", "web design"],
+    "holding": ["holding company", "investment firm", "portfolio company", "venture capital"],
+    "consulting": ["consulting firm", "management consulting", "business consulting", "advisory"],
     "default": ["local business", "company", "service provider", "professional services"],
 }
 
@@ -59,19 +68,44 @@ class AIVisibilityScanner(BaseModule):
         self.industry = "default"
         self.location = ""
         self.ai_results = []
+        self._identifier = BusinessIdentifier(session=self.session, timeout=config.request_timeout)
+        self._identification_details = {}
 
     def _extract_business_info(self, url, page_content=""):
-        """Extract business name, industry, and location from URL and page content."""
-        parsed = urlparse(url)
-        domain = parsed.hostname or ""
-        # Remove www. and TLD
-        domain_name = re.sub(r"^www\.", "", domain)
-        domain_name = re.sub(r"\.(com|net|org|io|co|biz|us|info).*$", "", domain_name)
-        # Convert hyphens/underscores to spaces, title case
-        self.business_name = domain_name.replace("-", " ").replace("_", " ").title()
+        """
+        Extract business name, industry, and location from URL and page content.
+        Uses the BusinessIdentifier pipeline:
+          1. Scrape candidate names from headers, footers, legal text, entity suffixes
+          2. Score and rank candidates
+          3. Pick highest-confidence business name
+          4. Reverse-lookup headquarters city from business records
+          5. Use headquarters city as the dashboard location
+        """
+        # --- Run the full identification pipeline ---------------------
+        try:
+            result = self._identifier.identify(url, html=page_content)
+            self._identification_details = result
 
-        # Try to detect industry from domain and page content
-        combined = (domain + " " + page_content).lower()
+            if result["business_name"]:
+                self.business_name = result["business_name"]
+            if result["location"]:
+                self.location = result["location"]
+        except Exception as exc:
+            logger.warning("BusinessIdentifier failed: %s -- falling back to domain parse", exc)
+
+        # --- Fallback: derive from domain if identifier found nothing -
+        if not self.business_name:
+            parsed = urlparse(url)
+            domain = parsed.hostname or ""
+            domain_name = re.sub(r"^www\.", "", domain)
+            domain_name = re.sub(r"\.(com|net|org|io|co|biz|us|info).*$", "", domain_name)
+            self.business_name = domain_name.replace("-", " ").replace("_", " ").title()
+
+        if not self.location:
+            self.location = "your area"
+
+        # --- Detect industry from domain + page content ---------------
+        combined = (url + " " + page_content).lower()
         for ind, keywords in INDUSTRY_KEYWORDS.items():
             if ind == "default":
                 continue
@@ -82,18 +116,10 @@ class AIVisibilityScanner(BaseModule):
             if self.industry != "default":
                 break
 
-        # Try to detect location from page content
-        location_patterns = [
-            r"(?:located in|serving|based in|proudly serving)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:,\s*[A-Z]{2})?)",
-            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*),\s*([A-Z]{2})\s+\d{5}",
-        ]
-        for pattern in location_patterns:
-            match = re.search(pattern, page_content)
-            if match:
-                self.location = match.group(1) if match.lastindex == 1 else f"{match.group(1)}, {match.group(2)}"
-                break
-        if not self.location:
-            self.location = "your area"
+        logger.info(
+            "AI Visibility business info: name=%r industry=%r location=%r",
+            self.business_name, self.industry, self.location,
+        )
 
         return {
             "business_name": self.business_name,
@@ -150,7 +176,7 @@ class AIVisibilityScanner(BaseModule):
         try:
             resp, err, dur = self._safe_request("GET", self.config.base_url)
             if resp and resp.text:
-                page_content = resp.text[:5000]
+                page_content = resp.text[:10000]  # increased from 5000 for better extraction
         except Exception:
             pass
 
@@ -198,6 +224,10 @@ class AIVisibilityScanner(BaseModule):
             "platform_scores": platform_scores,
             "queries": queries,
             "all_results": [],
+            "identification": {
+                "candidates": self._identification_details.get("candidates", []),
+                "lookup_source": self._identification_details.get("lookup_source", ""),
+            },
         }
 
         # Flatten all results for the table
