@@ -72,6 +72,7 @@ class ChaosConfig:
     run_auth: bool = True
     run_security: bool = True
     run_ai_visibility: bool = True
+    business_location: str = ""           # optional user-provided city for AI queries
 
     # -- Chaos / Fault-injection ---------------------------------------
     chaos_targets: list = field(default_factory=lambda: [

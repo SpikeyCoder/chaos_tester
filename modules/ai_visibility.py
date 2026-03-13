@@ -17,10 +17,26 @@ logger = logging.getLogger(__name__)
 
 # AI platform query configurations
 AI_PLATFORMS = [
-    {"name": "ChatGPT", "icon": "\U0001f916", "color": "#10a37f"},
-    {"name": "Perplexity", "icon": "\U0001f50d", "color": "#20808d"},
-    {"name": "Claude", "icon": "\U0001f9e0", "color": "#cc785c"},
-    {"name": "Gemini", "icon": "\u2728", "color": "#4285f4"},
+    {
+        "name": "ChatGPT",
+        "color": "#10a37f",
+        "logo_url": "https://api.iconify.design/simple-icons/openai.svg?color=%2310a37f&width=22&height=22",
+    },
+    {
+        "name": "Perplexity",
+        "color": "#20808d",
+        "logo_url": "https://cdn.simpleicons.org/perplexity/20808d",
+    },
+    {
+        "name": "Claude",
+        "color": "#cc785c",
+        "logo_url": "https://cdn.simpleicons.org/anthropic/cc785c",
+    },
+    {
+        "name": "Gemini",
+        "color": "#4285f4",
+        "logo_url": "https://cdn.simpleicons.org/googlegemini/4285f4",
+    },
 ]
 
 # ── Sector-specific search keywords ────────────────────────────────
@@ -107,6 +123,10 @@ class AIVisibilityScanner(BaseModule):
              JSON-LD @type, and page content keyword analysis
           6. Use HQ city + sector keywords in AI visibility queries
         """
+        # --- Check for user-provided location override -----------------
+        user_location = getattr(self.config, "business_location", "") or ""
+        user_location = user_location.strip()
+
         # --- Run the full identification pipeline ---------------------
         try:
             result = self._identifier.identify(url, html=page_content)
@@ -120,6 +140,11 @@ class AIVisibilityScanner(BaseModule):
                 self.sector = result["sector"]
         except Exception as exc:
             logger.warning("BusinessIdentifier failed: %s -- falling back to domain parse", exc)
+
+        # --- User-provided location always wins ----------------------
+        if user_location:
+            self.location = user_location
+            logger.info("Using user-provided location: %r", user_location)
 
         # --- Fallback: derive from domain if identifier found nothing -
         if not self.business_name:
@@ -140,6 +165,7 @@ class AIVisibilityScanner(BaseModule):
         return {
             "business_name": self.business_name,
             "sector": self.sector,
+            "industry": self.sector,  # backward compat with template
             "location": self.location,
         }
 
@@ -233,7 +259,7 @@ class AIVisibilityScanner(BaseModule):
                 "appearances": platform_appearances,
                 "total": len(queries),
                 "results": platform_results,
-                "icon": platform_info["icon"],
+                "logo_url": platform_info["logo_url"],
                 "color": platform_info["color"],
             }
 
@@ -262,7 +288,7 @@ class AIVisibilityScanner(BaseModule):
                     50 if r["client_appears"] else 0))
                 self.ai_results["all_results"].append({
                     "platform": r["platform"],
-                    "platform_icon": next((p["icon"] for p in AI_PLATFORMS if p["name"] == r["platform"]), ""),
+                    "platform_logo_url": next((p["logo_url"] for p in AI_PLATFORMS if p["name"] == r["platform"]), ""),
                     "platform_color": next((p["color"] for p in AI_PLATFORMS if p["name"] == r["platform"]), "#666"),
                     "query": r["query"],
                     "recommended": ", ".join(r["recommended"]),

@@ -174,7 +174,7 @@
     </div>
     <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
       <div style="font-size:1.1rem;font-weight:600;">{{ ai.business_info.business_name }}</div>
-      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">{{ ai.business_info.industry|title }} &mdash; {{ ai.business_info.location }}</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">{{ ai.business_info.sector|title }} &mdash; {{ ai.business_info.location }}</div>
     </div>
   </div>
 
@@ -182,7 +182,10 @@
   <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;margin-bottom:24px;">
     {% for pname, pdata in ai.platform_scores.items() %}
     <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid {{ pdata.color }};">
-      <div style="font-weight:600;margin-bottom:8px;">{{ pdata.icon }} {{ pname }}</div>
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <img src="{{ pdata.logo_url }}" width="20" height="20" alt="{{ pname }}" style="vertical-align:middle;">
+        {{ pname }}
+      </div>
       <div style="font-size:1.8rem;font-weight:700;color:{% if pdata.score >= 50 %}var(--green){% elif pdata.score >= 25 %}var(--yellow){% else %}var(--red){% endif %};">{{ pdata.score }}%</div>
       <div style="color:var(--text-muted);font-size:0.8rem;">{{ pdata.appearances }}/{{ pdata.total }} queries</div>
       <div class="progress-bar-bg mt-1" style="height:6px;">
@@ -209,7 +212,10 @@
       <tbody>
         {% for row in ai.all_results %}
         <tr>
-          <td><span style="color:{{ row.platform_color }};font-weight:600;">{{ row.platform_icon }} {{ row.platform }}</span></td>
+          <td><span style="color:{{ row.platform_color }};font-weight:600;display:inline-flex;align-items:center;gap:5px;">
+            <img src="{{ row.platform_logo_url }}" width="18" height="18" alt="{{ row.platform }}" style="vertical-align:middle;">
+            {{ row.platform }}
+          </span></td>
           <td style="max-width:220px;white-space:normal;word-wrap:break-word;">{{ row.query }}</td>
           <td style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.recommended }}</td>
           <td>
