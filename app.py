@@ -1,5 +1,5 @@
 """
-Website Auditor — Flask Web Application
+Website Auditor -- Flask Web Application
 
 Provides:
   • Admin dashboard to configure and launch test runs
@@ -44,7 +44,7 @@ _secret = os.environ.get("CHAOS_TESTER_SECRET_KEY")
 if not _secret:
     _secret = secrets.token_hex(32)
     logging.getLogger("chaos_tester").warning(
-        "CHAOS_TESTER_SECRET_KEY not set — using a random key. "
+        "CHAOS_TESTER_SECRET_KEY not set -- using a random key. "
         "Sessions will not survive server restarts. "
         "Set the env var for persistence."
     )
@@ -452,7 +452,7 @@ def _block_protected():
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Website Auditor — Admin Dashboard")
+    parser = argparse.ArgumentParser(description="Website Auditor -- Admin Dashboard")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--debug", action="store_true")
@@ -460,7 +460,7 @@ def main():
 
     if args.debug:
         logger.warning(
-            "Running in DEBUG mode — do not use in production. "
+            "Running in DEBUG mode -- do not use in production. "
             "Debug mode exposes a debugger and auto-reloads."
         )
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Chaos Tester — Entry Point
+Chaos Tester -- Entry Point
 
 Usage:
     python run.py                       # Start the web dashboard on port 5000

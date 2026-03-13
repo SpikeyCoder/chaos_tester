@@ -1,5 +1,5 @@
 """
-Module 6 — Security Scanner
+Module 6 -- Security Scanner
 
 Checks for common security misconfigurations:
   • Missing security headers
@@ -346,7 +346,7 @@ class SecurityScanner(BaseModule):
                     status=TestStatus.FAILED,
                     severity=Severity.HIGH,
                     url=url,
-                    details="Server reveals directory contents — attackers can enumerate files.",
+                    details="Server reveals directory contents -- attackers can enumerate files.",
                     recommendation="Disable directory listing in web server config (e.g., Options -Indexes).",
                     duration_ms=dt,
                 )

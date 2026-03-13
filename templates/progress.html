@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Website Auditor — Running{% endblock %}
+{% block title %}Website Auditor -- Running{% endblock %}
 
 {% block content %}
 <div class="card">
@@ -75,7 +75,7 @@ source.onmessage = function(event) {
     reportBtn.style.display = 'inline-flex';
       if (data.run_id) { reportBtn.href = '/report/' + data.run_id; }
     pct.style.color = data.msg === 'completed' ? 'var(--green)' : 'var(--red)';
-    txt.textContent = data.msg === 'completed' ? 'All tests complete!' : 'Run failed — see logs.';
+    txt.textContent = data.msg === 'completed' ? 'All tests complete!' : 'Run failed -- see logs.';
   }
 };
 

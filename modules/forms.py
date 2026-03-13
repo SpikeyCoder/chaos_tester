@@ -1,5 +1,5 @@
 """
-Module 3 — Form & Button Interaction Tester
+Module 3 -- Form & Button Interaction Tester
 
 Discovers forms and interactive elements across pages and tests:
   • Form submission with empty fields (validation check)

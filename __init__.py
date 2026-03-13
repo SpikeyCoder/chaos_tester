@@ -1,5 +1,5 @@
 """
-Chaos Tester — Internal QA, Resilience & Security Testing Tool
+Chaos Tester -- Internal QA, Resilience & Security Testing Tool
 """
 
 from .config import ChaosConfig

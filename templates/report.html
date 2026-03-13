@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Report {{ report.run_id }} — Website Auditor{% endblock %}
+{% block title %}Report {{ report.run_id }} -- Website Auditor{% endblock %}
 {% block content %}
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
   <div>
@@ -480,9 +480,16 @@ function switchPerfTab(strategy) {
     width: 100%;
   }
   #resultsTable th:nth-child(1) { width: 40px; }
-  #resultsTable th:nth-child(2) { width: 72px; }
-  #resultsTable th:nth-child(3) { width: 72px; }
-  #resultsTable th:nth-child(4) { width: 80px; }
+  #resultsTable th:nth-child(2) { width: 82px; }
+  #resultsTable th:nth-child(3) { width: 82px; }
+  #resultsTable th:nth-child(4) { width: 100px; }
+    #resultsTable td:nth-child(2),
+    #resultsTable td:nth-child(3),
+    #resultsTable td:nth-child(4) {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   #resultsTable th:nth-child(5) { width: 28%; }
   #resultsTable th:nth-child(7) { width: 60px; }
   #resultsTable td {

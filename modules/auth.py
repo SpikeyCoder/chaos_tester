@@ -1,5 +1,5 @@
 """
-Module 5 — Authentication & Authorization Tester
+Module 5 -- Authentication & Authorization Tester
 
 Tests:
   • Unauthenticated access to protected routes
@@ -76,7 +76,7 @@ class AuthTester(BaseModule):
                         status=TestStatus.PASSED,
                         severity=Severity.INFO,
                         url=url,
-                        details=f"HTTP {status} — access denied without credentials.",
+                        details=f"HTTP {status} -- access denied without credentials.",
                     )
                 elif 300 <= status < 400:
                     location = resp.headers.get("Location", "")
@@ -96,7 +96,7 @@ class AuthTester(BaseModule):
                             status=TestStatus.WARNING,
                             severity=Severity.MEDIUM,
                             url=url,
-                            details=f"Redirect to: {location} — may not be auth-gated.",
+                            details=f"Redirect to: {location} -- may not be auth-gated.",
                             recommendation="Verify this redirect is intentional and not bypassing auth.",
                         )
                 elif status == 200:
@@ -161,7 +161,7 @@ class AuthTester(BaseModule):
                 status=TestStatus.WARNING,
                 severity=Severity.LOW,
                 url=url,
-                details="Could not check cookie security flags — no cookies were set.",
+                details="Could not check cookie security flags -- no cookies were set.",
                 recommendation="If sessions are used, verify cookies on authenticated pages.",
             )
             return
@@ -233,7 +233,7 @@ class AuthTester(BaseModule):
                         severity=Severity.CRITICAL,
                         url=url,
                         details=f"Tampered {self.config.auth_cookie_name}='{value[:30]}' caused HTTP {resp.status_code}.",
-                        recommendation="Handle invalid session tokens gracefully — clear cookie and redirect to login.",
+                        recommendation="Handle invalid session tokens gracefully -- clear cookie and redirect to login.",
                         duration_ms=dt,
                     )
                 else:
@@ -270,7 +270,7 @@ class AuthTester(BaseModule):
                             status=TestStatus.FAILED,
                             severity=Severity.HIGH,
                             url=url,
-                            details=f"{method} {path} returned {resp.status_code} — may allow unintended modifications.",
+                            details=f"{method} {path} returned {resp.status_code} -- may allow unintended modifications.",
                             recommendation=f"Restrict {method} on {path} or require authentication.",
                         )
                     elif resp.status_code == 405:

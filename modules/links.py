@@ -1,5 +1,5 @@
 """
-Module 2 — Broken Link Scanner
+Module 2 -- Broken Link Scanner
 
 Finds all internal and external links, images, scripts, and stylesheets
 across discovered pages and verifies they resolve.
@@ -115,7 +115,7 @@ class BrokenLinkScanner(BaseModule):
             return
 
         if status == 405:
-            # HEAD not allowed — try GET
+            # HEAD not allowed -- try GET
             try:
                 resp, dt = self._timed(
                     self.session.get, url,

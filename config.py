@@ -1,5 +1,5 @@
 """
-Chaos Tester — Configuration
+Chaos Tester -- Configuration
 """
 
 import ipaddress
@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 
 def _is_private_or_reserved(hostname: str) -> bool:
     """Return True if *hostname* resolves to a private, loopback, or
-    link-local address — or to a well-known cloud metadata endpoint.
+    link-local address -- or to a well-known cloud metadata endpoint.
     This provides SSRF protection by blocking requests to internal services."""
     BLOCKED_HOSTS = {"metadata.google.internal", "169.254.169.254"}
     if hostname.lower() in BLOCKED_HOSTS:
@@ -24,7 +24,7 @@ def _is_private_or_reserved(hostname: str) -> bool:
             if addr.is_private or addr.is_loopback or addr.is_link_local or addr.is_reserved:
                 return True
     except (socket.gaierror, ValueError, OSError):
-        # DNS resolution failed — allow the request (the HTTP client
+        # DNS resolution failed -- allow the request (the HTTP client
         # will surface its own connection error later).
         pass
     return False
@@ -91,7 +91,7 @@ class ChaosConfig:
     verbose: bool = False
 
     def validate(self):
-        """Safety gate — refuse to hit production unless explicitly allowed,
+        """Safety gate -- refuse to hit production unless explicitly allowed,
         validate URL format, block SSRF targets, and clamp numeric inputs."""
         # Production safety gate
         if self.environment == "production" and not self.allow_production:
@@ -104,14 +104,14 @@ class ChaosConfig:
         if self.environment not in ("staging", "test", "production"):
             raise ValueError(
                 f"Invalid environment: {self.environment!r} "
-                "— must be staging, test, or production."
+                "-- must be staging, test, or production."
             )
 
         # URL format check
         if not self.base_url.startswith(("http://", "https://")):
             raise ValueError(f"Invalid base_url: {self.base_url}")
 
-        # SSRF protection — block private/internal targets
+        # SSRF protection -- block private/internal targets
         parsed = urlparse(self.base_url)
         hostname = parsed.hostname
         if not hostname:

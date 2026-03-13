@@ -1,5 +1,5 @@
 """
-Module 4 — Chaos / Failure Injection
+Module 4 -- Chaos / Failure Injection
 
 Simulates failure conditions to test resilience:
   • Inject artificial latency into requests
@@ -58,7 +58,7 @@ class ChaosInjector(BaseModule):
         """Test how pages handle slow responses by using very short timeouts."""
         for url in pages[:5]:
             # Simulate the experience of a slow server by setting an
-            # aggressively short timeout — if the page normally takes > threshold,
+            # aggressively short timeout -- if the page normally takes > threshold,
             # we flag it as latency-sensitive
             try:
                 resp, dt = self._timed(
@@ -81,7 +81,7 @@ class ChaosInjector(BaseModule):
                     status=TestStatus.WARNING,
                     severity=Severity.MEDIUM,
                     url=url,
-                    details=f"Page could not respond within {intensity['latency_s']}s — may be vulnerable to latency spikes.",
+                    details=f"Page could not respond within {intensity['latency_s']}s -- may be vulnerable to latency spikes.",
                     recommendation="Implement request timeouts, loading states, and graceful degradation.",
                 )
 
@@ -167,14 +167,14 @@ class ChaosInjector(BaseModule):
                     details="Server response was nearly instant.",
                 )
             except Exception:
-                # Expected — this is just confirming the site doesn't crash
+                # Expected -- this is just confirming the site doesn't crash
                 self.add_result(
                     name=f"Timeout handling: {self._short_path(url)}",
                     description="Verified behavior under extreme timeout (expected failure)",
                     status=TestStatus.PASSED,
                     severity=Severity.INFO,
                     url=url,
-                    details="Request correctly failed under impossible timeout — verify client-side timeout handling.",
+                    details="Request correctly failed under impossible timeout -- verify client-side timeout handling.",
                     recommendation="Ensure frontend shows loading/error states when backend is slow.",
                 )
 

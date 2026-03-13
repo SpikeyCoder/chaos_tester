@@ -1,5 +1,5 @@
 """
-Chaos Tester — Data models for test results
+Chaos Tester -- Data models for test results
 """
 
 import time

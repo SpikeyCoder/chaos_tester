@@ -1,5 +1,5 @@
 """
-Base module — shared helpers for all test modules.
+Base module -- shared helpers for all test modules.
 """
 
 import time

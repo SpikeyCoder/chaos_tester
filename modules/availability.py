@@ -1,5 +1,5 @@
 """
-Module 1 — Page Availability Scanner
+Module 1 -- Page Availability Scanner
 
 Crawls from the base URL, discovers pages, and checks:
   • HTTP status codes (200, 3xx, 4xx, 5xx)
@@ -119,7 +119,7 @@ class AvailabilityScanner(BaseModule):
             test_status = TestStatus.WARNING
             sev = Severity.MEDIUM
             detail = f"HTTP 403 Forbidden"
-            rec = "Check access control — page may be intentionally restricted."
+            rec = "Check access control -- page may be intentionally restricted."
         elif status == 404:
             test_status = TestStatus.FAILED
             sev = Severity.HIGH
