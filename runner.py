@@ -132,7 +132,7 @@ class ChaosTestRunner:
             if self.config.run_ai_visibility:
                 self._emit("ai_visibility", 99, "Analyzing AI visibility...")
                 try:
-                    ai_scanner = AIVisibilityScanner(self.config, self.session)
+                    ai_scanner = AIVisibilityScanner(self.config)
                     ai_scanner.run()
                     self.test_run.results.extend(ai_scanner.results)
                     self.test_run.ai_visibility = ai_scanner.ai_results
