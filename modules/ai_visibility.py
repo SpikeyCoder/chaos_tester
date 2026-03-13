@@ -3,8 +3,8 @@ import re
 import json
 import hashlib
 from urllib.parse import urlparse
-from modules.base import BaseModule
-from models import TestResult
+from .base import BaseModule
+from ..models import TestResult
 
 logger = logging.getLogger(__name__)
 
