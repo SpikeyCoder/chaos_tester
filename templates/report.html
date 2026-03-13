@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}Report {{ report.run_id }} — Website Auditor{% endblock %}
-
 {% block content %}
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
   <div>
@@ -9,11 +8,9 @@
       <span class="badge badge-{{ 'passed' if report.status == 'completed' else 'failed' }}" style="font-size:0.75rem;margin-left:8px;">{{ report.status }}</span>
     </h2>
     <p class="text-muted text-sm mt-1">
-      Run <code>{{ report.run_id }}</code> &middot;
-      {{ report.base_url }} &middot;
+      Run <code>{{ report.run_id }}</code> &middot; {{ report.base_url }} &middot;
       <span class="badge badge-info">{{ report.environment }}</span> &middot;
-      {{ report.started_at[:19] }} &middot;
-      {{ report.duration_s }}s
+      {{ report.started_at[:19] }} &middot; {{ report.duration_s }}s
     </p>
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
@@ -66,31 +63,22 @@
   {% set sdata = perf.get(strategy, {}) %}
   <div class="perf-panel" id="panel-{{strategy}}" style="{% if strategy=='desktop' %}display:none{% endif %}">
     {% if sdata and sdata.get("score") is not none %}
-    <div style="text-align:center;margin-bottom:16px">
-      {% set sc = (sdata.score * 100)|int %}
-      {% set col = "#0cce6b" if sc >= 90 else "#ffa400" if sc >= 50 else "#ff4e42" %}
-      <svg width="120" height="70" viewBox="0 0 120 70">
-        <path d="M10,65 A50,50 0 0,1 110,65" fill="none" stroke="var(--border)" stroke-width="8"/>
-        <path d="M10,65 A50,50 0 0,1 110,65" fill="none" stroke="{{col}}" stroke-width="8"
-              stroke-dasharray="157" stroke-dashoffset="{{157 - (sc/100*157)}}"/>
-        <text x="60" y="55" text-anchor="middle" fill="{{col}}" font-size="28" font-weight="bold">{{sc}}</text>
-      </svg>
-      <div style="color:var(--text-muted);font-size:13px">Overall Score</div>
+    <!-- Overall Score Gauge -->
+    <div style="text-align:center;margin-bottom:20px">
+      <div class="gauge-container gauge-main"
+           data-type="overall"
+           data-value="{{ (sdata.score * 100)|int }}"
+           data-display="{{ (sdata.score * 100)|int }}"></div>
+      <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Overall Score</div>
     </div>
+    <!-- Individual Metric Gauges -->
     <div class="perf-grid">
       {% for mid, mdata in sdata.get("metrics", {}).items() %}
-      {% set ms = mdata.get("score", 0) or 0 %}
-      {% set pct = (ms * 100)|int %}
-      {% set mcol = "#0cce6b" if pct >= 90 else "#ffa400" if pct >= 50 else "#ff4e42" %}
       <div class="gauge-card">
-        <svg class="gauge-svg" viewBox="0 0 100 60">
-          <path d="M10,55 A40,40 0 0,1 90,55" fill="none" stroke="var(--border)" stroke-width="6"/>
-          <path d="M10,55 A40,40 0 0,1 90,55" fill="none" stroke="{{mcol}}" stroke-width="6"
-                stroke-dasharray="126" stroke-dashoffset="{{126 - (pct/100*126)}}"/>
-          <text x="50" y="45" text-anchor="middle" fill="var(--text)" font-size="16" font-weight="bold">
-            {{mdata.value}}{{mdata.unit}}
-          </text>
-        </svg>
+        <div class="gauge-container gauge-metric"
+             data-type="{{mid}}"
+             data-value="{{mdata.value}}"
+             data-display="{{mdata.display}}"></div>
         <div class="gauge-label">{{mdata.label}}</div>
       </div>
       {% endfor %}
@@ -113,7 +101,6 @@
     <button class="btn btn-secondary text-sm filter-btn" data-filter="failed" onclick="filterResults('failed', this)">Failed</button>
     <button class="btn btn-secondary text-sm filter-btn" data-filter="warning" onclick="filterResults('warning', this)">Warnings</button>
     <button class="btn btn-secondary text-sm filter-btn" data-filter="passed" onclick="filterResults('passed', this)">Passed</button>
-
     <span class="text-muted text-sm" style="margin-left:16px;margin-right:8px;">Module:</span>
     <button class="btn btn-secondary text-sm module-btn active" data-module="all" onclick="filterModule('all', this)">All</button>
     <button class="btn btn-secondary text-sm module-btn" data-module="availability" onclick="filterModule('availability', this)">Availability</button>
@@ -176,63 +163,62 @@
     {% set modules = ['availability','links','forms','chaos','auth','security'] %}
     {% set icons = {'availability':'🌐','links':'🔗','forms':'📝','chaos':'🤖','auth':'🔒','security':'🛡'} %}
     {% for mod in modules %}
-      {% set mod_results = report.results|selectattr('module','equalto',mod)|list %}
-      {% if mod_results %}
-      <div style="background:var(--surface2);border-radius:10px;padding:16px;">
-        <div style="font-weight:600;margin-bottom:8px;">
-          {{ icons.get(mod,'') }} {{ mod|capitalize }}
-          <span class="text-muted text-sm">({{ mod_results|length }})</span>
-        </div>
-        {% set mp = mod_results|selectattr('status','equalto','passed')|list|length %}
-        {% set mf = mod_results|selectattr('status','equalto','failed')|list|length %}
-        {% set mw = mod_results|selectattr('status','equalto','warning')|list|length %}
-        <div style="display:flex;gap:12px;font-size:0.85rem;">
-          <span style="color:var(--green)">✓ {{ mp }}</span>
-          <span style="color:var(--red)">✗ {{ mf }}</span>
-          <span style="color:var(--yellow)">⚠ {{ mw }}</span>
-        </div>
-        {% set mod_total = mod_results|length %}
-        <div class="progress-bar-bg mt-1" style="height:6px;">
-          <div class="progress-bar-fill" style="width:{{ (mp / mod_total * 100) if mod_total else 0 }}%;background:var(--green);"></div>
-        </div>
+    {% set mod_results = report.results|selectattr('module','equalto',mod)|list %}
+    {% if mod_results %}
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;">
+      <div style="font-weight:600;margin-bottom:8px;">
+        {{ icons.get(mod,'') }} {{ mod|capitalize }}
+        <span class="text-muted text-sm">({{ mod_results|length }})</span>
       </div>
-      {% endif %}
+      {% set mp = mod_results|selectattr('status','equalto','passed')|list|length %}
+      {% set mf = mod_results|selectattr('status','equalto','failed')|list|length %}
+      {% set mw = mod_results|selectattr('status','equalto','warning')|list|length %}
+      <div style="display:flex;gap:12px;font-size:0.85rem;">
+        <span style="color:var(--green)">✓ {{ mp }}</span>
+        <span style="color:var(--red)">✗ {{ mf }}</span>
+        <span style="color:var(--yellow)">⚠ {{ mw }}</span>
+      </div>
+      {% set mod_total = mod_results|length %}
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:{{ (mp / mod_total * 100) if mod_total else 0 }}%;background:var(--green);"></div>
+      </div>
+    </div>
+    {% endif %}
     {% endfor %}
   </div>
 </div>
 
 <script>
-  var reportData = {{ report | tojson }};
-  function downloadJSON() {
-    var b = new Blob([JSON.stringify(reportData, null, 2)], {type: 'application/json'});
-    var u = URL.createObjectURL(b);
-    var a = document.createElement('a');
-    a.href = u;
-    a.download = 'audit_' + reportData.run_id + '.json';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(u);
-  }
-  function downloadCSV() {
-    var r = reportData.results || [];
-    if (!r.length) { alert('No results'); return; }
-    var h = ['module','check','status','detail'];
-    var c = h.join(',') + '\n';
-    r.forEach(function(x) {
-      var row = h.map(function(k) {
-        return '"' + ((x[k] || '') + '').replace(/"/g, '""') + '"';
-      });
-      c += row.join(',') + '\n';
-    });
-    var b = new Blob([c], {type: 'text/csv'});
-    var u = URL.createObjectURL(b);
-    var a = document.createElement('a');
-    a.href = u;
-    a.download = 'audit_' + reportData.run_id + '.csv';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(u);
-  }
-</script>
+var reportData = {{ report | tojson }};
 
+function downloadJSON() {
+  var b = new Blob([JSON.stringify(reportData, null, 2)], {type: 'application/json'});
+  var u = URL.createObjectURL(b);
+  var a = document.createElement('a');
+  a.href = u; a.download = 'audit_' + reportData.run_id + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(u);
+}
+
+function downloadCSV() {
+  var r = reportData.results || [];
+  if (!r.length) { alert('No results'); return; }
+  var h = ['module','check','status','detail'];
+  var c = h.join(',') + '\n';
+  r.forEach(function(x) {
+    var row = h.map(function(k) {
+      return '"' + ((x[k] || '') + '').replace(/"/g, '""') + '"';
+    });
+    c += row.join(',') + '\n';
+  });
+  var b = new Blob([c], {type: 'text/csv'});
+  var u = URL.createObjectURL(b);
+  var a = document.createElement('a');
+  a.href = u; a.download = 'audit_' + reportData.run_id + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(u);
+}
+</script>
 
 <script>
 let currentStatus = 'all';
@@ -244,14 +230,12 @@ function filterResults(status, btn) {
   btn.classList.add('active');
   applyFilters();
 }
-
 function filterModule(mod, btn) {
   currentModule = mod;
   document.querySelectorAll('.module-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   applyFilters();
 }
-
 function applyFilters() {
   document.querySelectorAll('.result-row').forEach(row => {
     const matchStatus = currentStatus === 'all' || row.dataset.status === currentStatus;
@@ -270,6 +254,191 @@ function switchPerfTab(strategy) {
 }
 </script>
 
+<!-- Moylan Arrow Gauge Renderer -->
+<script>
+(function() {
+  /* Lighthouse performance thresholds (values in same units as metric data) */
+  var TH = {
+    'overall':                  {g:90,  y:50,   max:100,  rev:true, gl:'90', yl:'50'},
+    'first-contentful-paint':   {g:1.8, y:3.0,  max:6.0,  rev:false, gl:'1.8s', yl:'3.0s'},
+    'speed-index':              {g:3.4, y:5.8,  max:10.0, rev:false, gl:'3.4s', yl:'5.8s'},
+    'largest-contentful-paint': {g:2.5, y:4.0,  max:8.0,  rev:false, gl:'2.5s', yl:'4.0s'},
+    'cumulative-layout-shift':  {g:0.1, y:0.25, max:0.5,  rev:false, gl:'0.1',  yl:'0.25'},
+    'interactive':              {g:3.8, y:7.3,  max:12.0, rev:false, gl:'3.8s', yl:'7.3s'},
+    'total-blocking-time':      {g:200, y:600,  max:1200, rev:false, gl:'200ms',yl:'600ms'}
+  };
+
+  var NS = 'http://www.w3.org/2000/svg';
+
+  function el(tag, attrs) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function arcPt(cx, cy, r, proportion) {
+    var a = Math.PI * (1 - proportion);
+    return { x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) };
+  }
+
+  function drawGauge(container) {
+    var type  = container.getAttribute('data-type');
+    var value = parseFloat(container.getAttribute('data-value'));
+    var disp  = container.getAttribute('data-display') || '';
+    var big   = container.classList.contains('gauge-main');
+
+    var cfg = TH[type];
+    if (!cfg) return;
+
+    /* Dimensions */
+    var W = 200, H = big ? 140 : 128;
+    var CX = 100, CY = big ? 105 : 98;
+    var R  = big ? 80 : 70;
+    var SW = big ? 16 : 12;
+    var ARC = Math.PI * R;
+
+    /* Color band proportions (fraction of arc) */
+    var gP, yP, rP;
+    if (cfg.rev) {
+      gP = (cfg.max - cfg.g) / cfg.max;          /* 10% */
+      yP = (cfg.g - cfg.y) / cfg.max;            /* 40% */
+      rP = cfg.y / cfg.max;                       /* 50% */
+    } else {
+      gP = cfg.g / cfg.max;
+      yP = (cfg.y - cfg.g) / cfg.max;
+      rP = (cfg.max - cfg.y) / cfg.max;
+    }
+    var gL = gP * ARC, yL = yP * ARC, rL = rP * ARC;
+
+    /* Needle position (0 = left, 1 = right) */
+    var nPos;
+    if (cfg.rev) {
+      nPos = Math.max(0, Math.min(1, (cfg.max - value) / cfg.max));
+    } else {
+      nPos = Math.max(0, Math.min(1, value / cfg.max));
+    }
+    var needleDeg = -90 + nPos * 180;
+
+    /* Needle color = zone it points to */
+    var nCol;
+    if (nPos <= gP + 0.001) nCol = '#0cce6b';
+    else if (nPos <= gP + yP + 0.001) nCol = '#ffa400';
+    else nCol = '#ff4e42';
+
+    /* Build SVG */
+    var svg = el('svg', {viewBox: '0 0 ' + W + ' ' + H});
+    svg.style.width = '100%';
+    svg.style.maxWidth = big ? '230px' : '175px';
+
+    var arcD = 'M ' + (CX - R) + ',' + CY +
+               ' A ' + R + ',' + R + ' 0 0,1 ' + (CX + R) + ',' + CY;
+
+    /* Background track */
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: 'rgba(255,255,255,0.06)',
+      'stroke-width': SW, 'stroke-linecap': 'butt'
+    }));
+
+    /* Green band */
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#0cce6b',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': gL + ' ' + (ARC * 3)
+    }));
+
+    /* Yellow band */
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#ffa400',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': '0.001 ' + gL + ' ' + yL + ' ' + (ARC * 3)
+    }));
+
+    /* Red band */
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#ff4e42',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': '0.001 ' + (gL + yL) + ' ' + rL + ' ' + (ARC * 3)
+    }));
+
+    /* ── Transition tick marks & labels ─────────────────── */
+    function addTick(prop, label) {
+      var oP = arcPt(CX, CY, R + SW / 2 + 1, prop);
+      var iP = arcPt(CX, CY, R - SW / 2 - 1, prop);
+      svg.appendChild(el('line', {
+        x1: oP.x, y1: oP.y, x2: iP.x, y2: iP.y,
+        stroke: 'rgba(255,255,255,0.4)', 'stroke-width': '1.5'
+      }));
+      var lP = arcPt(CX, CY, R + SW / 2 + (big ? 13 : 11), prop);
+      var t = el('text', {
+        x: lP.x, y: lP.y, 'text-anchor': 'middle',
+        'dominant-baseline': 'middle',
+        fill: 'rgba(255,255,255,0.55)',
+        'font-size': big ? '10' : '8',
+        'font-family': 'system-ui, sans-serif'
+      });
+      t.textContent = label;
+      svg.appendChild(t);
+    }
+
+    addTick(gP, cfg.gl);
+    addTick(gP + yP, cfg.yl);
+
+    /* ── Moylan Arrow needle ────────────────────────────── */
+    var NL = R - 16;
+    var nw = big ? 4.5 : 3.5;
+
+    var g = el('g', {transform: 'rotate(' + needleDeg + ', ' + CX + ', ' + CY + ')'});
+
+    /* Arrow shaft – tapers to point */
+    g.appendChild(el('polygon', {
+      points: [
+        (CX - nw) + ',' + CY,
+        (CX + nw) + ',' + CY,
+        (CX + 1.2) + ',' + (CY - NL + 6),
+        CX + ',' + (CY - NL),
+        (CX - 1.2) + ',' + (CY - NL + 6)
+      ].join(' '),
+      fill: nCol, opacity: '0.92'
+    }));
+
+    /* Small counterweight tail */
+    g.appendChild(el('polygon', {
+      points: [
+        (CX - nw * 0.6) + ',' + CY,
+        (CX + nw * 0.6) + ',' + CY,
+        (CX + nw * 0.4) + ',' + (CY + 10),
+        (CX - nw * 0.4) + ',' + (CY + 10)
+      ].join(' '),
+      fill: '#555', opacity: '0.7'
+    }));
+
+    /* Hub circle */
+    g.appendChild(el('circle', {
+      cx: CX, cy: CY, r: big ? 7 : 5.5,
+      fill: '#555', stroke: '#777', 'stroke-width': '1.5'
+    }));
+
+    svg.appendChild(g);
+
+    /* ── Value display ──────────────────────────────────── */
+    var vt = el('text', {
+      x: CX, y: CY + (big ? 28 : 22),
+      'text-anchor': 'middle', fill: nCol,
+      'font-size': big ? '24' : '16',
+      'font-weight': 'bold',
+      'font-family': 'system-ui, sans-serif'
+    });
+    vt.textContent = disp;
+    svg.appendChild(vt);
+
+    container.appendChild(svg);
+  }
+
+  /* Render all gauges on the page */
+  document.querySelectorAll('.gauge-container').forEach(drawGauge);
+})();
+</script>
+
 <style>
 .filter-btn.active, .module-btn.active {
   border-color: var(--accent) !important;
@@ -278,11 +447,12 @@ function switchPerfTab(strategy) {
 
 /* Performance Dashboard */
 .perf-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+
 .perf-tab {
   padding: 8px 20px; border-radius: 6px;
-  border: 1px solid var(--border); background: transparent;
-  color: var(--text); cursor: pointer; font-size: 14px;
-  transition: all .2s;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--text);
+  cursor: pointer; font-size: 14px; transition: all .2s;
 }
 .perf-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .perf-tab:hover:not(.active) { background: rgba(99,102,241,.15); }
@@ -300,7 +470,7 @@ function switchPerfTab(strategy) {
   border: 1px solid var(--border); border-radius: 8px;
   background: rgba(255,255,255,.03);
 }
-.gauge-svg { width: 100%; max-width: 140px; height: auto; }
+.gauge-container { display: flex; justify-content: center; }
 .gauge-label { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
 </style>
 {% endblock %}
