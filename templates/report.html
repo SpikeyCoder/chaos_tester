@@ -156,36 +156,88 @@
   </table>
 </div>
 
-<!-- -- Module Breakdown ------------------------------------- -->
+<!-- -- AI Visibility Dashboard ----------------------------------- -->
 <div class="card">
-  <h2>📈 Module Breakdown</h2>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;">
-    {% set modules = ['availability','links','forms','chaos','auth','security'] %}
-    {% set icons = {'availability':'🌐','links':'🔗','forms':'📝','chaos':'🤖','auth':'🔒','security':'🛡'} %}
-    {% for mod in modules %}
-    {% set mod_results = report.results|selectattr('module','equalto',mod)|list %}
-    {% if mod_results %}
-    <div style="background:var(--surface2);border-radius:10px;padding:16px;">
-      <div style="font-weight:600;margin-bottom:8px;">
-        {{ icons.get(mod,'') }} {{ mod|capitalize }}
-        <span class="text-muted text-sm">({{ mod_results|length }})</span>
-      </div>
-      {% set mp = mod_results|selectattr('status','equalto','passed')|list|length %}
-      {% set mf = mod_results|selectattr('status','equalto','failed')|list|length %}
-      {% set mw = mod_results|selectattr('status','equalto','warning')|list|length %}
-      <div style="display:flex;gap:12px;font-size:0.85rem;">
-        <span style="color:var(--green)">✓ {{ mp }}</span>
-        <span style="color:var(--red)">✗ {{ mf }}</span>
-        <span style="color:var(--yellow)">⚠ {{ mw }}</span>
-      </div>
-      {% set mod_total = mod_results|length %}
+  <h2>&#x1F916; AI Visibility Dashboard</h2>
+  {% if report.ai_visibility and report.ai_visibility.overall_score is defined %}
+  {% set ai = report.ai_visibility %}
+
+  <!-- Summary Score -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:2.5rem;font-weight:700;color:{% if ai.overall_score >= 50 %}var(--green){% elif ai.overall_score >= 25 %}var(--yellow){% else %}var(--red){% endif %};">{{ ai.overall_score }}%</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Overall AI Visibility</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:2.5rem;font-weight:700;">{{ ai.total_appearances }}/{{ ai.total_queries }}</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Appearances in AI Results</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:1.1rem;font-weight:600;">{{ ai.business_info.business_name }}</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">{{ ai.business_info.industry|title }} &mdash; {{ ai.business_info.location }}</div>
+    </div>
+  </div>
+
+  <!-- Platform Scores -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;margin-bottom:24px;">
+    {% for pname, pdata in ai.platform_scores.items() %}
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid {{ pdata.color }};">
+      <div style="font-weight:600;margin-bottom:8px;">{{ pdata.icon }} {{ pname }}</div>
+      <div style="font-size:1.8rem;font-weight:700;color:{% if pdata.score >= 50 %}var(--green){% elif pdata.score >= 25 %}var(--yellow){% else %}var(--red){% endif %};">{{ pdata.score }}%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">{{ pdata.appearances }}/{{ pdata.total }} queries</div>
       <div class="progress-bar-bg mt-1" style="height:6px;">
-        <div class="progress-bar-fill" style="width:{{ (mp / mod_total * 100) if mod_total else 0 }}%;background:var(--green);"></div>
+        <div class="progress-bar-fill" style="width:{{ pdata.score }}%;background:{{ pdata.color }};"></div>
       </div>
     </div>
-    {% endif %}
     {% endfor %}
   </div>
+
+  <!-- Results Table -->
+  <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>AI Platform</th>
+          <th>Search Query</th>
+          <th>Recommended Businesses</th>
+          <th>Client Appears</th>
+          <th>Position</th>
+          <th>Competitors</th>
+          <th>Visibility Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in ai.all_results %}
+        <tr>
+          <td><span style="color:{{ row.platform_color }};font-weight:600;">{{ row.platform_icon }} {{ row.platform }}</span></td>
+          <td style="max-width:220px;white-space:normal;word-wrap:break-word;">{{ row.query }}</td>
+          <td style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.recommended }}</td>
+          <td>
+            {% if row.client_appears %}
+              <span class="badge badge-passed">Yes</span>
+            {% else %}
+              <span class="badge badge-failed">No</span>
+            {% endif %}
+          </td>
+          <td>{{ row.position if row.position else "N/A" }}</td>
+          <td style="max-width:220px;white-space:normal;word-wrap:break-word;">{{ row.competitors }}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="progress-bar-bg" style="height:8px;width:60px;">
+                <div class="progress-bar-fill" style="width:{{ row.visibility_score }}%;background:{% if row.visibility_score >= 75 %}var(--green){% elif row.visibility_score >= 50 %}var(--yellow){% else %}var(--red){% endif %};"></div>
+              </div>
+              <span>{{ row.visibility_score }}%</span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <p style="color:var(--text-muted);text-align:center;padding:32px 0;">AI Visibility data not available for this report. Run a new audit to generate AI visibility analysis.</p>
+  {% endif %}
 </div>
 
 <script>

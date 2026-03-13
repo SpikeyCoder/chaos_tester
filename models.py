@@ -85,6 +85,7 @@ class TestRun:
         if not self.started_at:
             self.started_at = datetime.utcnow().isoformat()
         self.performance_metrics = {}
+        self.ai_visibility = {}
 
     @property
     def passed(self):
@@ -126,4 +127,5 @@ class TestRun:
             "summary": self.summary,
             "results": [r.to_dict() for r in self.results],
             "performance_metrics": self.performance_metrics,
+            "ai_visibility": self.ai_visibility,
         }

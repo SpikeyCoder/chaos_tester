@@ -19,6 +19,7 @@ from .modules.chaos import ChaosInjector
 from .modules.auth import AuthTester
 from .modules.security import SecurityScanner
 from .modules.performance import fetch_performance_metrics
+from .modules.ai_visibility import AIVisibilityScanner
 
 logger = logging.getLogger("chaos_tester")
 
@@ -125,6 +126,20 @@ class ChaosTestRunner:
             except Exception as exc:
                 logger.warning('Performance metrics failed: %s', exc)
                 self._emit('performance', 99, 'Performance metrics unavailable.')
+
+
+            # -- Phase 8: AI Visibility ----------------------------
+            if self.config.run_ai_visibility:
+                self._emit("ai_visibility", 99, "Analyzing AI visibility...")
+                try:
+                    ai_scanner = AIVisibilityScanner(self.config, self.session)
+                    ai_scanner.run()
+                    self.test_run.results.extend(ai_scanner.results)
+                    self.test_run.ai_visibility = ai_scanner.ai_results
+                    self._emit("ai_visibility", 99, f"Done -- AI visibility analysis complete.")
+                except Exception as exc:
+                    logger.warning('AI visibility analysis failed: %s', exc)
+                    self._emit('ai_visibility', 99, 'AI visibility analysis unavailable.')
 
             self.test_run.status = "completed"
 
