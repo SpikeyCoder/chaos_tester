@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
 # Copy application code into the chaos_tester package directory
 # (the repo root IS the Python package, so gunicorn needs chaos_tester.app:app)
-ARG CACHE_BUST=1
+ARG CACHE_BUST=1773518976
 COPY . ./chaos_tester/
 
 # Create reports directory inside the package
