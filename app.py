@@ -436,6 +436,34 @@ def api_runs():
 
 
 
+
+@app.route("/api/detect-business", methods=["POST"])
+def detect_business():
+    """Quick-detect business name, location, and sector from a URL."""
+    import requests as http_requests
+    from .modules.business_identifier import BusinessIdentifier
+    data = request.get_json(silent=True) or {}
+    url = (data.get("url") or "").strip()
+    if not url:
+        return jsonify({"error": "url is required"}), 400
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+    try:
+        sess = http_requests.Session()
+        sess.headers["User-Agent"] = "ChaosMonkeyTester/1.0 (business-detect)"
+        identifier = BusinessIdentifier(session=sess, timeout=10)
+        result = identifier.identify(url)
+        return jsonify({
+            "business_name": result.get("business_name", ""),
+            "location": result.get("location", ""),
+            "sector": result.get("sector", "local business services"),
+            "lookup_source": result.get("lookup_source", ""),
+            "candidates": result.get("candidates", [])[:5],
+        })
+    except Exception as exc:
+        return jsonify({"error": str(exc), "business_name": "", "location": "", "sector": ""}), 200
+
+
 # Protected Paths (return 404 instead of 405)
 _PROTECTED = {
     "/account","/admin","/api/admin","/api/private",

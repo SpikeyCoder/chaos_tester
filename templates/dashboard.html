@@ -83,14 +83,34 @@
     </div>
 
     <h2 class="mt-2">📍 AI Visibility Options</h2>
-    <div class="form-group">
-      <label for="business_location">Business City / Location (optional — improves AI visibility queries)</label>
-      <input type="text" id="business_location" name="business_location"
-             placeholder="e.g. Seattle, WA" value="">
-      <div style="color:var(--text-muted);font-size:0.8rem;margin-top:4px;">
-        If left blank, we'll try to detect it automatically from your website and business records.
+    <div id="ai-detect-panel" style="background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <span style="font-weight:600;font-size:0.95rem;">Business Detection</span>
+        <button type="button" class="btn btn-secondary text-sm" id="detectBtn" onclick="detectBusiness()">🔍 Detect from URL</button>
+      </div>
+      <div id="detect-status" style="display:none;color:var(--text-muted);font-size:0.85rem;margin-bottom:8px;">
+        <span id="detect-spinner" style="display:inline-block;animation:spin 1s linear infinite;">⏳</span>
+        Scanning website for business info...
+      </div>
+      <div id="detect-result" style="display:none;font-size:0.85rem;margin-bottom:8px;padding:8px 12px;background:var(--surface);border-radius:6px;">
+        <div>Detected: <strong id="detected-name">—</strong></div>
+        <div>Sector: <span id="detected-sector" style="color:var(--accent);">—</span></div>
+        <div>Location: <span id="detected-location">—</span>
+          <span id="detect-source" style="color:var(--text-muted);font-size:0.78rem;"></span>
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:0;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="business_location">Business City / Location</label>
+          <input type="text" id="business_location" name="business_location"
+                 placeholder="Detecting..." value="">
+          <div style="color:var(--text-muted);font-size:0.78rem;margin-top:4px;">
+            Auto-detected from your website. Edit if needed.
+          </div>
+        </div>
       </div>
     </div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
 
     <h2 class="mt-2">🧪 Test Modules</h2>
     <div class="checkbox-row">
@@ -156,6 +176,82 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=2"></script>
+<script>
+/* ── AI Visibility: Auto-detect business info from URL ─────────── */
+var _detectTimer = null;
+var _lastDetectedUrl = '';
+
+/* Auto-detect when user changes the URL field (debounced) */
+document.getElementById('base_url').addEventListener('input', function() {
+  clearTimeout(_detectTimer);
+  _detectTimer = setTimeout(function() { detectBusiness(); }, 1200);
+});
+
+/* Also detect on page load if a URL is already filled */
+(function() {
+  var url = document.getElementById('base_url').value.trim();
+  if (url && url !== 'http://localhost:8000') {
+    setTimeout(function() { detectBusiness(); }, 500);
+  }
+})();
+
+function detectBusiness() {
+  var url = document.getElementById('base_url').value.trim();
+  if (!url || url === 'http://localhost:8000' || url === _lastDetectedUrl) return;
+  _lastDetectedUrl = url;
+
+  var statusEl = document.getElementById('detect-status');
+  var resultEl = document.getElementById('detect-result');
+  var btn = document.getElementById('detectBtn');
+
+  statusEl.style.display = 'block';
+  resultEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = '⏳ Detecting...';
+
+  fetch('/api/detect-business', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({ url: url })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    statusEl.style.display = 'none';
+    resultEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '🔍 Re-detect';
+
+    document.getElementById('detected-name').textContent = data.business_name || '(unknown)';
+    document.getElementById('detected-sector').textContent = (data.sector || 'local business services').replace(/\b\w/g, function(l){return l.toUpperCase();});
+    document.getElementById('detected-location').textContent = data.location || '(not found)';
+    document.getElementById('detect-source').textContent = data.lookup_source ? ' (via ' + data.lookup_source.replace(/_/g, ' ') + ')' : '';
+
+    /* Pre-populate the location field — user can edit */
+    var locInput = document.getElementById('business_location');
+    if (data.location && !locInput._userEdited) {
+      locInput.value = data.location;
+      locInput.placeholder = 'e.g. Seattle, WA';
+    }
+    if (!data.location) {
+      locInput.placeholder = 'Not detected — enter your city manually';
+    }
+  })
+  .catch(function(err) {
+    statusEl.style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = '🔍 Detect from URL';
+    console.error('Detect failed:', err);
+  });
+}
+
+/* Track if user manually edited the location field */
+document.getElementById('business_location').addEventListener('input', function() {
+  this._userEdited = true;
+});
+</script>
 {% endblock %}
 
 {% block seo_content %}
