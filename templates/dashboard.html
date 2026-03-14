@@ -87,7 +87,7 @@
     <div id="ai-detect-panel" style="background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <span style="font-weight:600;font-size:0.95rem;">Business Detection</span>
-        <button type="button" class="btn btn-secondary text-sm" id="detectBtn" onclick="detectBusiness()">🔍 Detect from URL</button>
+        <button type="button" class="btn btn-secondary text-sm" id="detectBtn" onclick="detectBusiness()" aria-label="Detect business information from URL">🔍 Detect from URL</button>
       </div>
       <div id="detect-status" style="display:none;color:var(--text-muted);font-size:0.85rem;margin-bottom:8px;">
         <span id="detect-spinner" style="display:inline-block;animation:spin 1s linear infinite;">⏳</span>
@@ -128,7 +128,7 @@
         <button class="btn btn-secondary" disabled>🔄 Test in progress…</button>
         <a href="/progress" class="btn btn-primary" style="margin-left:8px;">View Progress</a>
       {% else %}
-        <button type="submit" class="btn btn-primary">🤖 Launch Website Audit</button>
+        <button type="submit" class="btn btn-primary" aria-label="Launch website audit">🤖 Launch Website Audit</button>
       {% endif %}
     </div>
   </form>
@@ -252,6 +252,35 @@ function detectBusiness() {
 document.getElementById('business_location').addEventListener('input', function() {
   this._userEdited = true;
 });
+
+/* -- Inline form validation -------------------------------- */
+(function() {
+  var style = document.createElement('style');
+  style.textContent = 'input:invalid:not(:focus):not(:placeholder-shown),select:invalid:not(:focus){border-color:var(--danger)!important;}.field-error{color:var(--danger);font-size:0.78rem;margin-top:4px;display:none;}input:invalid:not(:focus):not(:placeholder-shown)~.field-error{display:block;}';
+  document.head.appendChild(style);
+
+  /* Add error messages to required fields */
+  var fields = [
+    {id: 'base_url', msg: 'Please enter a valid URL (e.g. https://example.com)'},
+    {id: 'business_location', msg: 'Business city is required for AI visibility queries'},
+  ];
+  fields.forEach(function(f) {
+    var el = document.getElementById(f.id);
+    if (el && !el.nextElementSibling?.classList?.contains('field-error')) {
+      var err = document.createElement('div');
+      err.className = 'field-error';
+      err.setAttribute('role', 'alert');
+      err.textContent = f.msg;
+      el.parentNode.insertBefore(err, el.nextSibling);
+    }
+  });
+
+  /* On form submit, highlight first invalid field */
+  document.getElementById('runForm').addEventListener('invalid', function(e) {
+    e.target.style.borderColor = 'var(--danger)';
+    e.target.setAttribute('aria-invalid', 'true');
+  }, true);
+})();
 </script>
 {% endblock %}
 

@@ -465,6 +465,20 @@ def detect_business():
         return jsonify({"error": str(exc), "business_name": "", "location": "", "sector": ""}), 200
 
 
+# -- Error Handlers -----------------------------------------------
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"), 404
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    # Return 404 for GET requests to unknown paths (prevents 405 for missing pages)
+    if request.method == "GET":
+        return render_template("404.html"), 404
+    return jsonify({"error": "Method not allowed"}), 405
+
+
 # Protected Paths (return 404 instead of 405)
 _PROTECTED = {
     "/account","/admin","/api/admin","/api/private",
@@ -516,17 +530,19 @@ Sitemap: https://website-auditor.io/sitemap.xml
 
 @app.route("/sitemap.xml")
 def sitemap_xml():
+    today = datetime.utcnow().strftime("%Y-%m-%d")
     pages = [
-        {"loc": "https://website-auditor.io/", "priority": "1.0", "changefreq": "weekly"},
-        {"loc": "https://website-auditor.io/features", "priority": "0.8", "changefreq": "monthly"},
-        {"loc": "https://website-auditor.io/how-it-works", "priority": "0.8", "changefreq": "monthly"},
-        {"loc": "https://website-auditor.io/latest", "priority": "0.6", "changefreq": "daily"},
+        {"loc": "https://website-auditor.io/", "priority": "1.0", "changefreq": "weekly", "lastmod": today},
+        {"loc": "https://website-auditor.io/features", "priority": "0.8", "changefreq": "monthly", "lastmod": "2026-03-14"},
+        {"loc": "https://website-auditor.io/how-it-works", "priority": "0.8", "changefreq": "monthly", "lastmod": "2026-03-14"},
+        {"loc": "https://website-auditor.io/latest", "priority": "0.6", "changefreq": "daily", "lastmod": today},
     ]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for p in pages:
         xml += f'  <url>\n'
         xml += f'    <loc>{p["loc"]}</loc>\n'
+        xml += f'    <lastmod>{p["lastmod"]}</lastmod>\n'
         xml += f'    <changefreq>{p["changefreq"]}</changefreq>\n'
         xml += f'    <priority>{p["priority"]}</priority>\n'
         xml += f'  </url>\n'

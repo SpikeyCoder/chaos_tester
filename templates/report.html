@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Report {{ report.run_id }} -- Website Auditor{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
 {% block content %}
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
   <div>
@@ -14,9 +15,9 @@
     </p>
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
-    <a href="#" onclick="downloadJSON(); return false;" class="btn btn-secondary text-sm">⬇ JSON</a>
-    <a href="#" onclick="downloadCSV(); return false;" class="btn btn-secondary text-sm">⬇ CSV</a>
-    <a href="/" class="btn btn-secondary text-sm">← Dashboard</a>
+    <a href="#" onclick="downloadJSON(); return false;" class="btn btn-secondary text-sm" role="button" aria-label="Download report as JSON">⬇ JSON</a>
+    <a href="#" onclick="downloadCSV(); return false;" class="btn btn-secondary text-sm" role="button" aria-label="Download report as CSV">⬇ CSV</a>
+    <a href="/" class="btn btn-secondary text-sm" aria-label="Back to Dashboard">← Dashboard</a>
   </div>
 </div>
 
@@ -52,7 +53,8 @@
 
 <!-- -- Performance Dashboard -------------------------------- -->
 {% set perf = report.get("performance_metrics", {}) if report.get("performance_metrics") else {} %}
-{% if perf %}
+{% set has_perf_data = perf and (perf.get("mobile", {}).get("score") is not none or perf.get("desktop", {}).get("score") is not none) %}
+{% if has_perf_data %}
 <div id="perf-dashboard" class="card" style="margin-bottom:24px">
   <h2 style="margin:0 0 16px">⚡ Performance Metrics</h2>
   <div class="perf-tabs">
@@ -85,7 +87,7 @@
     </div>
     {% else %}
     <p style="color:var(--text-muted);text-align:center;padding:24px 0">
-      No {{strategy}} performance data available.
+      No {{strategy}} performance data available. Performance metrics require a Lighthouse integration which is not yet enabled for this audit.
     </p>
     {% endif %}
   </div>
@@ -605,6 +607,35 @@ function switchPerfTab(strategy) {
   </style>
 
 <script>
+/* Table column sorting */
+(function() {
+  var table = document.getElementById('resultsTable');
+  if (!table) return;
+  var headers = table.querySelectorAll('th');
+  headers.forEach(function(th, colIdx) {
+    th.style.cursor = 'pointer';
+    th.setAttribute('role', 'columnheader');
+    th.setAttribute('aria-sort', 'none');
+    th.title = 'Click to sort';
+    th.addEventListener('click', function() {
+      var tbody = table.querySelector('tbody');
+      var rows = Array.from(tbody.querySelectorAll('tr'));
+      var asc = th.getAttribute('aria-sort') !== 'ascending';
+      headers.forEach(function(h) { h.setAttribute('aria-sort', 'none'); h.textContent = h.textContent.replace(/ [▲▼]$/, ''); });
+      th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+      th.textContent = th.textContent + (asc ? ' ▲' : ' ▼');
+      rows.sort(function(a, b) {
+        var aVal = (a.children[colIdx] || {}).textContent || '';
+        var bVal = (b.children[colIdx] || {}).textContent || '';
+        var aNum = parseFloat(aVal); var bNum = parseFloat(bVal);
+        if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum - bNum : bNum - aNum;
+        return asc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      });
+      rows.forEach(function(r) { tbody.appendChild(r); });
+    });
+  });
+})();
+
 /* Detailed Results table toggle */
 var _detailedExpanded = false;
 function toggleDetailedResults() {

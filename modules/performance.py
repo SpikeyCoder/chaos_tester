@@ -74,7 +74,7 @@ def _fetch_strategy(url, strategy, timeout=60):
     categories = data.get("lighthouseResult", {}).get("categories", {})
     perf_score = categories.get("performance", {}).get("score")
 
-    if perf_score is None:nder
+    if perf_score is None:
         logger.warning("PSI %s returned no performance score for %s", strategy, url)
 
     metrics = {}

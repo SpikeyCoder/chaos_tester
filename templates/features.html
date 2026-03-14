@@ -90,20 +90,39 @@
 <div class="card mt-3">
     <h2>Frequently Asked Questions</h2>
     <div style="margin-top: 16px;">
-        <h3 style="color: var(--accent); margin-bottom: 8px;">What does Website Auditor check?</h3>
-        <p class="text-muted">Website Auditor checks page availability, broken links, forms and interactions, security headers, authentication flows, and overall site performance across your entire website.</p>
-
-        <h3 style="color: var(--accent); margin: 24px 0 8px;">Is Website Auditor free?</h3>
-        <p class="text-muted">Yes, Website Auditor is completely free with no page limits, no login required, and no feature restrictions.</p>
-
-        <h3 style="color: var(--accent); margin: 24px 0 8px;">How many pages can Website Auditor crawl?</h3>
-        <p class="text-muted">You can configure the crawler to check up to hundreds of pages per audit, with adjustable crawl depth, concurrency, and timeout settings.</p>
-
-        <h3 style="color: var(--accent); margin: 24px 0 8px;">Do I need to create an account?</h3>
-        <p class="text-muted">No. Website Auditor requires no registration, login, or account creation. Just enter a URL and start auditing.</p>
-
-        <h3 style="color: var(--accent); margin: 24px 0 8px;">How is this different from Semrush or Ahrefs?</h3>
-        <p class="text-muted">Unlike Semrush ($140/mo) or Ahrefs ($99/mo), Website Auditor is completely free. It focuses specifically on comprehensive site auditing with chaos/failure testing capabilities that most SEO tools lack.</p>
+        <details class="faq-item">
+            <summary>What does Website Auditor check?</summary>
+            <p class="text-muted">Website Auditor checks page availability, broken links, forms and interactions, security headers, authentication flows, and overall site performance across your entire website.</p>
+        </details>
+        <details class="faq-item">
+            <summary>Is Website Auditor free?</summary>
+            <p class="text-muted">Yes, Website Auditor is completely free with no page limits, no login required, and no feature restrictions.</p>
+        </details>
+        <details class="faq-item">
+            <summary>How many pages can Website Auditor crawl?</summary>
+            <p class="text-muted">You can configure the crawler to check up to hundreds of pages per audit, with adjustable crawl depth, concurrency, and timeout settings.</p>
+        </details>
+        <details class="faq-item">
+            <summary>Do I need to create an account?</summary>
+            <p class="text-muted">No. Website Auditor requires no registration, login, or account creation. Just enter a URL and start auditing.</p>
+        </details>
+        <details class="faq-item">
+            <summary>How is this different from Semrush or Ahrefs?</summary>
+            <p class="text-muted">Unlike Semrush ($140/mo) or Ahrefs ($99/mo), Website Auditor is completely free. It focuses specifically on comprehensive site auditing with chaos/failure testing capabilities that most SEO tools lack.</p>
+        </details>
     </div>
 </div>
+<style>
+.faq-item { border-bottom: 1px solid var(--border); padding: 16px 0; }
+.faq-item:first-child { padding-top: 0; }
+.faq-item:last-child { border-bottom: none; }
+.faq-item summary {
+    color: var(--accent); font-weight: 600; font-size: 1rem;
+    cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after { content: "+"; font-size: 1.4rem; color: var(--text-muted); transition: transform .2s; }
+.faq-item[open] summary::after { content: "−"; }
+.faq-item p { margin-top: 10px; }
+</style>
 {% endblock %}

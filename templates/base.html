@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Free Website Audit Tool - SEO, Security & Performance Scanner | Website Auditor{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}Free website audit tool that checks SEO, broken links, security, forms, and performance in one click. No login required. Get a detailed report instantly.{% endblock %}">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
     <link rel="canonical" href="https://website-auditor.io{{ request.path }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" type="image/svg+xml">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" type="image/svg+xml" sizes="any">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
@@ -171,12 +173,17 @@ tr:hover td { background: rgba(56,189,248,0.04); }
 .badge-fail    { background: rgba(248,113,113,0.15); color: var(--danger); }
 .badge-running { background: rgba(56,189,248,0.15); color: var(--accent); }
 
-/* -- Result status badges --------------------------------- */
+/* -- Result status badges (with icons for color-blind accessibility) */
 .badge-passed  { background: rgba(74,222,128,0.15); color: #4ade80; }
+.badge-passed::before  { content: "✓ "; }
 .badge-failed  { background: rgba(248,113,113,0.15); color: #f87171; }
+.badge-failed::before  { content: "✗ "; }
 .badge-warning { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.badge-warning::before { content: "⚠ "; }
 .badge-error   { background: rgba(248,113,113,0.15); color: #f87171; }
+.badge-error::before   { content: "✗ "; }
 .badge-skipped { background: rgba(148,163,184,0.15); color: #94a3b8; }
+.badge-skipped::before { content: "— "; }
 
 /* -- Severity badges -------------------------------------- */
 .badge-critical { background: rgba(220,38,38,0.18); color: #ef4444; }
@@ -233,28 +240,66 @@ footer p { color: var(--text-muted); font-size: 0.85rem; }
 footer a { color: var(--accent); }
 footer nav { justify-content: center; margin-top: 8px; }
 
+/* -- Skip link -------------------------------------------- */
+.skip-link {
+    position: absolute; left: -999px; top: auto; width: 1px; height: 1px; overflow: hidden;
+    z-index: 999; padding: 10px 20px; background: var(--accent); color: var(--bg); font-weight: 600;
+    border-radius: 0 0 6px 0;
+}
+.skip-link:focus { left: 0; width: auto; height: auto; }
+
+/* -- Hamburger menu --------------------------------------- */
+.hamburger {
+    display: none; background: none; border: none; cursor: pointer; padding: 6px;
+    flex-direction: column; gap: 4px;
+}
+.hamburger span {
+    display: block; width: 22px; height: 2px; background: var(--text);
+    border-radius: 2px; transition: transform .2s, opacity .2s;
+}
+
+/* -- Active nav link -------------------------------------- */
+nav a.active { color: var(--accent); font-weight: 600; border-bottom: 2px solid var(--accent); padding-bottom: 2px; }
+
+/* -- Focus visible for keyboard users --------------------- */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
 /* -- Responsive ------------------------------------------- */
 @media (max-width: 768px) {
     .form-row { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .feature-grid { grid-template-columns: 1fr; }
+    .hamburger { display: flex; }
+    header nav {
+        display: none; position: absolute; top: 100%; left: 0; right: 0;
+        background: var(--surface); border-bottom: 1px solid var(--border);
+        flex-direction: column; padding: 12px 20px; gap: 12px;
+    }
+    header nav.open { display: flex; }
+    header .inner { position: relative; }
 }
 </style>
 {% block extra_head %}{% endblock %}
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="container inner">
-            <h1><span class="robot" aria-hidden="true">&#x1F916;</span> Website Auditor</h1>
-            <nav>
-                <a href="/">Dashboard</a>
-                <a href="/latest">Latest Report</a>
-                <a href="/features">Features</a>
-                <a href="/how-it-works">How It Works</a>
+            <h1><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><span class="robot" aria-hidden="true">&#x1F916;</span> Website Auditor</a></h1>
+            <button class="hamburger" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" onclick="document.getElementById('mainNav').classList.toggle('open');this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');">
+                <span></span><span></span><span></span>
+            </button>
+            <nav id="mainNav" aria-label="Main navigation">
+                <a href="/" {% if request.path == '/' %}class="active" aria-current="page"{% endif %}>Dashboard</a>
+                <a href="/latest" {% if request.path == '/latest' or request.path.startswith('/report/') %}class="active" aria-current="page"{% endif %}>Latest Report</a>
+                <a href="/features" {% if request.path == '/features' %}class="active" aria-current="page"{% endif %}>Features</a>
+                <a href="/how-it-works" {% if request.path == '/how-it-works' %}class="active" aria-current="page"{% endif %}>How It Works</a>
             </nav>
         </div>
     </header>
-    <main class="container" style="padding-top: 28px; padding-bottom: 48px;">
+    <main id="main-content" class="container" style="padding-top: 28px; padding-bottom: 48px;">
         {%- with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
