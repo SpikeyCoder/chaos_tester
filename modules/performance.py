@@ -9,6 +9,7 @@ for 429 (rate-limit) responses.
 """
 import logging
 import os
+import re
 import time
 import requests
 
@@ -98,9 +99,35 @@ def _fetch_strategy(url, strategy, timeout=60):
                 "display": display,
             }
 
-    logger.info("PSI %s done for %s - score=%.2f, %d metrics",
-                strategy, url, perf_score or 0, len(metrics))
-    return {"score": perf_score, "metrics": metrics}
+    # Extract Lighthouse opportunities (performance recommendations)
+    recommendations = []
+    for audit_id, audit_data in audits.items():
+        # Lighthouse marks optimization opportunities with overallSavingsMs or overallSavingsBytes
+        savings_ms = audit_data.get("numericValue", 0) if audit_data.get("score") is not None and audit_data.get("score", 1) < 0.9 else 0
+        details_obj = audit_data.get("details", {})
+        overall_savings_ms = details_obj.get("overallSavingsMs", 0)
+        overall_savings_bytes = details_obj.get("overallSavingsBytes", 0)
+        if overall_savings_ms > 0 or overall_savings_bytes > 100000:
+            display = audit_data.get("displayValue", "")
+            title = audit_data.get("title", audit_id.replace("-", " ").title())
+            description = audit_data.get("description", "")
+            # Clean markdown links from description
+            description = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", description)
+            recommendations.append({
+                "id": audit_id,
+                "title": title,
+                "description": description[:200],
+                "display": display,
+                "savings_ms": overall_savings_ms,
+                "savings_bytes": overall_savings_bytes,
+                "score": audit_data.get("score", 1),
+            })
+    # Sort by potential savings (ms first, then bytes)
+    recommendations.sort(key=lambda x: (-x["savings_ms"], -x["savings_bytes"]))
+
+    logger.info("PSI %s done for %s - score=%.2f, %d metrics, %d recommendations",
+                strategy, url, perf_score or 0, len(metrics), len(recommendations))
+    return {"score": perf_score, "metrics": metrics, "recommendations": recommendations[:5]}
 
 
 def fetch_performance_metrics(url, timeout=90):

@@ -438,6 +438,140 @@ def api_runs():
 
 
 
+@app.route("/api/ai-query", methods=["POST"])
+def api_ai_query():
+    """Run a custom AI visibility query against all platforms."""
+    if request.headers.get("X-Requested-With") != "XMLHttpRequest":
+        abort(403, "Missing X-Requested-With header.")
+
+    data = request.get_json(silent=True) or {}
+    query = (data.get("query") or "").strip()
+    run_id = (data.get("run_id") or "").strip()
+
+    if not query:
+        return jsonify({"error": "query is required"}), 400
+    if len(query) > 300:
+        return jsonify({"error": "query too long (max 300 chars)"}), 400
+
+    # Get business info from the report (if available)
+    business_name = ""
+    with _lock:
+        report = _run_index.get(run_id, {}) if run_id else {}
+    ai_data = report.get("ai_visibility", {})
+    business_info = ai_data.get("business_info", {})
+    business_name = business_info.get("business_name", "")
+
+    # Run query against all AI platforms via Perplexity
+    from .modules.ai_visibility import AI_PLATFORMS, AIVisibilityScanner
+
+    api_key = os.getenv("PERPLEXITY_API_KEY", "")
+    results = []
+
+    for platform_info in AI_PLATFORMS:
+        platform_name = platform_info["name"]
+
+        # Use the scanner's query method
+        if api_key:
+            import requests as http_requests
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+            payload = {
+                "model": "sonar",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a helpful local business advisor. "
+                            "List the top 5 businesses that match the query. "
+                            "For each business, include the business name. "
+                            "Format as a numbered list."
+                        ),
+                    },
+                    {"role": "user", "content": query},
+                ],
+                "max_tokens": 400,
+                "temperature": 0.1,
+            }
+            try:
+                resp = http_requests.post(
+                    "https://api.perplexity.ai/chat/completions",
+                    headers=headers, json=payload, timeout=25,
+                )
+                if resp.status_code == 200:
+                    content = resp.json().get("choices", [{}])[0].get("message", {}).get("content", "")
+                    # Parse business names
+                    names = []
+                    for line in content.split("\n"):
+                        line = line.strip()
+                        m = re.match(r"^(?:\d+[\.\)]\s*|\-\s*|\*\s*)", line)
+                        if m:
+                            rest = line[m.end():]
+                            bold = re.match(r"\*\*(.+?)\*\*", rest)
+                            name = bold.group(1).strip() if bold else re.match(r"(.+?)(?:\s*[\-–:(\[,]|$)", rest)
+                            if isinstance(name, re.Match):
+                                name = name.group(1).strip()
+                            name = re.sub(r"\s*\[\d+\]", "", str(name)).strip().rstrip("*").strip()
+                            if 3 <= len(name) <= 80:
+                                names.append(name)
+
+                    # Check if business appears
+                    client_appears = False
+                    position = 0
+                    if business_name:
+                        bn_lower = business_name.lower()
+                        for idx, n in enumerate(names):
+                            if bn_lower in n.lower() or n.lower() in bn_lower:
+                                client_appears = True
+                                position = idx + 1
+                                break
+
+                    results.append({
+                        "platform": platform_name,
+                        "platform_logo_url": platform_info["logo_url"],
+                        "platform_color": platform_info["color"],
+                        "query": query,
+                        "recommended": ", ".join(names[:5]),
+                        "client_appears": client_appears,
+                        "position": position,
+                    })
+                else:
+                    results.append({
+                        "platform": platform_name,
+                        "platform_logo_url": platform_info["logo_url"],
+                        "platform_color": platform_info["color"],
+                        "query": query,
+                        "recommended": "(API error)",
+                        "client_appears": False,
+                        "position": 0,
+                    })
+            except Exception as exc:
+                logger.warning("Custom AI query failed for %s: %s", platform_name, exc)
+                results.append({
+                    "platform": platform_name,
+                    "platform_logo_url": platform_info["logo_url"],
+                    "platform_color": platform_info["color"],
+                    "query": query,
+                    "recommended": "(query failed)",
+                    "client_appears": False,
+                    "position": 0,
+                })
+        else:
+            results.append({
+                "platform": platform_name,
+                "platform_logo_url": platform_info["logo_url"],
+                "platform_color": platform_info["color"],
+                "query": query,
+                "recommended": "(no API key configured)",
+                "client_appears": False,
+                "position": 0,
+            })
+
+    return jsonify({"query": query, "results": results})
+
+
 @app.route("/api/detect-business", methods=["POST"])
 def detect_business():
     """Quick-detect business name, location, and sector from a URL."""
