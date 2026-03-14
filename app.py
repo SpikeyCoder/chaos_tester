@@ -273,7 +273,7 @@ def start_run():
 
     # AI Visibility options
     config.business_location = _get("business_location", "").strip()
-    config.perplexity_api_key = _get("perplexity_api_key", "").strip() or os.getenv("PERPLEXITY_API_KEY", "")
+    config.perplexity_api_key = os.getenv("PERPLEXITY_API_KEY", "")
     seeds = _get("seed_urls", "").strip()
     if seeds:
         config.seed_urls = [s.strip() for s in seeds.split("\n") if s.strip()]

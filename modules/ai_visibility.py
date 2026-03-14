@@ -211,9 +211,12 @@ class AIVisibilityScanner(BaseModule):
     def _query_perplexity(self, query):
         """Send a real search query to Perplexity's sonar model.
         Returns the raw response text, or None on failure."""
+        import sys
         api_key = self._get_api_key()
         if not api_key:
+            print("[AI_VIS] _query_perplexity: no API key", file=sys.stderr)
             return None
+        print(f"[AI_VIS] _query_perplexity: sending query: {query[:80]}", file=sys.stderr)
 
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -274,25 +277,36 @@ class AIVisibilityScanner(BaseModule):
             return []
 
         businesses = []
-        # Match numbered list items: "1. Business Name" or "1. **Business Name**"
         lines = text.split("\n")
         for line in lines:
             line = line.strip()
-            # Match patterns like "1. Business Name" or "- Business Name"
-            m = re.match(r"^(?:\d+[\.\)]\s*|\-\s*|\*\s*)(?:\*\*)?(.+?)(?:\*\*)?(?:\s*[\-–:]\s*|$)", line)
-            if not m:
+            # Must start with a numbered/bulleted list marker
+            prefix = re.match(r"^(?:\d+[\.\)]\s*|\-\s*|\*\s*)", line)
+            if not prefix:
                 continue
-            raw_name = m.group(1).strip().rstrip("*").strip()
-            # Clean up common suffixes that aren't part of the name
+            rest = line[prefix.end():]
+
+            # Extract name: prefer bold **Name**, else take text up to first separator
+            bold = re.match(r"\*\*(.+?)\*\*", rest)
+            if bold:
+                raw_name = bold.group(1).strip()
+            else:
+                name_m = re.match(r"(.+?)(?:\s*[\-–:(\[,]|$)", rest)
+                raw_name = name_m.group(1).strip() if name_m else rest.strip()
+
+            # Clean up
+            raw_name = raw_name.rstrip("*").strip()
             raw_name = re.sub(r"\s*[\-–:]\s*$", "", raw_name).strip()
+            # Remove citation brackets like [1][2]
+            raw_name = re.sub(r"\s*\[\d+\]", "", raw_name).strip()
             if len(raw_name) < 3 or len(raw_name) > 80:
                 continue
 
-            # Extract revenue estimate from the rest of the line
+            # Extract revenue estimate from the full line
             revenue_raw = None
             revenue_bucket = None
             rev_match = re.search(
-                r"[\~\$]?\$?([\d,.]+)\s*(million|billion|M|B|m|b|mil|bil)(?:/yr|/year|annual)?",
+                r"[\~\$]?\$?([\d,.]+)\s*(million|billion|trillion|M|B|m|b|mil|bil)(?:/yr|/year|annual|\s|[,.\)])",
                 line, re.IGNORECASE
             )
             if rev_match:
@@ -302,10 +316,11 @@ class AIVisibilityScanner(BaseModule):
                     unit = rev_match.group(2).lower()
                     if unit in ("billion", "b", "bil"):
                         num *= 1_000_000_000
+                    elif unit in ("trillion",):
+                        num *= 1_000_000_000_000
                     elif unit in ("million", "m", "mil"):
                         num *= 1_000_000
                     revenue_raw = f"${num_str}{rev_match.group(2)}"
-                    # Find matching bucket
                     for label, lo, hi in self.REVENUE_BUCKETS:
                         if lo <= num < hi:
                             revenue_bucket = label
@@ -319,19 +334,21 @@ class AIVisibilityScanner(BaseModule):
                 "revenue_bucket": revenue_bucket,
             })
 
-        return businesses[:7]  # cap at 7
+        return businesses[:7]
 
     def _run_ai_query(self, platform, query):
         """Query an AI platform and check if business appears in recommendations.
         Uses Perplexity API for real results; falls back to simulation if no API key."""
+        import sys
         api_key = self._get_api_key()
+        print(f"[AI_VIS] _run_ai_query: platform={platform}, has_key={bool(api_key)}, key_prefix={api_key[:10]}..." if api_key else f"[AI_VIS] _run_ai_query: platform={platform}, NO API KEY", file=sys.stderr)
 
         if not api_key:
+            print(f"[AI_VIS] No API key -- using simulation for {platform}", file=sys.stderr)
             return self._simulate_ai_query(platform, query)
 
-        # Prepend platform context to simulate platform-specific recommendations
-        platform_query = f"[Searching as {platform}] {query}"
-        response_text = self._query_perplexity(query)  # use plain query for best results
+        response_text = self._query_perplexity(query)
+        print(f"[AI_VIS] Perplexity response length: {len(response_text) if response_text else 'None'}", file=sys.stderr)
 
         if not response_text:
             logger.warning("API call failed for %s query: %s -- falling back to simulation", platform, query)
@@ -353,11 +370,58 @@ class AIVisibilityScanner(BaseModule):
                 position = i + 1
                 break
 
-        # Competitors = everyone except our business
-        competitors = [b["name"] for b in parsed if not (
+        # --- Revenue-bucket competitor filtering ---
+        # Separate client from others
+        others = [b for b in parsed if not (
             bname_lower in b["name"].lower()
             or b["name"].lower() in bname_lower
-        )][:5]
+        )]
+
+        # Find client's revenue bucket (if it appeared with revenue data)
+        client_bucket_idx = None
+        for b in parsed:
+            if (bname_lower in b["name"].lower()
+                    or b["name"].lower() in bname_lower):
+                if b.get("revenue_bucket"):
+                    for idx, (label, _, _) in enumerate(self.REVENUE_BUCKETS):
+                        if label == b["revenue_bucket"]:
+                            client_bucket_idx = idx
+                            break
+                break
+
+        # If we don't know the client's bucket, use the median bucket of others
+        if client_bucket_idx is None:
+            other_idxs = []
+            for b in others:
+                if b.get("revenue_bucket"):
+                    for idx, (label, _, _) in enumerate(self.REVENUE_BUCKETS):
+                        if label == b["revenue_bucket"]:
+                            other_idxs.append(idx)
+                            break
+            if other_idxs:
+                other_idxs.sort()
+                client_bucket_idx = other_idxs[len(other_idxs) // 2]
+
+        # Filter to same or adjacent bucket (±1)
+        if client_bucket_idx is not None:
+            nearby = []
+            unmatched = []
+            for b in others:
+                if b.get("revenue_bucket"):
+                    for idx, (label, _, _) in enumerate(self.REVENUE_BUCKETS):
+                        if label == b["revenue_bucket"]:
+                            if abs(idx - client_bucket_idx) <= 1:
+                                nearby.append(b["name"])
+                            break
+                else:
+                    unmatched.append(b["name"])
+            # Prefer bucket-matched, then fill with unmatched
+            competitors = (nearby + unmatched)[:5]
+        else:
+            # No revenue data at all — show all others
+            competitors = [b["name"] for b in others][:5]
+
+        print(f"[AI_VIS] competitors for '{query[:40]}': {competitors}, client_bucket_idx={client_bucket_idx}", file=sys.stderr)
 
         return {
             "platform": platform,
@@ -478,15 +542,6 @@ class AIVisibilityScanner(BaseModule):
                 score = 100 if r["client_appears"] and r["position"] == 1 else (
                     75 if r["client_appears"] and r["position"] <= 3 else (
                     50 if r["client_appears"] else 0))
-                # Build competitor info with revenue buckets when available
-                parsed_biz = r.get("parsed_businesses", [])
-                competitor_entries = []
-                for b in parsed_biz:
-                    entry = b["name"]
-                    if b.get("revenue_bucket"):
-                        entry += f" ({b['revenue_bucket']})"
-                    competitor_entries.append(entry)
-
                 self.ai_results["all_results"].append({
                     "platform": r["platform"],
                     "platform_logo_url": next((p["logo_url"] for p in AI_PLATFORMS if p["name"] == r["platform"]), ""),
@@ -496,7 +551,6 @@ class AIVisibilityScanner(BaseModule):
                     "client_appears": r["client_appears"],
                     "position": r["position"],
                     "competitors": ", ".join(r["competitors"]),
-                    "competitor_details": competitor_entries,
                     "visibility_score": score,
                     "is_real": r.get("response_text", "") != "(simulated)",
                 })

@@ -113,47 +113,56 @@
 </div>
 </form>
 
-<!-- -- Results Table ---------------------------------------- -->
+<!-- -- Results Table (condensed: first 5 visible) ----------- -->
 <div class="card">
   <h2>📝 Detailed Results ({{ report.results|length }})</h2>
-  <table id="resultsTable">
-    <thead>
-      <tr>
-        <th style="width:50px">#</th>
-        <th>Status</th>
-        <th>Severity</th>
-        <th>Module</th>
-        <th>Test</th>
-        <th>Details</th>
-        <th style="width:80px">Time</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in report.results %}
-      <tr class="result-row" data-status="{{ r.status }}" data-module="{{ r.module }}">
-        <td class="text-muted mono text-sm">{{ loop.index }}</td>
-        <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
-        <td><span class="badge badge-{{ r.severity }}">{{ r.severity }}</span></td>
-        <td class="text-sm">
-          {% set mc = {'availability':'#3b82f6','links':'#a855f7','forms':'#06b6d4','chaos':'#f97316','auth':'#eab308','security':'#ef4444'} %}
-          <span style="color:{{ mc.get(r.module, '#8b8fa3') }};font-weight:600;">{{ r.module }}</span>
-        </td>
-        <td>
-          <div style="font-weight:500;">{{ r.name }}</div>
-          {% if r.description %}<div class="text-muted text-sm">{{ r.description[:120] }}</div>{% endif %}
-        </td>
-        <td class="text-sm">
-          {% if r.details %}<div style="margin-bottom:4px;">{{ r.details[:200] }}</div>{% endif %}
-          {% if r.recommendation %}
-          <div style="color:var(--cyan);font-size:0.8rem;">💡 {{ r.recommendation[:200] }}</div>
-          {% endif %}
-          {% if r.url %}<div class="text-muted" style="font-size:0.78rem;">{{ r.url[:80] }}</div>{% endif %}
-        </td>
-        <td class="mono text-sm text-muted">{{ r.duration_ms|round(0)|int }}ms</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div id="detailed-results-wrapper" style="overflow-x:auto;max-height:none;">
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th style="width:50px">#</th>
+          <th>Status</th>
+          <th>Severity</th>
+          <th>Module</th>
+          <th>Test</th>
+          <th>Details</th>
+          <th style="width:80px">Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in report.results %}
+        <tr class="result-row" data-status="{{ r.status }}" data-module="{{ r.module }}" {% if loop.index > 5 %}style="display:none;"{% endif %}>
+          <td class="text-muted mono text-sm">{{ loop.index }}</td>
+          <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+          <td><span class="badge badge-{{ r.severity }}">{{ r.severity }}</span></td>
+          <td class="text-sm">
+            {% set mc = {'availability':'#3b82f6','links':'#a855f7','forms':'#06b6d4','chaos':'#f97316','auth':'#eab308','security':'#ef4444'} %}
+            <span style="color:{{ mc.get(r.module, '#8b8fa3') }};font-weight:600;">{{ r.module }}</span>
+          </td>
+          <td>
+            <div style="font-weight:500;">{{ r.name }}</div>
+            {% if r.description %}<div class="text-muted text-sm">{{ r.description[:120] }}</div>{% endif %}
+          </td>
+          <td class="text-sm">
+            {% if r.details %}<div style="margin-bottom:4px;">{{ r.details[:200] }}</div>{% endif %}
+            {% if r.recommendation %}
+            <div style="color:var(--cyan);font-size:0.8rem;">💡 {{ r.recommendation[:200] }}</div>
+            {% endif %}
+            {% if r.url %}<div class="text-muted" style="font-size:0.78rem;">{{ r.url[:80] }}</div>{% endif %}
+          </td>
+          <td class="mono text-sm text-muted">{{ r.duration_ms|round(0)|int }}ms</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if report.results|length > 5 %}
+  <div style="text-align:center;padding:12px 0;">
+    <button class="btn btn-secondary text-sm" onclick="toggleDetailedResults()" id="detailed-toggle-btn">
+      Show All {{ report.results|length }} Results ▼
+    </button>
+  </div>
+  {% endif %}
 </div>
 
 <!-- -- AI Visibility Dashboard ----------------------------------- -->
@@ -206,7 +215,7 @@
             <th>Recommended Businesses</th>
             <th>Client Appears</th>
             <th>Position</th>
-            <th>Competitors (Revenue Bucket)</th>
+            <th>Competitors</th>
             <th>Visibility Score</th>
           </tr>
         </thead>
@@ -229,15 +238,7 @@
               {% endif %}
             </td>
             <td>{{ row.position if row.position else "N/A" }}</td>
-            <td style="max-width:260px;white-space:normal;word-wrap:break-word;">
-              {% if row.competitor_details %}
-                {% for c in row.competitor_details %}
-                  <div style="font-size:0.85rem;{% if not loop.last %}margin-bottom:2px;{% endif %}">{{ c }}</div>
-                {% endfor %}
-              {% else %}
-                {{ row.competitors }}
-              {% endif %}
-            </td>
+            <td style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.competitors }}</td>
             <td>
               <div style="display:flex;align-items:center;gap:8px;">
                 <div class="progress-bar-bg" style="height:8px;width:60px;">
@@ -314,10 +315,24 @@ function filterModule(mod, btn) {
   applyFilters();
 }
 function applyFilters() {
-  document.querySelectorAll('.result-row').forEach(row => {
-    const matchStatus = currentStatus === 'all' || row.dataset.status === currentStatus;
-    const matchModule = currentModule === 'all' || row.dataset.module === currentModule;
-    row.style.display = (matchStatus && matchModule) ? '' : 'none';
+  var isFiltering = currentStatus !== 'all' || currentModule !== 'all';
+  var container = document.getElementById('detailed-results-wrapper');
+  // When filtering, expand and show scrollable; otherwise respect condensed state
+  if (isFiltering) {
+    container.classList.add('scrollable-table');
+  } else if (!_detailedExpanded) {
+    container.classList.remove('scrollable-table');
+  }
+  document.querySelectorAll('.result-row').forEach(function(row, i) {
+    var matchStatus = currentStatus === 'all' || row.dataset.status === currentStatus;
+    var matchModule = currentModule === 'all' || row.dataset.module === currentModule;
+    if (isFiltering) {
+      row.style.display = (matchStatus && matchModule) ? '' : 'none';
+    } else if (_detailedExpanded) {
+      row.style.display = (matchStatus && matchModule) ? '' : 'none';
+    } else {
+      row.style.display = (matchStatus && matchModule && i < 5) ? '' : 'none';
+    }
   });
 }
 </script>
@@ -551,14 +566,14 @@ function switchPerfTab(strategy) {
 .gauge-container { display: flex; justify-content: center; }
 .gauge-label { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
 
-  /* AI Results table scrollable mode */
-  #ai-results-table.scrollable {
+  /* Scrollable table mode (shared by Detailed Results + AI Results) */
+  .scrollable-table {
     max-height: 520px;
     overflow-y: auto;
     border: 1px solid var(--border);
     border-radius: 8px;
   }
-  #ai-results-table.scrollable thead th {
+  .scrollable-table thead th {
     position: sticky;
     top: 0;
     background: var(--surface);
@@ -590,6 +605,25 @@ function switchPerfTab(strategy) {
   </style>
 
 <script>
+/* Detailed Results table toggle */
+var _detailedExpanded = false;
+function toggleDetailedResults() {
+  _detailedExpanded = !_detailedExpanded;
+  var rows = document.querySelectorAll('.result-row');
+  var container = document.getElementById('detailed-results-wrapper');
+  var btn = document.getElementById('detailed-toggle-btn');
+  if (_detailedExpanded) {
+    rows.forEach(function(r) { r.style.display = ''; });
+    container.classList.add('scrollable-table');
+    btn.textContent = 'Show First 5 Results \u25B2';
+  } else {
+    rows.forEach(function(r, i) { r.style.display = i >= 5 ? 'none' : ''; });
+    container.classList.remove('scrollable-table');
+    btn.textContent = 'Show All ' + rows.length + ' Results \u25BC';
+  }
+}
+
+/* AI Results table toggle */
 var _aiExpanded = false;
 function toggleAIResults() {
   _aiExpanded = !_aiExpanded;
@@ -598,11 +632,11 @@ function toggleAIResults() {
   var btn = document.getElementById('ai-toggle-btn');
   if (_aiExpanded) {
     rows.forEach(function(r) { r.style.display = ''; });
-    container.classList.add('scrollable');
+    container.classList.add('scrollable-table');
     btn.textContent = 'Show First 5 Results \u25B2';
   } else {
     rows.forEach(function(r, i) { r.style.display = i >= 5 ? 'none' : ''; });
-    container.classList.remove('scrollable');
+    container.classList.remove('scrollable-table');
     btn.textContent = 'Show All ' + rows.length + ' Results \u25BC';
   }
 }
