@@ -25,17 +25,17 @@ AI_PLATFORMS = [
     {
         "name": "Perplexity",
         "color": "#20808d",
-        "logo_url": "https://cdn.simpleicons.org/perplexity/20808d",
+        "logo_url": "https://api.iconify.design/simple-icons/perplexity.svg?color=%2320808d&width=22&height=22",
     },
     {
         "name": "Claude",
         "color": "#cc785c",
-        "logo_url": "https://cdn.simpleicons.org/anthropic/cc785c",
+        "logo_url": "https://api.iconify.design/simple-icons/anthropic.svg?color=%23cc785c&width=22&height=22",
     },
     {
         "name": "Gemini",
         "color": "#4285f4",
-        "logo_url": "https://cdn.simpleicons.org/googlegemini/4285f4",
+        "logo_url": "https://api.iconify.design/simple-icons/googlegemini.svg?color=%234285f4&width=22&height=22",
     },
 ]
 
