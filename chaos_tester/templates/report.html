@@ -1,0 +1,675 @@
+{% extends "base.html" %}
+{% block title %}Report {{ report.run_id }} -- Website Auditor{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+  <div>
+    <h2 style="font-size:1.4rem;font-weight:700;">
+      📊 Test Report
+      <span class="badge badge-{{ 'passed' if report.status == 'completed' else 'failed' }}" style="font-size:0.75rem;margin-left:8px;">{{ report.status }}</span>
+    </h2>
+    <p class="text-muted text-sm mt-1">
+      Run <code>{{ report.run_id }}</code> &middot; {{ report.base_url }} &middot;
+      <span class="badge badge-info">{{ report.environment }}</span> &middot;
+      {{ report.started_at[:19] }} &middot; {{ report.duration_s }}s
+    </p>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <a href="#" onclick="downloadJSON(); return false;" class="btn btn-secondary text-sm" role="button" aria-label="Download report as JSON">⬇ JSON</a>
+    <a href="#" onclick="downloadCSV(); return false;" class="btn btn-secondary text-sm" role="button" aria-label="Download report as CSV">⬇ CSV</a>
+    <a href="/" class="btn btn-secondary text-sm" aria-label="Back to Dashboard">← Dashboard</a>
+  </div>
+</div>
+
+<!-- -- Summary Stats ---------------------------------------- -->
+{% set s = report.summary %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="number" style="color:var(--text)">{{ s.total }}</div>
+    <div class="label">Total Tests</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:var(--green)">{{ s.passed }}</div>
+    <div class="label">Passed</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:var(--red)">{{ s.failed }}</div>
+    <div class="label">Failed</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:var(--yellow)">{{ s.warnings }}</div>
+    <div class="label">Warnings</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:var(--red)">{{ s.errors }}</div>
+    <div class="label">Errors</div>
+  </div>
+  <div class="stat-card">
+    {% set rate = s.pass_rate %}
+    <div class="number" style="color:{% if rate >= 90 %}var(--green){% elif rate >= 70 %}var(--yellow){% else %}var(--red){% endif %}">{{ rate }}%</div>
+    <div class="label">Pass Rate</div>
+  </div>
+</div>
+
+<!-- -- Performance Dashboard -------------------------------- -->
+{% set perf = report.get("performance_metrics", {}) if report.get("performance_metrics") else {} %}
+{% set has_perf_data = perf and (perf.get("mobile", {}).get("score") is not none or perf.get("desktop", {}).get("score") is not none) %}
+{% if has_perf_data %}
+<div id="perf-dashboard" class="card" style="margin-bottom:24px">
+  <h2 style="margin:0 0 16px">⚡ Performance Metrics</h2>
+  <div class="perf-tabs">
+    <button class="perf-tab active" onclick="switchPerfTab('mobile')" id="tab-mobile">📱 Mobile</button>
+    <button class="perf-tab" onclick="switchPerfTab('desktop')" id="tab-desktop">🖥 Desktop</button>
+  </div>
+  {% for strategy in ["mobile","desktop"] %}
+  {% set sdata = perf.get(strategy, {}) %}
+  <div class="perf-panel" id="panel-{{strategy}}" style="{% if strategy=='desktop' %}display:none{% endif %}">
+    {% if sdata and sdata.get("score") is not none %}
+    <!-- Overall Score Gauge -->
+    <div style="text-align:center;margin-bottom:20px">
+      <div class="gauge-container gauge-main"
+           data-type="overall"
+           data-value="{{ (sdata.score * 100)|int }}"
+           data-display="{{ (sdata.score * 100)|int }}"></div>
+      <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Overall Score</div>
+    </div>
+    <!-- Individual Metric Gauges -->
+    <div class="perf-grid">
+      {% for mid, mdata in sdata.get("metrics", {}).items() %}
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="{{mid}}"
+             data-value="{{mdata.value}}"
+             data-display="{{mdata.display}}"></div>
+        <div class="gauge-label">{{mdata.label}}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted);text-align:center;padding:24px 0">
+      No {{strategy}} performance data available. Performance metrics require a Lighthouse integration which is not yet enabled for this audit.
+    </p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- -- Filters ---------------------------------------------- -->
+<form onsubmit="return false"><div class="card" style="padding:14px 20px;">
+  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+    <span class="text-muted text-sm" style="margin-right:8px;">Filter:</span>
+    <button class="btn btn-secondary text-sm filter-btn active" data-filter="all" onclick="filterResults('all', this)">All</button>
+    <button class="btn btn-secondary text-sm filter-btn" data-filter="failed" onclick="filterResults('failed', this)">Failed</button>
+    <button class="btn btn-secondary text-sm filter-btn" data-filter="warning" onclick="filterResults('warning', this)">Warnings</button>
+    <button class="btn btn-secondary text-sm filter-btn" data-filter="passed" onclick="filterResults('passed', this)">Passed</button>
+    <span class="text-muted text-sm" style="margin-left:16px;margin-right:8px;">Module:</span>
+    <button class="btn btn-secondary text-sm module-btn active" data-module="all" onclick="filterModule('all', this)">All</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="availability" onclick="filterModule('availability', this)">Availability</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="links" onclick="filterModule('links', this)">Links</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="forms" onclick="filterModule('forms', this)">Forms</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="chaos" onclick="filterModule('chaos', this)">Chaos</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="auth" onclick="filterModule('auth', this)">Auth</button>
+    <button class="btn btn-secondary text-sm module-btn" data-module="security" onclick="filterModule('security', this)">Security</button>
+  </div>
+</div>
+</form>
+
+<!-- -- Results Table (condensed: first 5 visible) ----------- -->
+<div class="card">
+  <h2>📝 Detailed Results ({{ report.results|length }})</h2>
+  <div id="detailed-results-wrapper" style="overflow-x:auto;max-height:none;">
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th style="width:50px">#</th>
+          <th>Status</th>
+          <th>Severity</th>
+          <th>Module</th>
+          <th>Test</th>
+          <th>Details</th>
+          <th style="width:80px">Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in report.results %}
+        <tr class="result-row" data-status="{{ r.status }}" data-module="{{ r.module }}" {% if loop.index > 5 %}style="display:none;"{% endif %}>
+          <td class="text-muted mono text-sm">{{ loop.index }}</td>
+          <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+          <td><span class="badge badge-{{ r.severity }}">{{ r.severity }}</span></td>
+          <td class="text-sm">
+            {% set mc = {'availability':'#3b82f6','links':'#a855f7','forms':'#06b6d4','chaos':'#f97316','auth':'#eab308','security':'#ef4444'} %}
+            <span style="color:{{ mc.get(r.module, '#8b8fa3') }};font-weight:600;">{{ r.module }}</span>
+          </td>
+          <td>
+            <div style="font-weight:500;">{{ r.name }}</div>
+            {% if r.description %}<div class="text-muted text-sm">{{ r.description[:120] }}</div>{% endif %}
+          </td>
+          <td class="text-sm">
+            {% if r.details %}<div style="margin-bottom:4px;">{{ r.details[:200] }}</div>{% endif %}
+            {% if r.recommendation %}
+            <div style="color:var(--cyan);font-size:0.8rem;">💡 {{ r.recommendation[:200] }}</div>
+            {% endif %}
+            {% if r.url %}<div class="text-muted" style="font-size:0.78rem;">{{ r.url[:80] }}</div>{% endif %}
+          </td>
+          <td class="mono text-sm text-muted">{{ r.duration_ms|round(0)|int }}ms</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if report.results|length > 5 %}
+  <div style="text-align:center;padding:12px 0;">
+    <button class="btn btn-secondary text-sm" onclick="toggleDetailedResults()" id="detailed-toggle-btn">
+      Show All {{ report.results|length }} Results ▼
+    </button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- -- AI Visibility Dashboard ----------------------------------- -->
+<div class="card">
+  <h2>&#x1F916; AI Visibility Dashboard</h2>
+  {% if report.ai_visibility and report.ai_visibility.overall_score is defined %}
+  {% set ai = report.ai_visibility %}
+
+  <!-- Summary Score -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:2.5rem;font-weight:700;color:{% if ai.overall_score >= 50 %}var(--green){% elif ai.overall_score >= 25 %}var(--yellow){% else %}var(--red){% endif %};">{{ ai.overall_score }}%</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Overall AI Visibility</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:2.5rem;font-weight:700;">{{ ai.total_appearances }}/{{ ai.total_queries }}</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Appearances in AI Results</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:1.1rem;font-weight:600;">{{ ai.business_info.business_name }}</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">{{ ai.business_info.sector|title }} &mdash; {{ ai.business_info.location }}</div>
+    </div>
+  </div>
+
+  <!-- Platform Scores -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;margin-bottom:24px;">
+    {% for pname, pdata in ai.platform_scores.items() %}
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid {{ pdata.color }};">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <img src="{{ pdata.logo_url }}" width="20" height="20" alt="{{ pname }}" style="vertical-align:middle;">
+        {{ pname }}
+      </div>
+      <div style="font-size:1.8rem;font-weight:700;color:{% if pdata.score >= 50 %}var(--green){% elif pdata.score >= 25 %}var(--yellow){% else %}var(--red){% endif %};">{{ pdata.score }}%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">{{ pdata.appearances }}/{{ pdata.total }} queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:{{ pdata.score }}%;background:{{ pdata.color }};"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Results Table (condensed: first 5 visible, scrollable) -->
+  <div style="position:relative;">
+    <div id="ai-results-table" style="overflow-x:auto;max-height:none;">
+      <table id="aiResultsTable">
+        <thead>
+          <tr>
+            <th>AI Platform</th>
+            <th>Search Query</th>
+            <th>Recommended Businesses</th>
+            <th>Client Appears</th>
+            <th>Position</th>
+            <th>Competitors</th>
+            <th>Visibility Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in ai.all_results %}
+          <tr class="ai-result-row" {% if loop.index > 5 %}style="display:none;"{% endif %}>
+            <td><span style="color:{{ row.platform_color }};font-weight:600;display:inline-flex;align-items:center;gap:5px;">
+              <img src="{{ row.platform_logo_url }}" width="18" height="18" alt="{{ row.platform }}" style="vertical-align:middle;">
+              {{ row.platform }}
+            </span>
+            {% if row.is_real %}<span style="font-size:0.65rem;color:var(--green);margin-left:4px;" title="Real AI query">●</span>{% endif %}
+            </td>
+            <td style="max-width:220px;white-space:normal;word-wrap:break-word;">{{ row.query }}</td>
+            <td style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.recommended }}</td>
+            <td>
+              {% if row.client_appears %}
+                <span class="badge badge-passed">Yes</span>
+              {% else %}
+                <span class="badge badge-failed">No</span>
+              {% endif %}
+            </td>
+            <td>{{ row.position if row.position else "N/A" }}</td>
+            <td style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.competitors }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:{{ row.visibility_score }}%;background:{% if row.visibility_score >= 75 %}var(--green){% elif row.visibility_score >= 50 %}var(--yellow){% else %}var(--red){% endif %};"></div>
+                </div>
+                <span>{{ row.visibility_score }}%</span>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if ai.all_results|length > 5 %}
+    <div id="ai-show-more-bar" style="text-align:center;padding:12px 0;">
+      <button class="btn btn-secondary text-sm" onclick="toggleAIResults()" id="ai-toggle-btn">
+        Show All {{ ai.all_results|length }} Results ▼
+      </button>
+    </div>
+    {% endif %}
+  </div>
+
+  {% else %}
+  <p style="color:var(--text-muted);text-align:center;padding:32px 0;">AI Visibility data not available for this report. Run a new audit to generate AI visibility analysis.</p>
+  {% endif %}
+</div>
+
+<script>
+var reportData = {{ report | tojson }};
+
+function downloadJSON() {
+  var b = new Blob([JSON.stringify(reportData, null, 2)], {type: 'application/json'});
+  var u = URL.createObjectURL(b);
+  var a = document.createElement('a');
+  a.href = u; a.download = 'audit_' + reportData.run_id + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(u);
+}
+
+function downloadCSV() {
+  var r = reportData.results || [];
+  if (!r.length) { alert('No results'); return; }
+  var h = ['module','check','status','detail'];
+  var c = h.join(',') + '\n';
+  r.forEach(function(x) {
+    var row = h.map(function(k) {
+      return '"' + ((x[k] || '') + '').replace(/"/g, '""') + '"';
+    });
+    c += row.join(',') + '\n';
+  });
+  var b = new Blob([c], {type: 'text/csv'});
+  var u = URL.createObjectURL(b);
+  var a = document.createElement('a');
+  a.href = u; a.download = 'audit_' + reportData.run_id + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(u);
+}
+</script>
+
+<script>
+let currentStatus = 'all';
+let currentModule = 'all';
+
+function filterResults(status, btn) {
+  currentStatus = status;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+function filterModule(mod, btn) {
+  currentModule = mod;
+  document.querySelectorAll('.module-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+function applyFilters() {
+  var isFiltering = currentStatus !== 'all' || currentModule !== 'all';
+  var container = document.getElementById('detailed-results-wrapper');
+  // When filtering, expand and show scrollable; otherwise respect condensed state
+  if (isFiltering) {
+    container.classList.add('scrollable-table');
+  } else if (!_detailedExpanded) {
+    container.classList.remove('scrollable-table');
+  }
+  document.querySelectorAll('.result-row').forEach(function(row, i) {
+    var matchStatus = currentStatus === 'all' || row.dataset.status === currentStatus;
+    var matchModule = currentModule === 'all' || row.dataset.module === currentModule;
+    if (isFiltering) {
+      row.style.display = (matchStatus && matchModule) ? '' : 'none';
+    } else if (_detailedExpanded) {
+      row.style.display = (matchStatus && matchModule) ? '' : 'none';
+    } else {
+      row.style.display = (matchStatus && matchModule && i < 5) ? '' : 'none';
+    }
+  });
+}
+</script>
+
+<script>
+function switchPerfTab(strategy) {
+  document.querySelectorAll('.perf-panel').forEach(function(p) { p.style.display = 'none'; });
+  document.querySelectorAll('.perf-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('panel-' + strategy).style.display = 'block';
+  document.getElementById('tab-' + strategy).classList.add('active');
+}
+</script>
+
+<!-- Moylan Arrow Gauge Renderer -->
+<script>
+(function() {
+  /* Lighthouse performance thresholds (values in same units as metric data) */
+  var TH = {
+    'overall':                  {g:90,  y:50,   max:100,  rev:true, gl:'90', yl:'50'},
+    'first-contentful-paint':   {g:1.8, y:3.0,  max:6.0,  rev:false, gl:'1.8s', yl:'3.0s'},
+    'speed-index':              {g:3.4, y:5.8,  max:10.0, rev:false, gl:'3.4s', yl:'5.8s'},
+    'largest-contentful-paint': {g:2.5, y:4.0,  max:8.0,  rev:false, gl:'2.5s', yl:'4.0s'},
+    'cumulative-layout-shift':  {g:0.1, y:0.25, max:0.5,  rev:false, gl:'0.1',  yl:'0.25'},
+    'interactive':              {g:3.8, y:7.3,  max:12.0, rev:false, gl:'3.8s', yl:'7.3s'},
+    'total-blocking-time':      {g:200, y:600,  max:1200, rev:false, gl:'200ms',yl:'600ms'}
+  };
+
+  var NS = 'http://www.w3.org/2000/svg';
+
+  function el(tag, attrs) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function arcPt(cx, cy, r, proportion) {
+    var a = Math.PI * (1 - proportion);
+    return { x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) };
+  }
+
+  function drawGauge(container) {
+    var type  = container.getAttribute('data-type');
+    var value = parseFloat(container.getAttribute('data-value'));
+    var disp  = container.getAttribute('data-display') || '';
+    var big   = container.classList.contains('gauge-main');
+
+    var cfg = TH[type];
+    if (!cfg) return;
+
+    /* Dimensions */
+    var PAD = big ? 20 : 14;
+    var W = 200 + PAD * 2, H = big ? 150 : 134;
+    var CX = 100 + PAD, CY = big ? 115 : 104;
+    var R  = big ? 80 : 70;
+    var SW = big ? 16 : 12;
+    var ARC = Math.PI * R;
+
+    /* Color band proportions (fraction of arc) */
+    var gP, yP, rP;
+    if (cfg.rev) {
+      gP = (cfg.max - cfg.g) / cfg.max;          /* 10% */
+      yP = (cfg.g - cfg.y) / cfg.max;            /* 40% */
+      rP = cfg.y / cfg.max;                       /* 50% */
+    } else {
+      gP = cfg.g / cfg.max;
+      yP = (cfg.y - cfg.g) / cfg.max;
+      rP = (cfg.max - cfg.y) / cfg.max;
+    }
+    var gL = gP * ARC, yL = yP * ARC, rL = rP * ARC;
+
+    /* Needle position (0 = left, 1 = right) */
+    var nPos;
+    if (cfg.rev) {
+      nPos = Math.max(0, Math.min(1, (cfg.max - value) / cfg.max));
+    } else {
+      nPos = Math.max(0, Math.min(1, value / cfg.max));
+    }
+    var needleDeg = -90 + nPos * 180;
+
+    /* Needle color = zone it points to */
+    var nCol;
+    if (nPos <= gP + 0.001) nCol = '#0cce6b';
+    else if (nPos <= gP + yP + 0.001) nCol = '#ffa400';
+    else nCol = '#ff4e42';
+
+    /* Build SVG */
+    var svg = el('svg', {viewBox: '0 0 ' + W + ' ' + H});
+    svg.style.width = '100%';
+    svg.style.maxWidth = big ? '260px' : '195px';
+
+    var arcD = 'M ' + (CX - R) + ',' + CY +
+               ' A ' + R + ',' + R + ' 0 0,1 ' + (CX + R) + ',' + CY;
+
+    /* Background track */
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: 'rgba(255,255,255,0.06)',
+      'stroke-width': SW, 'stroke-linecap': 'butt'
+    }));
+
+    /* Green band */
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#0cce6b',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': gL + ' ' + (ARC * 3)
+    }));
+
+    /* Yellow band */
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#ffa400',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': '0.001 ' + gL + ' ' + yL + ' ' + (ARC * 3)
+    }));
+
+    /* Red band */
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#ff4e42',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': '0.001 ' + (gL + yL) + ' ' + rL + ' ' + (ARC * 3)
+    }));
+
+    /* -- Transition tick marks & labels ------------------- */
+    function addTick(prop, label) {
+      var oP = arcPt(CX, CY, R + SW / 2 + 1, prop);
+      var iP = arcPt(CX, CY, R - SW / 2 - 1, prop);
+      svg.appendChild(el('line', {
+        x1: oP.x, y1: oP.y, x2: iP.x, y2: iP.y,
+        stroke: 'rgba(255,255,255,0.4)', 'stroke-width': '1.5'
+      }));
+      var lP = arcPt(CX, CY, R + SW / 2 + (big ? 13 : 11), prop);
+      var t = el('text', {
+        x: lP.x, y: lP.y, 'text-anchor': 'middle',
+        'dominant-baseline': 'middle',
+        fill: 'rgba(255,255,255,0.55)',
+        'font-size': big ? '10' : '8',
+        'font-family': 'system-ui, sans-serif'
+      });
+      t.textContent = label;
+      svg.appendChild(t);
+    }
+
+    addTick(gP, cfg.gl);
+    addTick(gP + yP, cfg.yl);
+
+    /* -- Moylan Arrow needle ------------------------------ */
+    var NL = R - 16;
+    var nw = big ? 4.5 : 3.5;
+
+    var g = el('g', {transform: 'rotate(' + needleDeg + ', ' + CX + ', ' + CY + ')'});
+
+    /* Arrow shaft – tapers to point */
+    g.appendChild(el('polygon', {
+      points: [
+        (CX - nw) + ',' + CY,
+        (CX + nw) + ',' + CY,
+        (CX + 1.2) + ',' + (CY - NL + 6),
+        CX + ',' + (CY - NL),
+        (CX - 1.2) + ',' + (CY - NL + 6)
+      ].join(' '),
+      fill: nCol, opacity: '0.92'
+    }));
+
+    /* Small counterweight tail */
+    g.appendChild(el('polygon', {
+      points: [
+        (CX - nw * 0.6) + ',' + CY,
+        (CX + nw * 0.6) + ',' + CY,
+        (CX + nw * 0.4) + ',' + (CY + 10),
+        (CX - nw * 0.4) + ',' + (CY + 10)
+      ].join(' '),
+      fill: '#555', opacity: '0.7'
+    }));
+
+    /* Hub circle */
+    g.appendChild(el('circle', {
+      cx: CX, cy: CY, r: big ? 7 : 5.5,
+      fill: '#555', stroke: '#777', 'stroke-width': '1.5'
+    }));
+
+    svg.appendChild(g);
+
+    /* -- Value display ------------------------------------ */
+    var vt = el('text', {
+      x: CX, y: CY + (big ? 28 : 22),
+      'text-anchor': 'middle', fill: nCol,
+      'font-size': big ? '24' : '16',
+      'font-weight': 'bold',
+      'font-family': 'system-ui, sans-serif'
+    });
+    vt.textContent = disp;
+    svg.appendChild(vt);
+
+    container.appendChild(svg);
+  }
+
+  /* Render all gauges on the page */
+  document.querySelectorAll('.gauge-container').forEach(drawGauge);
+})();
+</script>
+
+<style>
+.filter-btn.active, .module-btn.active {
+  border-color: var(--accent) !important;
+  color: var(--accent);
+}
+
+/* Performance Dashboard */
+.perf-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+
+.perf-tab {
+  padding: 8px 20px; border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--text);
+  cursor: pointer; font-size: 14px; transition: all .2s;
+}
+.perf-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.perf-tab:hover:not(.active) { background: rgba(99,102,241,.15); }
+
+.perf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) { .perf-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .perf-grid { grid-template-columns: 1fr; } }
+
+.gauge-card {
+  text-align: center; padding: 16px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: rgba(255,255,255,.03);
+}
+.gauge-container { display: flex; justify-content: center; }
+.gauge-label { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+
+  /* Scrollable table mode (shared by Detailed Results + AI Results) */
+  .scrollable-table {
+    max-height: 520px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .scrollable-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 2;
+  }
+
+  /* Results table - prevent Details column overflow */
+  #resultsTable {
+    table-layout: fixed;
+    width: 100%;
+  }
+  #resultsTable th:nth-child(1) { width: 40px; }
+  #resultsTable th:nth-child(2) { width: 82px; }
+  #resultsTable th:nth-child(3) { width: 82px; }
+  #resultsTable th:nth-child(4) { width: 100px; }
+    #resultsTable td:nth-child(2),
+    #resultsTable td:nth-child(3),
+    #resultsTable td:nth-child(4) {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  #resultsTable th:nth-child(5) { width: 28%; }
+  #resultsTable th:nth-child(7) { width: 60px; }
+  #resultsTable td {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  </style>
+
+<script>
+/* Table column sorting */
+(function() {
+  var table = document.getElementById('resultsTable');
+  if (!table) return;
+  var headers = table.querySelectorAll('th');
+  headers.forEach(function(th, colIdx) {
+    th.style.cursor = 'pointer';
+    th.setAttribute('role', 'columnheader');
+    th.setAttribute('aria-sort', 'none');
+    th.title = 'Click to sort';
+    th.addEventListener('click', function() {
+      var tbody = table.querySelector('tbody');
+      var rows = Array.from(tbody.querySelectorAll('tr'));
+      var asc = th.getAttribute('aria-sort') !== 'ascending';
+      headers.forEach(function(h) { h.setAttribute('aria-sort', 'none'); h.textContent = h.textContent.replace(/ [▲▼]$/, ''); });
+      th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+      th.textContent = th.textContent + (asc ? ' ▲' : ' ▼');
+      rows.sort(function(a, b) {
+        var aVal = (a.children[colIdx] || {}).textContent || '';
+        var bVal = (b.children[colIdx] || {}).textContent || '';
+        var aNum = parseFloat(aVal); var bNum = parseFloat(bVal);
+        if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum - bNum : bNum - aNum;
+        return asc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      });
+      rows.forEach(function(r) { tbody.appendChild(r); });
+    });
+  });
+})();
+
+/* Detailed Results table toggle */
+var _detailedExpanded = false;
+function toggleDetailedResults() {
+  _detailedExpanded = !_detailedExpanded;
+  var rows = document.querySelectorAll('.result-row');
+  var container = document.getElementById('detailed-results-wrapper');
+  var btn = document.getElementById('detailed-toggle-btn');
+  if (_detailedExpanded) {
+    rows.forEach(function(r) { r.style.display = ''; });
+    container.classList.add('scrollable-table');
+    btn.textContent = 'Show First 5 Results \u25B2';
+  } else {
+    rows.forEach(function(r, i) { r.style.display = i >= 5 ? 'none' : ''; });
+    container.classList.remove('scrollable-table');
+    btn.textContent = 'Show All ' + rows.length + ' Results \u25BC';
+  }
+}
+
+/* AI Results table toggle */
+var _aiExpanded = false;
+function toggleAIResults() {
+  _aiExpanded = !_aiExpanded;
+  var rows = document.querySelectorAll('.ai-result-row');
+  var container = document.getElementById('ai-results-table');
+  var btn = document.getElementById('ai-toggle-btn');
+  if (_aiExpanded) {
+    rows.forEach(function(r) { r.style.display = ''; });
+    container.classList.add('scrollable-table');
+    btn.textContent = 'Show First 5 Results \u25B2';
+  } else {
+    rows.forEach(function(r, i) { r.style.display = i >= 5 ? 'none' : ''; });
+    container.classList.remove('scrollable-table');
+    btn.textContent = 'Show All ' + rows.length + ' Results \u25BC';
+  }
+}
+</script>
+{% endblock %}

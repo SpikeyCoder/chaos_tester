@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}How It Works - Website Audit in 3 Steps | Website Auditor{% endblock %}
+{% block meta_description %}Learn how Website Auditor works: enter a URL, select test modules, and get a comprehensive audit report. Free website scanning for SEO, security, and performance.{% endblock %}
+{% block og_title %}How Website Auditor Works - 3 Simple Steps{% endblock %}
+{% block og_description %}Enter a URL, choose your tests, get an instant audit report. Free and easy website scanning.{% endblock %}
+
+{% block content %}
+<h2 style="font-size:1.5rem; margin-bottom:24px;">&#x2699;&#xFE0F; How It Works</h2>
+
+<div class="card">
+    <h2>Step 1: Enter Your URL</h2>
+    <p class="text-muted" style="margin-bottom:16px;">Paste any website URL into the dashboard. Website Auditor accepts any publicly accessible URL&mdash;staging environments, production sites, or localhost for local development.</p>
+    <p class="text-muted">Configure optional settings like crawl depth (how many levels deep to scan), max pages to crawl, request timeout, and concurrency level for parallel scanning.</p>
+</div>
+
+<div class="card">
+    <h2>Step 2: Select Test Modules</h2>
+    <p class="text-muted" style="margin-bottom:16px;">Choose which audit modules to run. Each module focuses on a specific aspect of your website:</p>
+    <ul style="color: var(--text-muted); list-style: disc; padding-left: 24px; margin-bottom: 16px;">
+        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Page Availability</strong> &mdash; Checks every page for HTTP status codes, redirects, and response times</li>
+        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Broken Links</strong> &mdash; Finds all broken internal and external links across your site</li>
+        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Forms & Interactions</strong> &mdash; Validates forms, buttons, and interactive elements</li>
+        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Chaos / Failure Injection</strong> &mdash; Tests your site's resilience to errors and edge cases</li>
+        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Auth & Sessions</strong> &mdash; Audits authenticated areas with session cookie support</li>
+    </ul>
+    <p class="text-muted">All modules are selected by default. Deselect any you want to skip.</p>
+</div>
+
+<div class="card">
+    <h2>Step 3: Review Your Report</h2>
+    <p class="text-muted" style="margin-bottom:16px;">After the audit completes, you get a detailed report organized by module. Each finding includes:</p>
+    <ul style="color: var(--text-muted); list-style: disc; padding-left: 24px; margin-bottom: 16px;">
+        <li style="margin-bottom: 8px;">The specific page URL where the issue was found</li>
+        <li style="margin-bottom: 8px;">Severity level (pass, warning, or failure)</li>
+        <li style="margin-bottom: 8px;">Description of what was checked and what went wrong</li>
+        <li style="margin-bottom: 8px;">Summary statistics across all crawled pages</li>
+    </ul>
+    <p class="text-muted">Reports are accessible via the Latest Report link in the navigation, or through the REST API for programmatic access.</p>
+</div>
+
+<div class="card">
+    <h2>Advanced: REST API Access</h2>
+    <p class="text-muted" style="margin-bottom:16px;">Website Auditor also offers a JSON API for integrating audits into CI/CD pipelines, monitoring dashboards, or custom workflows:</p>
+    <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; font-family: var(--mono); font-size: 0.85rem; color: var(--accent); overflow-x: auto; position: relative;">
+        <button onclick="copyCode(this)" style="position:absolute;top:8px;right:8px;background:var(--surface);border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer;" aria-label="Copy code to clipboard">Copy</button>
+        <code id="api-code" style="display:block;white-space:pre;">
+# Launch an audit via API
+curl -X POST https://website-auditor.io/run \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com", "max_pages": 50}'</code>
+    </div>
+    <script>
+    function copyCode(btn) {
+      var code = document.getElementById('api-code').textContent.trim();
+      navigator.clipboard.writeText(code).then(function() {
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+      });
+    }
+    </script>
+</div>
+
+<div style="text-align:center; margin-top:32px;">
+    <a href="/" class="btn btn-primary" style="font-size:1.1rem; padding: 14px 32px;">&#x1F680; Start Your Free Audit Now</a>
+</div>
+{% endblock %}
