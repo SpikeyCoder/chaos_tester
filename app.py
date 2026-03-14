@@ -272,9 +272,9 @@ def start_run():
     )
 
     # Seed URLs
+    config.business_location = _get("business_location", "").strip()
     seeds = _get("seed_urls", "").strip()
     if seeds:
-    config.business_location = _get("business_location", "").strip()
         config.seed_urls = [s.strip() for s in seeds.split("\n") if s.strip()]
 
     try:
