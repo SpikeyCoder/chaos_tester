@@ -73,6 +73,7 @@ class ChaosConfig:
     run_security: bool = True
     run_ai_visibility: bool = True
     business_location: str = ""           # optional user-provided city for AI queries
+    perplexity_api_key: str = ""          # Perplexity API key for real AI visibility queries
 
     # -- Chaos / Fault-injection ---------------------------------------
     chaos_targets: list = field(default_factory=lambda: [

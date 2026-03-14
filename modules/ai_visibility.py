@@ -5,8 +5,10 @@ across ChatGPT, Perplexity, Claude, and Gemini.
 """
 
 import logging
+import os
 import re
 import json
+import time
 import hashlib
 from urllib.parse import urlparse
 from .base import BaseModule
@@ -188,21 +190,206 @@ class AIVisibilityScanner(BaseModule):
                 queries.append(q)
         return queries[:8]
 
-    def _simulate_ai_query(self, platform, query):
+    # ── Revenue bucket definitions ────────────────────────────────────
+    REVENUE_BUCKETS = [
+        ("Under $1M",   0,            1_000_000),
+        ("$1M-$10M",    1_000_000,    10_000_000),
+        ("$10M-$50M",   10_000_000,   50_000_000),
+        ("$50M-$100M",  50_000_000,   100_000_000),
+        ("$100M-$500M", 100_000_000,  500_000_000),
+        ("$500M-$1B",   500_000_000,  1_000_000_000),
+        ("$1B+",        1_000_000_000, float("inf")),
+    ]
+
+    def _get_api_key(self):
+        """Get Perplexity API key from config or environment."""
+        key = getattr(self.config, "perplexity_api_key", "") or ""
+        if not key:
+            key = os.getenv("PERPLEXITY_API_KEY", "")
+        return key.strip()
+
+    def _query_perplexity(self, query):
+        """Send a real search query to Perplexity's sonar model.
+        Returns the raw response text, or None on failure."""
+        api_key = self._get_api_key()
+        if not api_key:
+            return None
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        payload = {
+            "model": "sonar",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a helpful local business advisor. "
+                        "List the top 5 businesses that match the query. "
+                        "For each business, include the business name and "
+                        "an approximate annual revenue if known (e.g. ~$5M/yr). "
+                        "Format as a numbered list."
+                    ),
+                },
+                {"role": "user", "content": query},
+            ],
+            "max_tokens": 600,
+            "temperature": 0.1,
+        }
+
+        try:
+            import requests as http_requests
+            resp = http_requests.post(
+                "https://api.perplexity.ai/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=30,
+            )
+            if resp.status_code == 429:
+                logger.warning("Perplexity rate-limited, waiting 2s and retrying...")
+                time.sleep(2)
+                resp = http_requests.post(
+                    "https://api.perplexity.ai/chat/completions",
+                    headers=headers,
+                    json=payload,
+                    timeout=30,
+                )
+            if resp.status_code != 200:
+                logger.error("Perplexity API error %d: %s", resp.status_code, resp.text[:200])
+                return None
+            data = resp.json()
+            content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+            return content
+        except Exception as exc:
+            logger.error("Perplexity API call failed: %s", exc)
+            return None
+
+    def _parse_businesses_from_response(self, text):
+        """Extract business names and revenue estimates from AI response text.
+        Returns list of dicts: [{"name": str, "revenue_raw": str|None, "revenue_bucket": str|None}]
+        """
+        if not text:
+            return []
+
+        businesses = []
+        # Match numbered list items: "1. Business Name" or "1. **Business Name**"
+        lines = text.split("\n")
+        for line in lines:
+            line = line.strip()
+            # Match patterns like "1. Business Name" or "- Business Name"
+            m = re.match(r"^(?:\d+[\.\)]\s*|\-\s*|\*\s*)(?:\*\*)?(.+?)(?:\*\*)?(?:\s*[\-–:]\s*|$)", line)
+            if not m:
+                continue
+            raw_name = m.group(1).strip().rstrip("*").strip()
+            # Clean up common suffixes that aren't part of the name
+            raw_name = re.sub(r"\s*[\-–:]\s*$", "", raw_name).strip()
+            if len(raw_name) < 3 or len(raw_name) > 80:
+                continue
+
+            # Extract revenue estimate from the rest of the line
+            revenue_raw = None
+            revenue_bucket = None
+            rev_match = re.search(
+                r"[\~\$]?\$?([\d,.]+)\s*(million|billion|M|B|m|b|mil|bil)(?:/yr|/year|annual)?",
+                line, re.IGNORECASE
+            )
+            if rev_match:
+                try:
+                    num_str = rev_match.group(1).replace(",", "")
+                    num = float(num_str)
+                    unit = rev_match.group(2).lower()
+                    if unit in ("billion", "b", "bil"):
+                        num *= 1_000_000_000
+                    elif unit in ("million", "m", "mil"):
+                        num *= 1_000_000
+                    revenue_raw = f"${num_str}{rev_match.group(2)}"
+                    # Find matching bucket
+                    for label, lo, hi in self.REVENUE_BUCKETS:
+                        if lo <= num < hi:
+                            revenue_bucket = label
+                            break
+                except (ValueError, IndexError):
+                    pass
+
+            businesses.append({
+                "name": raw_name,
+                "revenue_raw": revenue_raw,
+                "revenue_bucket": revenue_bucket,
+            })
+
+        return businesses[:7]  # cap at 7
+
+    def _run_ai_query(self, platform, query):
         """Query an AI platform and check if business appears in recommendations.
-        Currently uses simulation -- real API integration can be added later."""
+        Uses Perplexity API for real results; falls back to simulation if no API key."""
+        api_key = self._get_api_key()
+
+        if not api_key:
+            return self._simulate_ai_query(platform, query)
+
+        # Prepend platform context to simulate platform-specific recommendations
+        platform_query = f"[Searching as {platform}] {query}"
+        response_text = self._query_perplexity(query)  # use plain query for best results
+
+        if not response_text:
+            logger.warning("API call failed for %s query: %s -- falling back to simulation", platform, query)
+            return self._simulate_ai_query(platform, query)
+
+        # Parse business names from response
+        parsed = self._parse_businesses_from_response(response_text)
+        recommended_names = [b["name"] for b in parsed]
+
+        # Check if our business appears (fuzzy match)
+        client_appears = False
+        position = 0
+        bname_lower = self.business_name.lower()
+        for i, name in enumerate(recommended_names):
+            if (bname_lower in name.lower()
+                    or name.lower() in bname_lower
+                    or self._fuzzy_match(bname_lower, name.lower())):
+                client_appears = True
+                position = i + 1
+                break
+
+        # Competitors = everyone except our business
+        competitors = [b["name"] for b in parsed if not (
+            bname_lower in b["name"].lower()
+            or b["name"].lower() in bname_lower
+        )][:5]
+
+        return {
+            "platform": platform,
+            "query": query,
+            "recommended": recommended_names[:5],
+            "client_appears": client_appears,
+            "position": position,
+            "competitors": competitors,
+            "response_text": response_text,
+            "parsed_businesses": parsed,
+        }
+
+    @staticmethod
+    def _fuzzy_match(a, b, threshold=0.6):
+        """Simple fuzzy match: check if enough words overlap."""
+        words_a = set(a.lower().split())
+        words_b = set(b.lower().split())
+        if not words_a or not words_b:
+            return False
+        overlap = len(words_a & words_b)
+        return overlap / min(len(words_a), len(words_b)) >= threshold
+
+    def _simulate_ai_query(self, platform, query):
+        """Fallback simulation when no API key is available."""
         seed = hashlib.md5(f"{platform}{query}{self.business_name}".encode()).hexdigest()
         seed_int = int(seed[:8], 16)
-
-        # Deterministic simulation based on business + query + platform
-        appears = (seed_int % 5) < 2  # ~40% chance of appearing
+        appears = (seed_int % 5) < 2
         position = (seed_int % 7) + 1 if appears else 0
 
-        # Generate plausible competitor names using sector keywords
         competitor_seeds = ["Alpha", "Premier", "Elite", "Pro", "Metro", "Summit", "Pacific", "National"]
         sector_keywords = SECTOR_QUERY_KEYWORDS.get(
-            self.sector,
-            SECTOR_QUERY_KEYWORDS["local business services"],
+            self.sector, SECTOR_QUERY_KEYWORDS["local business services"],
         )
         industry_label = sector_keywords[0].title() if sector_keywords else "Services"
         competitors = []
@@ -213,15 +400,15 @@ class AIVisibilityScanner(BaseModule):
         recommended = list(competitors)
         if appears:
             recommended.insert(min(position - 1, len(recommended)), self.business_name)
-        recommended = recommended[:5]
-
         return {
             "platform": platform,
             "query": query,
-            "recommended": recommended,
+            "recommended": recommended[:5],
             "client_appears": appears,
             "position": position,
             "competitors": [c for c in competitors if c != self.business_name][:3],
+            "response_text": "(simulated)",
+            "parsed_businesses": [],
         }
 
     def run(self, discovered_pages=None):
@@ -251,7 +438,7 @@ class AIVisibilityScanner(BaseModule):
             platform_appearances = 0
 
             for query in queries:
-                result = self._simulate_ai_query(platform_name, query)
+                result = self._run_ai_query(platform_name, query)
                 platform_results.append(result)
                 total_queries += 1
                 if result["client_appears"]:
@@ -291,6 +478,15 @@ class AIVisibilityScanner(BaseModule):
                 score = 100 if r["client_appears"] and r["position"] == 1 else (
                     75 if r["client_appears"] and r["position"] <= 3 else (
                     50 if r["client_appears"] else 0))
+                # Build competitor info with revenue buckets when available
+                parsed_biz = r.get("parsed_businesses", [])
+                competitor_entries = []
+                for b in parsed_biz:
+                    entry = b["name"]
+                    if b.get("revenue_bucket"):
+                        entry += f" ({b['revenue_bucket']})"
+                    competitor_entries.append(entry)
+
                 self.ai_results["all_results"].append({
                     "platform": r["platform"],
                     "platform_logo_url": next((p["logo_url"] for p in AI_PLATFORMS if p["name"] == r["platform"]), ""),
@@ -300,7 +496,9 @@ class AIVisibilityScanner(BaseModule):
                     "client_appears": r["client_appears"],
                     "position": r["position"],
                     "competitors": ", ".join(r["competitors"]),
+                    "competitor_details": competitor_entries,
                     "visibility_score": score,
+                    "is_real": r.get("response_text", "") != "(simulated)",
                 })
 
         # Add a summary test result

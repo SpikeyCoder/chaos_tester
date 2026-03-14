@@ -271,8 +271,9 @@ def start_run():
         concurrency=_clamp_int(_get("concurrency"), 5, 1, 20),
     )
 
-    # Seed URLs
+    # AI Visibility options
     config.business_location = _get("business_location", "").strip()
+    config.perplexity_api_key = _get("perplexity_api_key", "").strip() or os.getenv("PERPLEXITY_API_KEY", "")
     seeds = _get("seed_urls", "").strip()
     if seeds:
         config.seed_urls = [s.strip() for s in seeds.split("\n") if s.strip()]

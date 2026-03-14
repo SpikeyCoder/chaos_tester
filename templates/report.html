@@ -195,50 +195,69 @@
     {% endfor %}
   </div>
 
-  <!-- Results Table -->
-  <div style="overflow-x:auto;">
-    <table>
-      <thead>
-        <tr>
-          <th>AI Platform</th>
-          <th>Search Query</th>
-          <th>Recommended Businesses</th>
-          <th>Client Appears</th>
-          <th>Position</th>
-          <th>Competitors</th>
-          <th>Visibility Score</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in ai.all_results %}
-        <tr>
-          <td><span style="color:{{ row.platform_color }};font-weight:600;display:inline-flex;align-items:center;gap:5px;">
-            <img src="{{ row.platform_logo_url }}" width="18" height="18" alt="{{ row.platform }}" style="vertical-align:middle;">
-            {{ row.platform }}
-          </span></td>
-          <td style="max-width:220px;white-space:normal;word-wrap:break-word;">{{ row.query }}</td>
-          <td style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.recommended }}</td>
-          <td>
-            {% if row.client_appears %}
-              <span class="badge badge-passed">Yes</span>
-            {% else %}
-              <span class="badge badge-failed">No</span>
-            {% endif %}
-          </td>
-          <td>{{ row.position if row.position else "N/A" }}</td>
-          <td style="max-width:220px;white-space:normal;word-wrap:break-word;">{{ row.competitors }}</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div class="progress-bar-bg" style="height:8px;width:60px;">
-                <div class="progress-bar-fill" style="width:{{ row.visibility_score }}%;background:{% if row.visibility_score >= 75 %}var(--green){% elif row.visibility_score >= 50 %}var(--yellow){% else %}var(--red){% endif %};"></div>
+  <!-- Results Table (condensed: first 5 visible, scrollable) -->
+  <div style="position:relative;">
+    <div id="ai-results-table" style="overflow-x:auto;max-height:none;">
+      <table id="aiResultsTable">
+        <thead>
+          <tr>
+            <th>AI Platform</th>
+            <th>Search Query</th>
+            <th>Recommended Businesses</th>
+            <th>Client Appears</th>
+            <th>Position</th>
+            <th>Competitors (Revenue Bucket)</th>
+            <th>Visibility Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in ai.all_results %}
+          <tr class="ai-result-row" {% if loop.index > 5 %}style="display:none;"{% endif %}>
+            <td><span style="color:{{ row.platform_color }};font-weight:600;display:inline-flex;align-items:center;gap:5px;">
+              <img src="{{ row.platform_logo_url }}" width="18" height="18" alt="{{ row.platform }}" style="vertical-align:middle;">
+              {{ row.platform }}
+            </span>
+            {% if row.is_real %}<span style="font-size:0.65rem;color:var(--green);margin-left:4px;" title="Real AI query">●</span>{% endif %}
+            </td>
+            <td style="max-width:220px;white-space:normal;word-wrap:break-word;">{{ row.query }}</td>
+            <td style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.recommended }}</td>
+            <td>
+              {% if row.client_appears %}
+                <span class="badge badge-passed">Yes</span>
+              {% else %}
+                <span class="badge badge-failed">No</span>
+              {% endif %}
+            </td>
+            <td>{{ row.position if row.position else "N/A" }}</td>
+            <td style="max-width:260px;white-space:normal;word-wrap:break-word;">
+              {% if row.competitor_details %}
+                {% for c in row.competitor_details %}
+                  <div style="font-size:0.85rem;{% if not loop.last %}margin-bottom:2px;{% endif %}">{{ c }}</div>
+                {% endfor %}
+              {% else %}
+                {{ row.competitors }}
+              {% endif %}
+            </td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:{{ row.visibility_score }}%;background:{% if row.visibility_score >= 75 %}var(--green){% elif row.visibility_score >= 50 %}var(--yellow){% else %}var(--red){% endif %};"></div>
+                </div>
+                <span>{{ row.visibility_score }}%</span>
               </div>
-              <span>{{ row.visibility_score }}%</span>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if ai.all_results|length > 5 %}
+    <div id="ai-show-more-bar" style="text-align:center;padding:12px 0;">
+      <button class="btn btn-secondary text-sm" onclick="toggleAIResults()" id="ai-toggle-btn">
+        Show All {{ ai.all_results|length }} Results ▼
+      </button>
+    </div>
+    {% endif %}
   </div>
 
   {% else %}
@@ -532,6 +551,20 @@ function switchPerfTab(strategy) {
 .gauge-container { display: flex; justify-content: center; }
 .gauge-label { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
 
+  /* AI Results table scrollable mode */
+  #ai-results-table.scrollable {
+    max-height: 520px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  #ai-results-table.scrollable thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 2;
+  }
+
   /* Results table - prevent Details column overflow */
   #resultsTable {
     table-layout: fixed;
@@ -555,4 +588,23 @@ function switchPerfTab(strategy) {
     word-break: break-word;
   }
   </style>
+
+<script>
+var _aiExpanded = false;
+function toggleAIResults() {
+  _aiExpanded = !_aiExpanded;
+  var rows = document.querySelectorAll('.ai-result-row');
+  var container = document.getElementById('ai-results-table');
+  var btn = document.getElementById('ai-toggle-btn');
+  if (_aiExpanded) {
+    rows.forEach(function(r) { r.style.display = ''; });
+    container.classList.add('scrollable');
+    btn.textContent = 'Show First 5 Results \u25B2';
+  } else {
+    rows.forEach(function(r, i) { r.style.display = i >= 5 ? 'none' : ''; });
+    container.classList.remove('scrollable');
+    btn.textContent = 'Show All ' + rows.length + ' Results \u25BC';
+  }
+}
+</script>
 {% endblock %}

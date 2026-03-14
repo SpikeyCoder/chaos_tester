@@ -106,7 +106,18 @@
           <input type="text" id="business_location" name="business_location"
                  placeholder="e.g. Seattle, WA" value="" required>
           <div style="color:var(--text-muted);font-size:0.78rem;margin-top:4px;">
-            Required  enter your business city so AI visibility queries target the right location.
+            Required — enter your business city so AI visibility queries target the right location.
+          </div>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:12px;margin-bottom:0;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="perplexity_api_key">Perplexity API Key (optional)</label>
+          <input type="password" id="perplexity_api_key" name="perplexity_api_key"
+                 placeholder="pplx-..." value="">
+          <div style="color:var(--text-muted);font-size:0.78rem;margin-top:4px;">
+            Enables real AI search queries via Perplexity's sonar model. Without a key, results are simulated.
+            <a href="https://docs.perplexity.ai" target="_blank" rel="noopener" style="color:var(--accent);">Get a key →</a>
           </div>
         </div>
       </div>
