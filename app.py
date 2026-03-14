@@ -58,7 +58,7 @@ app.secret_key = _secret
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024  # 1 MB request body limit
+app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # 5 MB request body limit (screenshots)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(message)s")
 logger = logging.getLogger("chaos_tester")
@@ -123,9 +123,9 @@ def _set_security_headers(response):
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline'; "
+        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
         "style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data:; "
+        "img-src 'self' data: blob:; "
         "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app;"
     )
     # CORS headers for cross-origin SPA (GitHub Pages → localhost backend)
@@ -570,6 +570,110 @@ def api_ai_query():
             })
 
     return jsonify({"query": query, "results": results})
+
+
+@app.route("/api/bug-report", methods=["POST"])
+def api_bug_report():
+    """Create a Trello card from a bug report or feature request."""
+    import requests as http_requests
+    import base64
+
+    if request.headers.get("X-Requested-With") != "XMLHttpRequest":
+        abort(403, "Missing X-Requested-With header.")
+
+    data = request.get_json(silent=True) or {}
+    description = (data.get("description") or "").strip()
+    is_feature = bool(data.get("isFeatureRequest", False))
+    screenshot_data = data.get("screenshotData")  # base64 data URL or null
+    tech_ctx = data.get("technicalContext", {})
+
+    if not description:
+        return jsonify({"error": "Description is required"}), 400
+    if len(description) > 2000:
+        return jsonify({"error": "Description too long (max 2000 chars)"}), 400
+
+    # -- Trello credentials --
+    trello_key = os.getenv("TRELLO_API_KEY", "")
+    trello_token = os.getenv("TRELLO_TOKEN", "")
+    trello_list = os.getenv("TRELLO_LIST_ID", "")
+
+    if not trello_key or not trello_token or not trello_list:
+        logger.error("Missing Trello configuration — check env vars")
+        return jsonify({"error": "Server configuration error"}), 500
+
+    # -- Build card --
+    prefix = "[FEATURE REQUEST]" if is_feature else "[BUG]"
+    title_text = description[:60]
+    card_name = f"{prefix} {title_text}{'...' if len(description) > 60 else ''}"
+
+    lines = [description, "", "---", "📋 **Technical Context**"]
+    lines.append(f"- **Source:** Website Auditor")
+    lines.append(f"- **URL:** {tech_ctx.get('url', 'N/A')}")
+    lines.append(f"- **Page:** {tech_ctx.get('pageName', 'N/A')}")
+    lines.append(f"- **Device:** {tech_ctx.get('deviceType', 'N/A')}")
+    lines.append(f"- **Browser / OS:** {tech_ctx.get('userAgent', 'N/A')}")
+    lines.append(f"- **Platform:** {tech_ctx.get('platform', 'N/A')}")
+    lines.append(f"- **Viewport:** {tech_ctx.get('viewportSize', 'N/A')}")
+    lines.append(f"- **Screen:** {tech_ctx.get('screenSize', 'N/A')}")
+    lines.append(f"- **Timestamp:** {tech_ctx.get('timestamp', 'N/A')}")
+
+    recent_errors = tech_ctx.get("recentErrors", [])
+    if recent_errors:
+        lines.append("")
+        lines.append("⚠️ **Recent Console Errors**")
+        for err in recent_errors[:5]:
+            lines.append(f"- {err}")
+
+    card_desc = "\n".join(lines)
+
+    # -- Create Trello card --
+    try:
+        card_resp = http_requests.post(
+            "https://api.trello.com/1/cards",
+            params={
+                "key": trello_key,
+                "token": trello_token,
+                "idList": trello_list,
+                "name": card_name,
+                "desc": card_desc,
+                "pos": "top",
+            },
+            headers={"Accept": "application/json"},
+            timeout=15,
+        )
+        if not card_resp.ok:
+            logger.error("Trello card creation failed: %s %s", card_resp.status_code, card_resp.text)
+            return jsonify({"error": "Failed to create report card"}), 502
+
+        card = card_resp.json()
+        card_id = card.get("id", "")
+
+        # -- Attach screenshot if provided --
+        if screenshot_data and card_id:
+            try:
+                # Strip data URL prefix: "data:image/png;base64,..."
+                if "," in screenshot_data:
+                    screenshot_data = screenshot_data.split(",", 1)[1]
+                img_bytes = base64.b64decode(screenshot_data)
+
+                attach_resp = http_requests.post(
+                    f"https://api.trello.com/1/cards/{card_id}/attachments",
+                    params={"key": trello_key, "token": trello_token},
+                    files={"file": ("screenshot.png", img_bytes, "image/png")},
+                    timeout=20,
+                )
+                if not attach_resp.ok:
+                    logger.warning("Screenshot attachment failed: %s", attach_resp.status_code)
+            except Exception as exc:
+                logger.warning("Screenshot attachment error: %s", exc)
+
+        return jsonify({"ok": True, "cardId": card_id})
+
+    except http_requests.exceptions.Timeout:
+        return jsonify({"error": "Trello API timed out"}), 504
+    except Exception as exc:
+        logger.exception("Bug report error: %s", exc)
+        return jsonify({"error": "Internal server error"}), 500
 
 
 @app.route("/api/detect-business", methods=["POST"])

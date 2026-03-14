@@ -324,5 +324,282 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
             </nav>
         </div>
     </footer>
+
+<!-- ── Bug Report Button & Modal (site-wide) ────────────────── -->
+<style>
+/* Bug report floating button */
+.bug-btn {
+    position: fixed; bottom: 24px; right: 24px; z-index: 90;
+    background: var(--accent); color: var(--bg);
+    border: none; border-radius: 50%; width: 48px; height: 48px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    transition: transform .2s, background .2s;
+}
+.bug-btn:hover { transform: scale(1.1); background: var(--accent-hover); }
+.bug-btn svg { width: 22px; height: 22px; }
+
+/* Modal overlay */
+.bug-overlay {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center; padding: 16px;
+}
+.bug-overlay.open { display: flex; }
+
+/* Modal box */
+.bug-modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px; width: 100%; max-width: 440px;
+    position: relative; animation: bugSlideUp .2s ease-out;
+}
+@keyframes bugSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.bug-modal-close {
+    position: absolute; top: 14px; right: 14px;
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    padding: 4px; transition: color .2s;
+}
+.bug-modal-close:hover { color: var(--text); }
+
+.bug-modal h3 {
+    font-size: 1.1rem; margin-bottom: 4px; display: flex; align-items: center; gap: 10px;
+}
+.bug-modal .subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
+
+.bug-modal textarea {
+    width: 100%; min-height: 100px; resize: vertical;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px; color: var(--text); font-size: 0.9rem; font-family: inherit;
+}
+.bug-modal textarea:focus { outline: none; border-color: var(--accent); }
+.bug-modal .char-count { text-align: right; font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+.bug-modal .options { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 18px; }
+.bug-modal .options label {
+    display: flex; align-items: center; gap: 8px; font-size: 0.88rem;
+    color: var(--text); cursor: pointer; margin-bottom: 0;
+}
+.bug-modal .options input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; }
+
+.bug-modal .submit-btn {
+    width: 100%; padding: 10px; background: var(--accent); color: var(--bg);
+    border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; transition: background .2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.bug-modal .submit-btn:hover { background: var(--accent-hover); }
+.bug-modal .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.bug-modal .status-msg {
+    text-align: center; padding: 24px 0; font-size: 0.95rem;
+}
+.bug-modal .status-msg.success { color: var(--success); }
+.bug-modal .status-msg.error { color: var(--danger); }
+
+.bug-modal .error-banner {
+    background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;
+    font-size: 0.82rem; color: #fca5a5;
+}
+
+/* Spinner */
+.bug-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid transparent;
+    border-top-color: var(--bg); border-radius: 50%; animation: bugSpin .6s linear infinite; }
+@keyframes bugSpin { to { transform: rotate(360deg); } }
+</style>
+
+<!-- Floating button -->
+<button class="bug-btn" onclick="bugReport.open()" title="Report a bug or request a feature" aria-label="Report a bug">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 2l1.88 1.88M14.12 3.88L16 2M9 7.13v-1a3.003 3.003 0 116 0v1"/>
+        <path d="M12 20c-3.3 0-6-2.7-6-6v-3a6 6 0 0112 0v3c0 3.3-2.7 6-6 6z"/>
+        <path d="M12 20v2M6 13H2M22 13h-4M6 17H3.5M20.5 17H18M6 9H4M20 9h-2"/>
+    </svg>
+</button>
+
+<!-- Modal -->
+<div class="bug-overlay" id="bugOverlay" onclick="if(event.target===this)bugReport.close()">
+    <div class="bug-modal" id="bugModal">
+        <button class="bug-modal-close" onclick="bugReport.close()" aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+
+        <!-- Form state -->
+        <div id="bugFormView">
+            <h3>
+                <span id="bugIcon" style="font-size:1.3rem;">🐛</span>
+                <span id="bugTitle">Report a Bug</span>
+            </h3>
+            <p class="subtitle">We'll capture page details automatically</p>
+
+            <form id="bugForm" onsubmit="bugReport.submit(event)">
+                <textarea id="bugDesc" placeholder="Describe the bug or issue you experienced..." maxlength="1000" required></textarea>
+                <div class="char-count"><span id="bugCharCount">0</span>/1000</div>
+
+                <div class="options">
+                    <label>
+                        <input type="checkbox" id="bugIsFeature" onchange="bugReport.toggleType()">
+                        This is a feature request
+                    </label>
+                    <label>
+                        <input type="checkbox" id="bugScreenshot" checked>
+                        📷 Include a screenshot
+                    </label>
+                </div>
+
+                <div id="bugError" class="error-banner" style="display:none;"></div>
+
+                <button type="submit" class="submit-btn" id="bugSubmitBtn">
+                    Submit Report
+                </button>
+            </form>
+        </div>
+
+        <!-- Success state -->
+        <div id="bugSuccessView" style="display:none;">
+            <div class="status-msg success">
+                <div style="font-size:2.2rem;margin-bottom:10px;">✅</div>
+                <strong>Report submitted!</strong><br>
+                <span style="font-size:0.85rem;color:var(--text-muted);">Thank you for helping us improve.</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ── Bug Report Module ──────────────────────────────────────── */
+var bugReport = (function() {
+    var recentErrors = [];
+
+    /* Capture console errors */
+    var origError = console.error;
+    console.error = function() {
+        origError.apply(console, arguments);
+        var msg = Array.prototype.slice.call(arguments).map(function(a) {
+            return typeof a === 'string' ? a : JSON.stringify(a);
+        }).join(' ');
+        recentErrors.push({ message: msg.slice(0, 500), ts: Date.now() });
+        if (recentErrors.length > 5) recentErrors.shift();
+    };
+    window.addEventListener('error', function(e) {
+        recentErrors.push({ message: (e.message || '') + ' at ' + (e.filename || '') + ':' + (e.lineno || ''), ts: Date.now() });
+        if (recentErrors.length > 5) recentErrors.shift();
+    });
+
+    function getTechContext() {
+        var touch = navigator.maxTouchPoints > 0;
+        return {
+            url: window.location.href,
+            pageName: document.title,
+            deviceType: touch ? 'Touch / Mobile' : 'Desktop',
+            userAgent: navigator.userAgent,
+            platform: navigator.platform || 'Unknown',
+            viewportSize: window.innerWidth + '\u00d7' + window.innerHeight,
+            screenSize: screen.width + '\u00d7' + screen.height,
+            timestamp: new Date().toISOString(),
+            recentErrors: recentErrors.map(function(e) {
+                return '[' + new Date(e.ts).toISOString() + '] ' + e.message;
+            })
+        };
+    }
+
+    async function captureScreenshot() {
+        try {
+            if (typeof html2canvas === 'undefined') {
+                /* dynamically load html2canvas */
+                await new Promise(function(resolve, reject) {
+                    var s = document.createElement('script');
+                    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                    s.onload = resolve;
+                    s.onerror = reject;
+                    document.head.appendChild(s);
+                });
+            }
+            var canvas = await html2canvas(document.body, { useCORS: true, scale: 1, logging: false, backgroundColor: '#0f172a' });
+            return canvas.toDataURL('image/png', 0.85);
+        } catch (e) {
+            console.warn('Screenshot capture failed:', e);
+            return null;
+        }
+    }
+
+    return {
+        open: function() {
+            document.getElementById('bugOverlay').classList.add('open');
+            document.getElementById('bugFormView').style.display = '';
+            document.getElementById('bugSuccessView').style.display = 'none';
+            document.getElementById('bugError').style.display = 'none';
+            document.getElementById('bugSubmitBtn').disabled = false;
+        },
+        close: function() {
+            document.getElementById('bugOverlay').classList.remove('open');
+            setTimeout(function() {
+                document.getElementById('bugDesc').value = '';
+                document.getElementById('bugCharCount').textContent = '0';
+                document.getElementById('bugIsFeature').checked = false;
+                document.getElementById('bugScreenshot').checked = true;
+                bugReport.toggleType();
+            }, 200);
+        },
+        toggleType: function() {
+            var isFeature = document.getElementById('bugIsFeature').checked;
+            document.getElementById('bugIcon').textContent = isFeature ? '💡' : '🐛';
+            document.getElementById('bugTitle').textContent = isFeature ? 'Feature Request' : 'Report a Bug';
+            document.getElementById('bugDesc').placeholder = isFeature
+                ? "Describe the feature you'd like to see..."
+                : 'Describe the bug or issue you experienced...';
+        },
+        submit: async function(e) {
+            e.preventDefault();
+            var desc = document.getElementById('bugDesc').value.trim();
+            if (!desc) return;
+
+            var btn = document.getElementById('bugSubmitBtn');
+            var errDiv = document.getElementById('bugError');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="bug-spinner"></span> ' +
+                (document.getElementById('bugScreenshot').checked ? 'Capturing & submitting...' : 'Submitting...');
+            errDiv.style.display = 'none';
+
+            try {
+                var screenshotData = null;
+                if (document.getElementById('bugScreenshot').checked) {
+                    screenshotData = await captureScreenshot();
+                }
+
+                var resp = await fetch('/api/bug-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({
+                        description: desc,
+                        isFeatureRequest: document.getElementById('bugIsFeature').checked,
+                        screenshotData: screenshotData,
+                        technicalContext: getTechContext()
+                    })
+                });
+
+                if (!resp.ok) {
+                    var body = await resp.json().catch(function() { return {}; });
+                    throw new Error(body.error || 'Server error (' + resp.status + ')');
+                }
+
+                document.getElementById('bugFormView').style.display = 'none';
+                document.getElementById('bugSuccessView').style.display = '';
+                setTimeout(function() { bugReport.close(); }, 2000);
+            } catch (err) {
+                errDiv.textContent = err.message || 'Failed to submit. Please try again.';
+                errDiv.style.display = '';
+                btn.disabled = false;
+                btn.innerHTML = 'Submit Report';
+            }
+        }
+    };
+})();
+
+/* Character counter */
+document.getElementById('bugDesc').addEventListener('input', function() {
+    document.getElementById('bugCharCount').textContent = this.value.length;
+});
+</script>
 </body>
 </html>
