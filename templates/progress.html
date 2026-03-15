@@ -2,8 +2,32 @@
 {% block title %}Website Auditor -- Running{% endblock %}
 
 {% block content %}
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  .retry-badge {
+    display: inline-block;
+    background: var(--yellow);
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+  }
+</style>
+
 <div class="card">
-  <h2>🤖 Test Run in Progress</h2>
+  <h2><span class="spinner" id="runSpinner"></span> 🤖 Test Run in Progress</h2>
 
   <div class="progress-bar-bg mt-2">
     <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
@@ -18,7 +42,7 @@
        style="background:var(--surface2);border-radius:8px;padding:16px;max-height:400px;overflow-y:auto;font-family:var(--mono);font-size:0.82rem;line-height:1.8;">
   </div>
 
-  <div class="mt-2" id="doneActions" class="hidden">
+  <div class="mt-2" id="doneActions">
     <a href="#" class="btn btn-primary" id="viewReportBtn" style="display:none;">📊 View Report</a>
     <a href="/" class="btn btn-secondary" style="margin-left:8px;">← Dashboard</a>
   </div>
@@ -30,6 +54,7 @@ const pct = document.getElementById('progressPct');
 const txt = document.getElementById('progressText');
 const log = document.getElementById('logBox');
 const reportBtn = document.getElementById('viewReportBtn');
+const spinner = document.getElementById('runSpinner');
 
 const moduleColors = {
   availability: '#3b82f6',
@@ -38,6 +63,8 @@ const moduleColors = {
   chaos: '#f97316',
   auth: '#eab308',
   security: '#ef4444',
+  performance: '#10b981',
+  ai_visibility: '#8b5cf6',
   runner: '#22c55e',
   done: '#22c55e',
 };
@@ -64,6 +91,11 @@ source.onmessage = function(event) {
   const msgSpan = document.createElement('span');
   msgSpan.textContent = data.msg;
 
+  /* Highlight retry messages */
+  if (data.msg && data.msg.includes('retrying')) {
+    line.style.cssText = 'background:rgba(234,179,8,0.12);border-radius:4px;padding:2px 6px;margin:4px 0;';
+  }
+
   line.appendChild(modSpan);
   line.appendChild(tsSpan);
   line.appendChild(msgSpan);
@@ -72,15 +104,30 @@ source.onmessage = function(event) {
 
   if (data.module === 'done') {
     source.close();
+    spinner.style.display = 'none';
     reportBtn.style.display = 'inline-flex';
-      if (data.run_id) { reportBtn.href = '/report/' + data.run_id; }
-    pct.style.color = data.msg === 'completed' ? 'var(--green)' : 'var(--red)';
-    txt.textContent = data.msg === 'completed' ? 'All tests complete!' : 'Run failed -- see logs.';
+    if (data.run_id) { reportBtn.href = '/report/' + data.run_id; }
+
+    if (data.msg === 'completed') {
+      pct.style.color = 'var(--green)';
+      txt.textContent = 'All tests complete!';
+    } else if (data.msg === 'idle') {
+      /* No run is active -- user navigated here directly */
+      pct.textContent = '--';
+      pct.style.color = 'var(--text-muted)';
+      txt.textContent = 'No test run is active. Start one from the Dashboard.';
+      reportBtn.style.display = 'none';
+    } else {
+      pct.style.color = 'var(--red)';
+      txt.textContent = 'Run failed after all retry attempts -- see logs for details.';
+      reportBtn.textContent = '📊 View Partial Report';
+    }
   }
 };
 
 source.onerror = function() {
   source.close();
+  spinner.style.display = 'none';
   txt.textContent = 'Connection lost. Refresh to check status.';
 };
 </script>

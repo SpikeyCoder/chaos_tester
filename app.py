@@ -190,9 +190,8 @@ RETRY_DELAY_SECS = 3
 def _run_tests(config: ChaosConfig):
     global _current_run, _current_status, _progress
 
-    with _lock:
-        _current_status = "running"
-        _progress = []
+    # Note: _current_status is already set to "running" and _progress cleared
+    # by the /run route before this thread starts (avoids race condition).
 
     test_run = None
 
@@ -308,6 +307,12 @@ def start_run():
         config.validate()
     except (RuntimeError, ValueError) as e:
         return jsonify({"error": str(e)}), 400
+
+    # Set status to "running" BEFORE starting thread to prevent race condition
+    # where the SSE stream sees "idle" before the thread has a chance to run.
+    with _lock:
+        _current_status = "running"
+        _progress.clear()
 
     thread = threading.Thread(target=_run_tests, args=(config,), daemon=True)
     thread.start()
