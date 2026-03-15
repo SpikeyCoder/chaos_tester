@@ -183,6 +183,10 @@ def _event_stream():
 
 # -- Background Runner --------------------------------------------
 
+MAX_RETRIES = 3
+RETRY_DELAY_SECS = 3
+
+
 def _run_tests(config: ChaosConfig):
     global _current_run, _current_status, _progress
 
@@ -190,14 +194,35 @@ def _run_tests(config: ChaosConfig):
         _current_status = "running"
         _progress = []
 
-    runner = ChaosTestRunner(config)
-    runner.on_progress(_progress_callback)
+    test_run = None
 
-    try:
-        test_run = runner.run()
-    except Exception as e:
-        logger.exception("Run failed: %s", e)
-        test_run = runner.test_run or TestRun(status="failed")
+    for attempt in range(1, MAX_RETRIES + 1):
+        runner = ChaosTestRunner(config)
+        runner.on_progress(_progress_callback)
+
+        try:
+            test_run = runner.run()
+        except Exception as e:
+            logger.exception("Run attempt %d/%d failed: %s", attempt, MAX_RETRIES, e)
+            test_run = runner.test_run or TestRun(status="failed")
+
+        # If the run succeeded (or at least completed), we're done
+        if test_run and test_run.status == "completed":
+            break
+
+        # If we have retries left, reset and try again
+        if attempt < MAX_RETRIES:
+            logger.info("Retrying run (attempt %d/%d)...", attempt + 1, MAX_RETRIES)
+            _progress_callback(
+                "runner", 0,
+                f"⚠️ Run issue detected -- automatically retrying (attempt {attempt + 1}/{MAX_RETRIES})..."
+            )
+            time.sleep(RETRY_DELAY_SECS)
+            # Keep status as running so SSE stream doesn't close
+            with _lock:
+                _current_status = "running"
+        else:
+            logger.error("All %d retry attempts exhausted.", MAX_RETRIES)
 
     with _lock:
         _current_run = test_run

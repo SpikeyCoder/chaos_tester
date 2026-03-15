@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Website Auditor -- Running{% endblock %}
+
+{% block content %}
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  .retry-badge {
+    display: inline-block;
+    background: var(--yellow);
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+  }
+</style>
+
+<div class="card">
+  <h2><span class="spinner" id="runSpinner"></span> 🤖 Test Run in Progress</h2>
+
+  <div class="progress-bar-bg mt-2">
+    <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+  </div>
+
+  <div class="mt-2" style="display:flex;justify-content:space-between;align-items:center;">
+    <span id="progressText" class="text-muted text-sm">Starting…</span>
+    <span id="progressPct" style="font-size:1.5rem;font-weight:700;color:var(--accent);">0%</span>
+  </div>
+
+  <div class="mt-3" id="logBox"
+       style="background:var(--surface2);border-radius:8px;padding:16px;max-height:400px;overflow-y:auto;font-family:var(--mono);font-size:0.82rem;line-height:1.8;">
+  </div>
+
+  <div class="mt-2" id="doneActions">
+    <a href="#" class="btn btn-primary" id="viewReportBtn" style="display:none;">📊 View Report</a>
+    <a href="/" class="btn btn-secondary" style="margin-left:8px;">← Dashboard</a>
+  </div>
+</div>
+
+<script>
+const bar = document.getElementById('progressBar');
+const pct = document.getElementById('progressPct');
+const txt = document.getElementById('progressText');
+const log = document.getElementById('logBox');
+const reportBtn = document.getElementById('viewReportBtn');
+const spinner = document.getElementById('runSpinner');
+
+const moduleColors = {
+  availability: '#3b82f6',
+  links: '#a855f7',
+  forms: '#06b6d4',
+  chaos: '#f97316',
+  auth: '#eab308',
+  security: '#ef4444',
+  performance: '#10b981',
+  ai_visibility: '#8b5cf6',
+  runner: '#22c55e',
+  done: '#22c55e',
+};
+
+const source = new EventSource('/stream');
+source.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  const color = moduleColors[data.module] || '#8b8fa3';
+
+  bar.style.width = data.pct + '%';
+  pct.textContent = data.pct + '%';
+  txt.textContent = data.msg;
+
+  const line = document.createElement('div');
+
+  const modSpan = document.createElement('span');
+  modSpan.style.cssText = 'color:' + color + ';font-weight:600;';
+  modSpan.textContent = '[' + data.module + ']';
+
+  const tsSpan = document.createElement('span');
+  tsSpan.style.color = 'var(--text-muted)';
+  tsSpan.textContent = ' ' + (data.ts ? data.ts.substring(11, 19) : '') + ' ';
+
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = data.msg;
+
+  /* Highlight retry messages */
+  if (data.msg && data.msg.includes('retrying')) {
+    line.style.cssText = 'background:rgba(234,179,8,0.12);border-radius:4px;padding:2px 6px;margin:4px 0;';
+  }
+
+  line.appendChild(modSpan);
+  line.appendChild(tsSpan);
+  line.appendChild(msgSpan);
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+
+  if (data.module === 'done') {
+    source.close();
+    spinner.style.display = 'none';
+    reportBtn.style.display = 'inline-flex';
+    if (data.run_id) { reportBtn.href = '/report/' + data.run_id; }
+
+    if (data.msg === 'completed') {
+      pct.style.color = 'var(--green)';
+      txt.textContent = 'All tests complete!';
+    } else {
+      pct.style.color = 'var(--red)';
+      txt.textContent = 'Run failed after all retry attempts -- see logs for details.';
+      reportBtn.textContent = '📊 View Partial Report';
+    }
+  }
+};
+
+source.onerror = function() {
+  source.close();
+  spinner.style.display = 'none';
+  txt.textContent = 'Connection lost. Refresh to check status.';
+};
+</script>
+{% endblock %}
