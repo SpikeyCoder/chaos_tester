@@ -11,7 +11,7 @@
     <p class="text-muted text-sm mt-1 report-meta">
       Run <code>{{ report.run_id }}</code> &middot; {{ report.base_url }} &middot;
       <span class="badge badge-info">{{ report.environment }}</span> &middot;
-      {{ report.started_at[:19] }} &middot; {{ report.duration_s }}s
+      <span data-utc="{{ report.started_at }}" data-utc-format="datetime">{{ report.started_at[:19] }} UTC</span> &middot; {{ report.duration_s }}s
     </p>
   </div>
   <div class="report-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
