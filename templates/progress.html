@@ -86,7 +86,7 @@ source.onmessage = function(event) {
 
   const tsSpan = document.createElement('span');
   tsSpan.style.color = 'var(--text-muted)';
-  tsSpan.textContent = ' ' + (data.ts ? data.ts.substring(11, 19) : '') + ' ';
+  tsSpan.textContent = ' ' + (data.ts && typeof WATime !== 'undefined' ? WATime.timeFromISO(data.ts) : (data.ts ? data.ts.substring(11, 19) : '')) + ' ';
 
   const msgSpan = document.createElement('span');
   msgSpan.textContent = data.msg;
