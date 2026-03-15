@@ -2,19 +2,19 @@
 {% block title %}Report {{ report.run_id }} -- Website Auditor{% endblock %}
 {% block robots %}noindex, nofollow{% endblock %}
 {% block content %}
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+<div class="report-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
   <div>
     <h2 style="font-size:1.4rem;font-weight:700;">
       📊 Test Report
       <span class="badge badge-{{ 'passed' if report.status == 'completed' else 'failed' }}" style="font-size:0.75rem;margin-left:8px;">{{ report.status }}</span>
     </h2>
-    <p class="text-muted text-sm mt-1">
+    <p class="text-muted text-sm mt-1 report-meta">
       Run <code>{{ report.run_id }}</code> &middot; {{ report.base_url }} &middot;
       <span class="badge badge-info">{{ report.environment }}</span> &middot;
       {{ report.started_at[:19] }} &middot; {{ report.duration_s }}s
     </p>
   </div>
-  <div style="display:flex;gap:8px;align-items:center;">
+  <div class="report-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
     <a href="#" onclick="downloadJSON(); return false;" class="btn btn-secondary text-sm" role="button" aria-label="Download report as JSON">⬇ JSON</a>
     <a href="#" onclick="downloadCSV(); return false;" class="btn btn-secondary text-sm" role="button" aria-label="Download report as CSV">⬇ CSV</a>
     <a href="/" class="btn btn-secondary text-sm" aria-label="Back to Dashboard">← Dashboard</a>
@@ -119,20 +119,24 @@
 
 <!-- -- Filters ---------------------------------------------- -->
 <form onsubmit="return false"><div class="card" style="padding:14px 20px;">
-  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-    <span class="text-muted text-sm" style="margin-right:8px;">Filter:</span>
-    <button class="btn btn-secondary text-sm filter-btn active" data-filter="all" onclick="filterResults('all', this)">All</button>
-    <button class="btn btn-secondary text-sm filter-btn" data-filter="failed" onclick="filterResults('failed', this)">Failed</button>
-    <button class="btn btn-secondary text-sm filter-btn" data-filter="warning" onclick="filterResults('warning', this)">Warnings</button>
-    <button class="btn btn-secondary text-sm filter-btn" data-filter="passed" onclick="filterResults('passed', this)">Passed</button>
-    <span class="text-muted text-sm" style="margin-left:16px;margin-right:8px;">Module:</span>
-    <button class="btn btn-secondary text-sm module-btn active" data-module="all" onclick="filterModule('all', this)">All</button>
-    <button class="btn btn-secondary text-sm module-btn" data-module="availability" onclick="filterModule('availability', this)">Availability</button>
-    <button class="btn btn-secondary text-sm module-btn" data-module="links" onclick="filterModule('links', this)">Links</button>
-    <button class="btn btn-secondary text-sm module-btn" data-module="forms" onclick="filterModule('forms', this)">Forms</button>
-    <button class="btn btn-secondary text-sm module-btn" data-module="chaos" onclick="filterModule('chaos', this)">Chaos</button>
-    <button class="btn btn-secondary text-sm module-btn" data-module="auth" onclick="filterModule('auth', this)">Auth</button>
-    <button class="btn btn-secondary text-sm module-btn" data-module="security" onclick="filterModule('security', this)">Security</button>
+  <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+    <div class="filter-group">
+      <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
+      <button class="btn btn-secondary text-sm filter-btn active" data-filter="all" onclick="filterResults('all', this)">All</button>
+      <button class="btn btn-secondary text-sm filter-btn" data-filter="failed" onclick="filterResults('failed', this)">Failed</button>
+      <button class="btn btn-secondary text-sm filter-btn" data-filter="warning" onclick="filterResults('warning', this)">Warnings</button>
+      <button class="btn btn-secondary text-sm filter-btn" data-filter="passed" onclick="filterResults('passed', this)">Passed</button>
+    </div>
+    <div class="filter-group">
+      <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
+      <button class="btn btn-secondary text-sm module-btn active" data-module="all" onclick="filterModule('all', this)">All</button>
+      <button class="btn btn-secondary text-sm module-btn" data-module="availability" onclick="filterModule('availability', this)">Avail</button>
+      <button class="btn btn-secondary text-sm module-btn" data-module="links" onclick="filterModule('links', this)">Links</button>
+      <button class="btn btn-secondary text-sm module-btn" data-module="forms" onclick="filterModule('forms', this)">Forms</button>
+      <button class="btn btn-secondary text-sm module-btn" data-module="chaos" onclick="filterModule('chaos', this)">Chaos</button>
+      <button class="btn btn-secondary text-sm module-btn" data-module="auth" onclick="filterModule('auth', this)">Auth</button>
+      <button class="btn btn-secondary text-sm module-btn" data-module="security" onclick="filterModule('security', this)">Security</button>
+    </div>
   </div>
 </div>
 </form>
@@ -156,25 +160,25 @@
       <tbody>
         {% for r in report.results %}
         <tr class="result-row" data-status="{{ r.status }}" data-module="{{ r.module }}" {% if loop.index > 5 %}style="display:none;"{% endif %}>
-          <td class="text-muted mono text-sm">{{ loop.index }}</td>
-          <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
-          <td><span class="badge badge-{{ r.severity }}">{{ r.severity }}</span></td>
-          <td class="text-sm">
+          <td class="text-muted mono text-sm cell-index">{{ loop.index }}</td>
+          <td data-label="Status"><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+          <td data-label="Severity"><span class="badge badge-{{ r.severity }}">{{ r.severity }}</span></td>
+          <td data-label="Module" class="text-sm">
             {% set mc = {'availability':'#3b82f6','links':'#a855f7','forms':'#06b6d4','chaos':'#f97316','auth':'#eab308','security':'#ef4444'} %}
             <span style="color:{{ mc.get(r.module, '#8b8fa3') }};font-weight:600;">{{ r.module }}</span>
           </td>
-          <td>
+          <td data-label="Test">
             <div style="font-weight:500;">{{ r.name }}</div>
             {% if r.description %}<div class="text-muted text-sm">{{ r.description[:120] }}</div>{% endif %}
           </td>
-          <td class="text-sm">
+          <td data-label="" class="text-sm cell-details">
             {% if r.details %}<div style="margin-bottom:4px;">{{ r.details[:200] }}</div>{% endif %}
             {% if r.recommendation %}
-            <div style="color:var(--cyan);font-size:0.8rem;">💡 {{ r.recommendation[:200] }}</div>
+            <div style="color:var(--accent);font-size:0.8rem;">💡 {{ r.recommendation[:200] }}</div>
             {% endif %}
-            {% if r.url %}<div class="text-muted" style="font-size:0.78rem;">{{ r.url[:80] }}</div>{% endif %}
+            {% if r.url %}<div class="text-muted" style="font-size:0.78rem;word-break:break-all;">{{ r.url[:80] }}</div>{% endif %}
           </td>
-          <td class="mono text-sm text-muted">{{ r.duration_ms|round(0)|int }}ms</td>
+          <td data-label="Time" class="mono text-sm text-muted">{{ r.duration_ms|round(0)|int }}ms</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -268,23 +272,23 @@
         <tbody>
           {% for row in ai.all_results %}
           <tr class="ai-result-row" {% if loop.index > 5 %}style="display:none;"{% endif %}>
-            <td><span style="color:{{ row.platform_color }};font-weight:600;display:inline-flex;align-items:center;gap:5px;">
+            <td data-label="Platform"><span style="color:{{ row.platform_color }};font-weight:600;display:inline-flex;align-items:center;gap:5px;">
               <img src="{{ row.platform_logo_url }}" width="18" height="18" alt="{{ row.platform }}" style="vertical-align:middle;">
               {{ row.platform }}
             </span>
             </td>
-            <td style="max-width:220px;white-space:normal;word-wrap:break-word;">{{ row.query }}</td>
-            <td style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.recommended }}</td>
-            <td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">{{ row.query }}</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.recommended }}</td>
+            <td data-label="Found">
               {% if row.client_appears %}
                 <span class="badge badge-passed">Yes</span>
               {% else %}
                 <span class="badge badge-failed">No</span>
               {% endif %}
             </td>
-            <td>{{ row.position if row.position else "N/A" }}</td>
-            <td style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.competitors }}</td>
-            <td>
+            <td data-label="Position">{{ row.position if row.position else "N/A" }}</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.competitors }}</td>
+            <td data-label="Score">
               <div style="display:flex;align-items:center;gap:8px;">
                 <div class="progress-bar-bg" style="height:8px;width:60px;">
                   <div class="progress-bar-fill" style="width:{{ row.visibility_score }}%;background:{% if row.visibility_score >= 75 %}var(--green){% elif row.visibility_score >= 50 %}var(--yellow){% else %}var(--red){% endif %};"></div>

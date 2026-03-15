@@ -268,8 +268,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 /* -- Responsive ------------------------------------------- */
 @media (max-width: 768px) {
+    .container { padding: 0 12px; }
     .form-row { grid-template-columns: 1fr; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat-card { padding: 12px; }
+    .stat-card .number { font-size: 1.3rem; }
     .feature-grid { grid-template-columns: 1fr; }
     .hamburger { display: flex; }
     header nav {
@@ -279,6 +282,141 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     }
     header nav.open { display: flex; }
     header .inner { position: relative; }
+
+    /* Cards */
+    .card { padding: 14px; margin-bottom: 16px; }
+    .card h2 { font-size: 1rem; }
+
+    /* Buttons */
+    .btn { padding: 8px 14px; font-size: 0.85rem; }
+    .btn.text-sm { padding: 6px 10px; font-size: 0.78rem; }
+
+    /* ── Report header ────────────────────────── */
+    .report-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+    .report-actions {
+        width: 100%;
+        flex-wrap: wrap !important;
+    }
+    .report-meta {
+        font-size: 0.78rem;
+        word-break: break-all;
+    }
+
+    /* ── Filter bar ───────────────────────────── */
+    .filter-bar {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+    .filter-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+    }
+
+    /* ── Results table → card layout on mobile ── */
+    #resultsTable,
+    #resultsTable thead,
+    #resultsTable tbody,
+    #resultsTable th,
+    #resultsTable td,
+    #resultsTable tr {
+        display: block;
+    }
+    #resultsTable { table-layout: auto !important; }
+    #resultsTable thead { display: none; }
+    #resultsTable tbody tr.result-row {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
+    }
+    #resultsTable tbody tr.result-row:hover td {
+        background: transparent;
+    }
+    #resultsTable td {
+        padding: 3px 0;
+        border-bottom: none;
+        overflow: visible;
+        white-space: normal;
+    }
+    #resultsTable td::before {
+        content: attr(data-label);
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        min-width: 70px;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+    #resultsTable td.cell-index { display: none; }
+    #resultsTable td.cell-details {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--border);
+    }
+    #resultsTable td.cell-details::before { display: none; }
+
+    /* ── AI Results table → card layout on mobile ── */
+    #aiResultsTable,
+    #aiResultsTable thead,
+    #aiResultsTable tbody,
+    #aiResultsTable th,
+    #aiResultsTable td,
+    #aiResultsTable tr {
+        display: block;
+    }
+    #aiResultsTable thead { display: none; }
+    #aiResultsTable tbody tr.ai-result-row {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
+    }
+    #aiResultsTable tbody tr.ai-result-row:hover td {
+        background: transparent;
+    }
+    #aiResultsTable td {
+        padding: 3px 0;
+        border-bottom: none;
+        white-space: normal;
+        max-width: 100% !important;
+    }
+    #aiResultsTable td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 2px;
+    }
+
+    /* ── Performance section mobile ─────────── */
+    .perf-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
+    .gauge-card { padding: 10px; }
+
+    /* ── AI Visibility mobile ──────────────── */
+    #perf-dashboard .card,
+    .perf-tabs { flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-card .number { font-size: 1.1rem; }
+    .stat-card .label { font-size: 0.7rem; }
+    .perf-grid { grid-template-columns: 1fr !important; }
 }
 </style>
 {% block extra_head %}{% endblock %}
