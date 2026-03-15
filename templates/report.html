@@ -94,7 +94,7 @@
       {% for rec in recs[:3] %}
       <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid {% if rec.score is not none and rec.score < 0.5 %}var(--red){% elif rec.score is not none and rec.score < 0.9 %}var(--yellow){% else %}var(--green){% endif %};">
         <div style="font-weight:600;font-size:0.9rem;">{{ rec.title }}</div>
-        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">{{ rec.description[:150] }}</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;word-wrap:break-word;overflow-wrap:break-word;">{{ rec.description }}</div>
         {% if rec.savings_ms > 0 %}
         <div style="color:var(--accent);font-size:0.8rem;margin-top:4px;">Potential savings: {{ "%.1f"|format(rec.savings_ms / 1000) }}s</div>
         {% endif %}
@@ -169,14 +169,14 @@
           </td>
           <td data-label="Test">
             <div style="font-weight:500;">{{ r.name }}</div>
-            {% if r.description %}<div class="text-muted text-sm">{{ r.description[:120] }}</div>{% endif %}
+            {% if r.description %}<div class="text-muted text-sm" style="word-wrap:break-word;overflow-wrap:break-word;">{{ r.description }}</div>{% endif %}
           </td>
           <td data-label="" class="text-sm cell-details">
-            {% if r.details %}<div style="margin-bottom:4px;">{{ r.details[:200] }}</div>{% endif %}
+            {% if r.details %}<div style="margin-bottom:4px;word-wrap:break-word;overflow-wrap:break-word;">{{ r.details }}</div>{% endif %}
             {% if r.recommendation %}
-            <div style="color:var(--accent);font-size:0.8rem;">💡 {{ r.recommendation[:200] }}</div>
+            <div style="color:var(--accent);font-size:0.8rem;word-wrap:break-word;overflow-wrap:break-word;">💡 {{ r.recommendation }}</div>
             {% endif %}
-            {% if r.url %}<div class="text-muted" style="font-size:0.78rem;word-break:break-all;">{{ r.url[:80] }}</div>{% endif %}
+            {% if r.url %}<div class="text-muted" style="font-size:0.78rem;word-break:break-all;">{{ r.url }}</div>{% endif %}
           </td>
           <td data-label="Time" class="mono text-sm text-muted">{{ r.duration_ms|round(0)|int }}ms</td>
         </tr>
