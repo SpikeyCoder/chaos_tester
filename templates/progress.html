@@ -112,11 +112,12 @@ source.onmessage = function(event) {
       pct.style.color = 'var(--green)';
       txt.textContent = 'All tests complete!';
     } else if (data.msg === 'idle') {
-      /* No run is active -- user navigated here directly */
-      pct.textContent = '--';
-      pct.style.color = 'var(--text-muted)';
-      txt.textContent = 'No test run is active. Start one from the Dashboard.';
+      /* Status is idle -- but the run may still be starting up.
+         Fall back to polling /api/status before giving up. */
       reportBtn.style.display = 'none';
+      txt.textContent = 'Waiting for run to start…';
+      startPollingFallback();
+      return; /* keep spinner running during polling */
     } else {
       pct.style.color = 'var(--red)';
       txt.textContent = 'Run failed after all retry attempts -- see logs for details.';
@@ -127,8 +128,46 @@ source.onmessage = function(event) {
 
 source.onerror = function() {
   source.close();
-  spinner.style.display = 'none';
-  txt.textContent = 'Connection lost. Refresh to check status.';
+  /* Don't give up immediately -- fall back to polling /api/status */
+  txt.textContent = 'Reconnecting…';
+  startPollingFallback();
 };
+
+/* Fallback: if SSE fails or returns idle prematurely, poll /api/status */
+function startPollingFallback() {
+  let polls = 0;
+  const maxPolls = 20; /* poll for up to ~30 seconds */
+  const interval = setInterval(async () => {
+    polls++;
+    try {
+      const resp = await fetch('/api/status');
+      const data = await resp.json();
+      if (data.status === 'running') {
+        /* Run is active! Reconnect SSE */
+        clearInterval(interval);
+        txt.textContent = 'Run detected -- reconnecting stream…';
+        setTimeout(() => { location.reload(); }, 1000);
+      } else if (data.status === 'completed' && data.current_run_id) {
+        clearInterval(interval);
+        spinner.style.display = 'none';
+        pct.style.color = 'var(--green)';
+        pct.textContent = '100%';
+        txt.textContent = 'All tests complete!';
+        reportBtn.style.display = 'inline-flex';
+        reportBtn.href = '/report/' + data.current_run_id;
+      } else if (polls >= maxPolls) {
+        clearInterval(interval);
+        spinner.style.display = 'none';
+        txt.textContent = 'No active run detected. Return to Dashboard to start one.';
+      }
+    } catch (e) {
+      if (polls >= maxPolls) {
+        clearInterval(interval);
+        spinner.style.display = 'none';
+        txt.textContent = 'Connection lost. Refresh to check status.';
+      }
+    }
+  }, 1500);
+}
 </script>
 {% endblock %}

@@ -17,10 +17,14 @@ RUN mkdir -p chaos_tester/reports
 # Cloud Run sets PORT env var (default 8080)
 ENV PORT=8080
 
-# Run with gunicorn for production
+# Run with gunicorn for production.
+# IMPORTANT: Must use 1 worker because the app uses in-memory state
+# (_current_status, _progress, _run_history) shared between routes.
+# Multiple workers = separate memory spaces = SSE stream can miss run state.
+# We use 8 threads to compensate for concurrency.
 CMD exec gunicorn \
     --bind 0.0.0.0:$PORT \
-    --workers 2 \
-    --threads 4 \
-    --timeout 120 \
+    --workers 1 \
+    --threads 8 \
+    --timeout 300 \
     "chaos_tester.app:app"
