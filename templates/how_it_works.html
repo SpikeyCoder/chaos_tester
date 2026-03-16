@@ -35,29 +35,12 @@
         <li style="margin-bottom: 8px;">Description of what was checked and what went wrong</li>
         <li style="margin-bottom: 8px;">Summary statistics across all crawled pages</li>
     </ul>
-    <p class="text-muted">Reports are accessible via the Latest Report link in the navigation, or through the REST API for programmatic access.</p>
+    <p class="text-muted">Reports are accessible via the Latest Report link in the navigation, with a REST API for programmatic access coming soon.</p>
 </div>
 
 <div class="card">
-    <h2>Advanced: REST API Access</h2>
-    <p class="text-muted" style="margin-bottom:16px;">Website Auditor also offers a JSON API for integrating audits into CI/CD pipelines, monitoring dashboards, or custom workflows:</p>
-    <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; font-family: var(--mono); font-size: 0.85rem; color: var(--accent); overflow-x: auto; position: relative;">
-        <button onclick="copyCode(this)" style="position:absolute;top:8px;right:8px;background:var(--surface);border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer;" aria-label="Copy code to clipboard">Copy</button>
-        <code id="api-code" style="display:block;white-space:pre;">
-# Launch an audit via API
-curl -X POST https://website-auditor.io/run \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "max_pages": 50}'</code>
-    </div>
-    <script>
-    function copyCode(btn) {
-      var code = document.getElementById('api-code').textContent.trim();
-      navigator.clipboard.writeText(code).then(function() {
-        btn.textContent = 'Copied!';
-        setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
-      });
-    }
-    </script>
+    <h2>Advanced: REST API Access — Coming Soon</h2>
+    <p class="text-muted" style="margin-bottom:16px;">A JSON API for integrating audits into CI/CD pipelines, monitoring dashboards, or custom workflows is currently in development. Stay tuned!</p>
 </div>
 
 <div style="text-align:center; margin-top:32px;">
