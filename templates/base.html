@@ -7,8 +7,8 @@
     <meta name="description" content="{% block meta_description %}Free website audit tool that checks SEO, broken links, security, forms, and performance in one click. No login required. Get a detailed report instantly.{% endblock %}">
     <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
     <link rel="canonical" href="https://website-auditor.io{{ request.path }}">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" type="image/svg+xml">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" type="image/svg+xml" sizes="any">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" sizes="any">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
@@ -87,7 +87,7 @@ header {
     position: sticky; top: 0; z-index: 50;
 }
 header h1 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
-header h1 .robot { font-size: 1.4rem; }
+header h1 .site-logo { width: 28px; height: 28px; vertical-align: middle; }
 nav { display: flex; gap: 18px; }
 nav a { color: var(--text-muted); font-size: 0.9rem; transition: color .2s; }
 nav a:hover, nav a.active { color: var(--accent); }
@@ -425,7 +425,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="container inner">
-            <h1><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><span class="robot" aria-hidden="true">&#x1F916;</span> Website Auditor</a></h1>
+            <h1><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><img src="/static/logo.svg" alt="" class="site-logo" aria-hidden="true"> Website Auditor</a></h1>
             <button class="hamburger" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" onclick="document.getElementById('mainNav').classList.toggle('open');this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');">
                 <span></span><span></span><span></span>
             </button>
