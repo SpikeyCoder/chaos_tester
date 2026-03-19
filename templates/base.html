@@ -47,7 +47,14 @@
     </script>
     {% block extra_schema %}{% endblock %}
 
+    <!-- Preload critical assets to reduce LCP -->
+    <link rel="preload" href="/static/logo.svg" as="image" type="image/svg+xml">
+    <link rel="preload" href="/static/favicon.svg" as="image" type="image/svg+xml">
+    <link rel="dns-prefetch" href="//gc.zgo.at">
+    <link rel="preconnect" href="//gc.zgo.at" crossorigin>
+
     <style>
+/* ── CRITICAL CSS (above the fold) ────────────────────────── */
 /* -- Reset & Base ----------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -85,6 +92,7 @@ header {
     border-bottom: 1px solid var(--border);
     padding: 14px 0;
     position: sticky; top: 0; z-index: 50;
+    will-change: transform;
 }
 header h1 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
 header h1 .site-logo { width: 28px; height: 28px; vertical-align: middle; }
@@ -219,6 +227,8 @@ tr:hover td { background: rgba(56,189,248,0.04); }
     border-top: 1px solid var(--border);
     padding: 48px 0;
     margin-top: 48px;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
 }
 .seo-content h2 { font-size: 1.5rem; margin-bottom: 16px; color: var(--accent); }
 .seo-content h3 { font-size: 1.1rem; margin: 24px 0 8px; color: var(--text); }
@@ -235,6 +245,8 @@ footer {
     padding: 24px 0;
     margin-top: 48px;
     text-align: center;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 80px;
 }
 footer p { color: var(--text-muted); font-size: 0.85rem; }
 footer a { color: var(--accent); }
@@ -425,7 +437,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="container inner">
-            <h1><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><img src="/static/logo.svg" alt="" class="site-logo" aria-hidden="true"> Website Auditor</a></h1>
+            <h1><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><img src="/static/logo.svg" alt="" class="site-logo" aria-hidden="true" fetchpriority="high"> Website Auditor</a></h1>
             <button class="hamburger" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" onclick="document.getElementById('mainNav').classList.toggle('open');this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');">
                 <span></span><span></span><span></span>
             </button>
@@ -831,11 +843,18 @@ var WATime = (function() {
     });
   }
 
-  /* Run on DOMContentLoaded */
+  /* Run after first paint to avoid blocking LCP */
+  function scheduleConvert() {
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(convertAll, { timeout: 200 });
+    } else {
+      setTimeout(convertAll, 0);
+    }
+  }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', convertAll);
+    document.addEventListener('DOMContentLoaded', scheduleConvert);
   } else {
-    convertAll();
+    scheduleConvert();
   }
 
   /* Public API for use by page-specific scripts */
