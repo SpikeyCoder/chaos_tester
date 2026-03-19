@@ -59,21 +59,27 @@ class FormInteractionTester(BaseModule):
         for idx, form in enumerate(forms):
             self._test_form(page_url, form, idx)
 
-        # Check for buttons outside forms (JS-driven)
+        # Check for buttons outside forms that default to type="submit"
+        # Buttons with explicit type="button" are intentionally JS-driven and
+        # don't need a form wrapper, so we exclude them from this check.
         buttons = soup.find_all("button")
         buttons += soup.find_all("input", {"type": "submit"})
         buttons += soup.find_all("a", {"role": "button"})
-        standalone_buttons = [b for b in buttons if not b.find_parent("form")]
+        standalone_buttons = [
+            b for b in buttons
+            if not b.find_parent("form")
+            and b.get("type", "").lower() != "button"
+        ]
 
         if standalone_buttons:
             self.add_result(
                 name=f"Standalone buttons: {self._short_path(page_url)}",
-                description=f"Found {len(standalone_buttons)} button(s) outside <form> tags",
+                description=f"Found {len(standalone_buttons)} button(s) outside <form> tags without type=\"button\"",
                 status=TestStatus.WARNING,
                 severity=Severity.LOW,
                 url=page_url,
                 details=f"Buttons: {[self._button_label(b) for b in standalone_buttons[:5]]}",
-                recommendation="Ensure JS-driven buttons have proper error handling and fallbacks.",
+                recommendation="Add type=\"button\" to JS-driven buttons, or wrap submit buttons in a <form>.",
             )
 
     def _test_form(self, page_url: str, form, idx: int):
