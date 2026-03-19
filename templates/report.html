@@ -58,8 +58,8 @@
   <h2 style="margin:0 0 16px">⚡ Performance Metrics</h2>
   {% if has_perf_data %}
   <div class="perf-tabs">
-    <button class="perf-tab active" onclick="switchPerfTab('mobile')" id="tab-mobile">📱 Mobile</button>
-    <button class="perf-tab" onclick="switchPerfTab('desktop')" id="tab-desktop">🖥 Desktop</button>
+    <button type="button" class="perf-tab active" onclick="switchPerfTab('mobile')" id="tab-mobile">📱 Mobile</button>
+    <button type="button" class="perf-tab" onclick="switchPerfTab('desktop')" id="tab-desktop">🖥 Desktop</button>
   </div>
   {% for strategy in ["mobile","desktop"] %}
   {% set sdata = perf.get(strategy, {}) %}
@@ -122,20 +122,20 @@
   <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
     <div class="filter-group">
       <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
-      <button class="btn btn-secondary text-sm filter-btn active" data-filter="all" onclick="filterResults('all', this)">All</button>
-      <button class="btn btn-secondary text-sm filter-btn" data-filter="failed" onclick="filterResults('failed', this)">Failed</button>
-      <button class="btn btn-secondary text-sm filter-btn" data-filter="warning" onclick="filterResults('warning', this)">Warnings</button>
-      <button class="btn btn-secondary text-sm filter-btn" data-filter="passed" onclick="filterResults('passed', this)">Passed</button>
+      <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="all" onclick="filterResults('all', this)">All</button>
+      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" onclick="filterResults('failed', this)">Failed</button>
+      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" onclick="filterResults('warning', this)">Warnings</button>
+      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" onclick="filterResults('passed', this)">Passed</button>
     </div>
     <div class="filter-group">
       <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
-      <button class="btn btn-secondary text-sm module-btn active" data-module="all" onclick="filterModule('all', this)">All</button>
-      <button class="btn btn-secondary text-sm module-btn" data-module="availability" onclick="filterModule('availability', this)">Avail</button>
-      <button class="btn btn-secondary text-sm module-btn" data-module="links" onclick="filterModule('links', this)">Links</button>
-      <button class="btn btn-secondary text-sm module-btn" data-module="forms" onclick="filterModule('forms', this)">Forms</button>
-      <button class="btn btn-secondary text-sm module-btn" data-module="chaos" onclick="filterModule('chaos', this)">Chaos</button>
-      <button class="btn btn-secondary text-sm module-btn" data-module="auth" onclick="filterModule('auth', this)">Auth</button>
-      <button class="btn btn-secondary text-sm module-btn" data-module="security" onclick="filterModule('security', this)">Security</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" onclick="filterModule('all', this)">All</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" onclick="filterModule('availability', this)">Avail</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" onclick="filterModule('links', this)">Links</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" onclick="filterModule('forms', this)">Forms</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="chaos" onclick="filterModule('chaos', this)">Chaos</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="auth" onclick="filterModule('auth', this)">Auth</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" onclick="filterModule('security', this)">Security</button>
     </div>
   </div>
 </div>
@@ -186,7 +186,7 @@
   </div>
   {% if report.results|length > 5 %}
   <div style="text-align:center;padding:12px 0;">
-    <button class="btn btn-secondary text-sm" onclick="toggleDetailedResults()" id="detailed-toggle-btn">
+    <button type="button" class="btn btn-secondary text-sm" onclick="toggleDetailedResults()" id="detailed-toggle-btn">
       Show All {{ report.results|length }} Results ▼
     </button>
   </div>
@@ -244,7 +244,7 @@
     <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 12px;">Enter any search query to see how AI platforms respond. The query runs against all 4 AI models.</p>
     <div style="display:flex;gap:8px;align-items:stretch;">
       <input type="text" id="custom-ai-query" placeholder="e.g. best plumber in Seattle" style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:0.9rem;">
-      <button class="btn btn-primary" id="custom-ai-btn" onclick="runCustomAIQuery()" style="white-space:nowrap;" aria-label="Run custom AI query">Run Query</button>
+      <button type="button" class="btn btn-primary" id="custom-ai-btn" onclick="runCustomAIQuery()" style="white-space:nowrap;" aria-label="Run custom AI query">Run Query</button>
     </div>
     <div id="custom-ai-status" style="display:none;margin-top:12px;color:var(--text-muted);font-size:0.85rem;">
       <span style="display:inline-block;animation:spin 1s linear infinite;">⏳</span>
@@ -303,7 +303,7 @@
     </div>
     {% if ai.all_results|length > 5 %}
     <div id="ai-show-more-bar" style="text-align:center;padding:12px 0;">
-      <button class="btn btn-secondary text-sm" onclick="toggleAIResults()" id="ai-toggle-btn">
+      <button type="button" class="btn btn-secondary text-sm" onclick="toggleAIResults()" id="ai-toggle-btn">
         Show All {{ ai.all_results|length }} Results ▼
       </button>
     </div>

@@ -438,7 +438,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     <header>
         <div class="container inner">
             <h1><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><img src="/static/logo.svg" alt="" class="site-logo" aria-hidden="true" fetchpriority="high"> Website Auditor</a></h1>
-            <button class="hamburger" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" onclick="document.getElementById('mainNav').classList.toggle('open');this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');">
+            <button type="button" class="hamburger" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" onclick="document.getElementById('mainNav').classList.toggle('open');this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');">
                 <span></span><span></span><span></span>
             </button>
             <nav id="mainNav" aria-label="Main navigation">
@@ -559,7 +559,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 </style>
 
 <!-- Floating button -->
-<button class="bug-btn" onclick="bugReport.open()" title="Report a bug or request a feature" aria-label="Report a bug">
+<button type="button" class="bug-btn" onclick="bugReport.open()" title="Report a bug or request a feature" aria-label="Report a bug">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M8 2l1.88 1.88M14.12 3.88L16 2M9 7.13v-1a3.003 3.003 0 116 0v1"/>
         <path d="M12 20c-3.3 0-6-2.7-6-6v-3a6 6 0 0112 0v3c0 3.3-2.7 6-6 6z"/>
@@ -570,7 +570,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 <!-- Modal -->
 <div class="bug-overlay" id="bugOverlay" onclick="if(event.target===this)bugReport.close()">
     <div class="bug-modal" id="bugModal">
-        <button class="bug-modal-close" onclick="bugReport.close()" aria-label="Close">
+        <button type="button" class="bug-modal-close" onclick="bugReport.close()" aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
 
