@@ -19,6 +19,21 @@
       </div>
     </div>
 
+    <!-- Promoted city field: shown in Quick Scan when auto-detection fails -->
+    <div id="quick-city-wrapper" style="display:none;overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;">
+      <div style="padding:14px 16px;background:var(--surface2,#f8f8f8);border:1px solid var(--warning,#f59e0b);border-radius:8px;">
+        <label for="quick_city" style="display:block;font-weight:600;font-size:0.9rem;margin-bottom:6px;color:var(--warning,#f59e0b);">
+          📍 Please enter your business city for AI visibility results.
+        </label>
+        <input type="text" id="quick_city" name="quick_city"
+               placeholder="e.g. Seattle, WA"
+               style="width:100%;box-sizing:border-box;">
+        <div style="color:var(--text-muted);font-size:0.78rem;margin-top:4px;">
+          We couldn't auto-detect your city — enter it here so AI queries target the right location.
+        </div>
+      </div>
+    </div>
+
     <!-- Submit button for quick scan -->
     <div class="mt-2" style="margin-bottom:20px;">
       {% if status == 'running' %}
@@ -126,9 +141,7 @@
               <label for="business_location">Business City / Location</label>
               <input type="text" id="business_location" name="business_location"
                      placeholder="e.g. Seattle, WA" value="" required>
-              <div id="city-nudge" style="display:none;color:var(--warning,#f59e0b);font-size:0.82rem;margin-top:6px;font-weight:600;">
-                ⚠ City not detected — please enter your business city for AI visibility results.
-              </div>
+              <!-- City nudge now appears in Quick Scan area via #quick-city-wrapper -->
               <div style="color:var(--text-muted);font-size:0.78rem;margin-top:4px;">
                 Required — enter your business city so AI visibility queries target the right location.
               </div>
@@ -309,41 +322,67 @@ function detectBusiness() {
 
 /**
  * Prompt the user to enter their business city if the field is still empty
- * after auto-detection. Opens the Advanced Options panel, highlights the
- * city field, and shows an inline nudge message.
+ * after auto-detection. Instead of opening Advanced Options, promotes a city
+ * input field directly into the Quick Scan area so the user never has to
+ * dig into Advanced Options.
  */
 function promptCityIfEmpty() {
   var locInput = document.getElementById('business_location');
   if (locInput.value.trim()) return; /* city already filled — nothing to do */
 
-  /* Ensure Advanced Options is open so the city field is visible */
-  var details = document.getElementById('advanced-options');
-  if (details && !details.open) {
-    details.open = true;
+  var wrapper = document.getElementById('quick-city-wrapper');
+  var quickCity = document.getElementById('quick_city');
+  if (!wrapper || !quickCity) return;
+
+  /* Show the promoted city field with a smooth animation */
+  wrapper.style.display = 'block';
+  /* Force reflow so the transition triggers */
+  void wrapper.offsetHeight;
+  wrapper.style.maxHeight = '200px';
+  wrapper.style.opacity = '1';
+  wrapper.style.marginTop = '16px';
+
+  /* Add pulse animation to the promoted input */
+  quickCity.classList.add('city-needs-attention');
+
+  /* Smooth-scroll the promoted field into view */
+  wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  /* Focus the promoted city input after the animation */
+  setTimeout(function() { quickCity.focus(); }, 450);
+
+  /* Sync promoted city field → hidden Advanced Options city field */
+  function onQuickCityInput() {
+    locInput.value = quickCity.value;
+    locInput._userEdited = true;
+    /* Remove pulse once user starts typing */
+    quickCity.classList.remove('city-needs-attention');
+    quickCity.removeEventListener('input', onQuickCityInput);
+    quickCity.addEventListener('input', function() {
+      locInput.value = quickCity.value;
+    });
   }
+  quickCity.addEventListener('input', onQuickCityInput);
 
-  /* Add highlight class for the pulse animation */
-  locInput.classList.add('city-needs-attention');
-
-  /* Show the inline nudge message */
-  var nudge = document.getElementById('city-nudge');
-  if (nudge) nudge.style.display = 'block';
-
-  /* Smooth-scroll the city field into view */
-  locInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-  /* Remove highlight once the user starts typing */
-  function onCityInput() {
-    locInput.classList.remove('city-needs-attention');
-    if (nudge) nudge.style.display = 'none';
-    locInput.removeEventListener('input', onCityInput);
+  /* Also sync the other direction: if user opens Advanced Options and types there */
+  function onLocInput() {
+    quickCity.value = locInput.value;
   }
-  locInput.addEventListener('input', onCityInput);
+  locInput.addEventListener('input', onLocInput);
 }
 
 /* Track if user manually edited the location field */
 document.getElementById('business_location').addEventListener('input', function() {
   this._userEdited = true;
+});
+
+/* -- Sync promoted city field on form submit ----------------- */
+document.getElementById('runForm').addEventListener('submit', function() {
+  var quickCity = document.getElementById('quick_city');
+  var locInput = document.getElementById('business_location');
+  if (quickCity && quickCity.value.trim() && !locInput.value.trim()) {
+    locInput.value = quickCity.value.trim();
+  }
 });
 
 /* -- Inline form validation -------------------------------- */
