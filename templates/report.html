@@ -107,14 +107,14 @@
   </div>
 </div>
 
-<!-- -- Section Summary (circular gauges) -------------------- -->
+<!-- -- Snapshot Summary (circular gauges) -------------------- -->
 <div class="section-summary card fade-up" style="margin-bottom:24px;" role="region" aria-label="Section summary scores">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
     <div style="width:40px;height:40px;border-radius:10px;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2a10 10 0 0 1 7.07 2.93"/></svg>
     </div>
     <div>
-      <h2 style="margin:0;font-size:1.2rem;font-weight:700;color:#fff;">Section Summary</h2>
+      <h2 style="margin:0;font-size:1.2rem;font-weight:700;color:#fff;">Snapshot Summary</h2>
       <p style="margin:0;font-size:0.82rem;color:var(--text-muted);">Core Web Vitals and performance metrics</p>
     </div>
   </div>
@@ -618,7 +618,7 @@ async function downloadPDF() {
       y += 16;
     }
 
-    /* ── Section Summary (ring gauges in PDF) ──────── */
+    /* ── Snapshot Summary (ring gauges in PDF) ──────── */
     var pdfResults = reportData.results || [];
     var pdfModules = {};
     pdfResults.forEach(function(r) {
@@ -654,7 +654,7 @@ async function downloadPDF() {
       roundRect(margin, y, usable, gaugeCardH, 3, colors.cardBg);
       doc.setFontSize(11); doc.setFont('helvetica', 'bold');
       doc.setTextColor.apply(doc, colors.white);
-      doc.text('Section Summary', margin + 6, y + 8);
+      doc.text('Snapshot Summary', margin + 6, y + 8);
       doc.setFontSize(7); doc.setFont('helvetica', 'normal');
       doc.setTextColor.apply(doc, colors.muted);
       doc.text('Core Web Vitals and performance metrics', margin + 6, y + 13);
