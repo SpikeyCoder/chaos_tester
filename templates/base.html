@@ -432,8 +432,253 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     box-shadow: 0 0 48px rgba(59,130,246,0.15);
 }
 
+/* -- Landing Hero (full-screen) --------------------------- */
+.landing-hero {
+    text-align: center;
+    padding: 100px 0 60px;
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.landing-hero .hero-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 20px; border-radius: 9999px;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.25);
+    color: var(--accent); font-size: 0.9rem; font-weight: 500;
+    margin-bottom: 28px;
+}
+.landing-hero h1 {
+    font-size: 3.5rem; font-weight: 800; line-height: 1.1;
+    letter-spacing: -0.02em; margin-bottom: 20px;
+    color: #fff;
+}
+.landing-hero .hero-subtitle {
+    font-size: 1.2rem; color: var(--text-muted);
+    max-width: 640px; margin: 0 auto 36px;
+    line-height: 1.6;
+}
+.hero-search {
+    display: flex; align-items: center; gap: 0;
+    max-width: 680px; margin: 0 auto 24px;
+    background: var(--surface);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 6px 6px 6px 20px;
+    transition: border-color .3s, box-shadow .3s;
+}
+.hero-search:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15), 0 8px 32px rgba(0,0,0,0.2);
+}
+.hero-search .search-icon {
+    color: var(--text-muted); flex-shrink: 0; margin-right: 12px;
+}
+.hero-search input[type="url"] {
+    flex: 1; background: transparent; border: none;
+    color: var(--text); font-size: 1rem; padding: 14px 0;
+    outline: none; box-shadow: none;
+}
+.hero-search input[type="url"]::placeholder { color: var(--text-muted); }
+.hero-search input[type="url"]:focus { box-shadow: none; border: none; }
+.hero-search .btn-audit {
+    flex-shrink: 0; padding: 14px 28px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: var(--radius-md);
+    font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+    white-space: nowrap;
+}
+.hero-search .btn-audit:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 4px 16px rgba(59,130,246,0.4);
+}
+.trust-badges {
+    display: flex; align-items: center; justify-content: center;
+    gap: 32px; flex-wrap: wrap;
+}
+.trust-badges .trust-item {
+    display: flex; align-items: center; gap: 8px;
+    color: var(--text-muted); font-size: 0.9rem;
+}
+.trust-badges .trust-check {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(74,222,128,0.15); color: var(--success);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem;
+}
+
+/* -- Stats bar -------------------------------------------- */
+.stats-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    max-width: 900px; margin: 0 auto;
+    padding: 48px 0;
+}
+.stats-bar .stat-item { text-align: center; }
+.stats-bar .stat-value {
+    font-size: 2rem; font-weight: 800; color: #fff;
+    margin-bottom: 4px;
+}
+.stats-bar .stat-label {
+    font-size: 0.85rem; color: var(--text-muted);
+}
+
+/* -- Section headings ------------------------------------- */
+.section-block {
+    padding: 64px 0;
+    position: relative;
+}
+.section-header {
+    text-align: center; margin-bottom: 48px;
+}
+.section-header h2 {
+    font-size: 2rem; font-weight: 800; color: #fff;
+    margin-bottom: 12px;
+}
+.section-header p {
+    font-size: 1.05rem; color: var(--text-muted);
+    max-width: 600px; margin: 0 auto;
+}
+
+/* -- Feature grid (landing) ------------------------------- */
+.landing-features {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+}
+.landing-feature-card {
+    background: var(--surface);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    transition: border-color .3s, box-shadow .3s, transform .3s;
+}
+.landing-feature-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
+}
+.landing-feature-card .feature-icon {
+    width: 44px; height: 44px; border-radius: var(--radius-md);
+    background: rgba(59,130,246,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; margin-bottom: 16px;
+}
+.landing-feature-card h3 {
+    font-size: 1.05rem; font-weight: 700; color: #fff;
+    margin-bottom: 8px;
+}
+.landing-feature-card p {
+    font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;
+}
+
+/* -- How it works steps ----------------------------------- */
+.steps-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px;
+    position: relative;
+}
+.step-card { text-align: center; position: relative; }
+.step-number {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--gradient-accent); color: #fff;
+    font-size: 1rem; font-weight: 700; margin-bottom: 16px;
+}
+.step-card h3 {
+    font-size: 1rem; font-weight: 700; color: #fff;
+    margin-bottom: 8px;
+}
+.step-card p {
+    font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;
+}
+
+/* -- FAQ section ------------------------------------------ */
+.faq-list { max-width: 700px; margin: 0 auto; }
+.faq-item {
+    background: var(--surface);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color .3s;
+}
+.faq-item[open] { border-color: rgba(59,130,246,0.5); }
+.faq-item summary {
+    padding: 18px 20px; cursor: pointer;
+    font-weight: 600; font-size: 0.95rem; color: var(--text);
+    list-style: none; display: flex; align-items: center;
+    justify-content: space-between;
+    user-select: none;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+    content: '+'; color: var(--accent); font-size: 1.3rem;
+    font-weight: 400; transition: transform .2s;
+}
+.faq-item[open] summary::after {
+    content: '−';
+}
+.faq-item .faq-answer {
+    padding: 0 20px 18px; color: var(--text-muted);
+    font-size: 0.9rem; line-height: 1.6;
+}
+
+/* -- CTA section ------------------------------------------ */
+.cta-section {
+    text-align: center; padding: 80px 0;
+    position: relative;
+}
+.cta-section .cta-label {
+    font-size: 0.9rem; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 12px;
+}
+.cta-section h2 {
+    font-size: 2rem; font-weight: 800; color: #fff;
+    margin-bottom: 12px;
+}
+.cta-section p {
+    font-size: 1.05rem; color: var(--text-muted);
+    margin-bottom: 32px;
+}
+
+/* -- Nav CTA button --------------------------------------- */
+.nav-cta {
+    padding: 8px 20px; background: var(--accent); color: #fff !important;
+    border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;
+    transition: background .2s, box-shadow .2s;
+}
+.nav-cta:hover {
+    background: var(--accent-hover); color: #fff !important;
+    box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+}
+
+/* -- Section divider -------------------------------------- */
+.section-divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 0;
+}
+
 /* -- Responsive ------------------------------------------- */
 @media (max-width: 768px) {
+    .landing-hero { padding: 60px 0 40px; }
+    .landing-hero h1 { font-size: 2.2rem; }
+    .landing-hero .hero-subtitle { font-size: 1rem; }
+    .hero-search { flex-direction: column; padding: 12px; gap: 10px; }
+    .hero-search .search-icon { display: none; }
+    .hero-search input[type="url"] { padding: 12px; width: 100%; }
+    .hero-search .btn-audit { width: 100%; text-align: center; justify-content: center; }
+    .trust-badges { gap: 16px; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .stats-bar .stat-value { font-size: 1.5rem; }
+    .landing-features { grid-template-columns: 1fr; }
+    .steps-grid { grid-template-columns: 1fr; gap: 24px; }
+    .section-block { padding: 40px 0; }
+    .section-header h2 { font-size: 1.5rem; }
     .container { padding: 0 12px; }
     .form-row { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -598,11 +843,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                 <span></span><span></span><span></span>
             </button>
             <nav id="mainNav" aria-label="Main navigation">
-                <a href="/" {% if request.path == '/' %}class="active" aria-current="page"{% endif %}>Dashboard</a>
-                <a href="/latest" {% if request.path == '/latest' or request.path.startswith('/report/') %}class="active" aria-current="page"{% endif %}>Latest Report</a>
                 <a href="/features" {% if request.path == '/features' %}class="active" aria-current="page"{% endif %}>Features</a>
-                <a href="/sample-report" {% if request.path == '/sample-report' %}class="active" aria-current="page"{% endif %}>Sample Report</a>
                 <a href="/how-it-works" {% if request.path == '/how-it-works' %}class="active" aria-current="page"{% endif %}>How It Works</a>
+                <a href="/features#faq" {% if request.path == '/features' and 'faq' in request.url %}class="active"{% endif %}>FAQ</a>
+                <a href="/#audit" class="nav-cta">Start Audit</a>
             </nav>
         </div>
     </header>

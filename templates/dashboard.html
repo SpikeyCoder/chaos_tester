@@ -1,243 +1,255 @@
 {% extends "base.html" %}
-{% block title %}Website Auditor -- Dashboard{% endblock %}
+{% block title %}Free Website Audit Tool - SEO, Security & Performance Scanner | Website Auditor{% endblock %}
 
 {% block content %}
-<!-- -- Hero Section -------------------------------------------------- -->
-<div class="hero-section fade-up">
-  <h2>Audit Any Website <span class="gradient-text">in One Click</span></h2>
-  <p class="hero-subtitle">Scan for SEO issues, broken links, security vulnerabilities, and performance problems — completely free.</p>
-</div>
-
-<!-- -- Run Configuration -------------------------------------------------- -->
-<div class="card fade-up glow-accent">
-  <h2>🚀 Launch Test Run</h2>
+<!-- ── Hero Section ─────────────────────────────────────────── -->
+<div class="landing-hero fade-up" id="audit">
+  <div class="hero-pill">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 12 6 6 10 10 14 4"/></svg>
+    Over 50,000+ websites audited
+  </div>
+  <h1>Free Website Audit Tool</h1>
+  <p class="hero-subtitle">Get comprehensive insights into your website's SEO, performance, security, and privacy in seconds. No signup required.</p>
 
   <form method="POST" action="/run" id="runForm">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <!-- Defaults for advanced options -->
+    <input type="hidden" name="environment" value="production">
+    <input type="hidden" name="crawl_depth" value="3">
+    <input type="hidden" name="max_pages" value="100">
+    <input type="hidden" name="concurrency" value="5">
+    <input type="hidden" name="request_timeout" value="15">
+    <input type="hidden" name="chaos_intensity" value="medium">
+    <input type="hidden" name="auth_cookie_name" value="sessionid">
+    <input type="hidden" name="run_availability" value="on">
+    <input type="hidden" name="run_links" value="on">
+    <input type="hidden" name="run_forms" value="on">
+    <input type="hidden" name="run_chaos" value="on">
+    <input type="hidden" name="run_auth" value="on">
+    <input type="hidden" name="run_security" value="on">
+    <input type="hidden" name="business_location" id="business_location" value="">
 
-    <!-- Quick Scan Mode: URL input and submit button always visible -->
-    <div class="form-row">
-      <div class="form-group" style="flex:1;">
-        <label for="base_url">Target URL</label>
-        <input type="url" id="base_url" name="base_url"
-               value=""
-               placeholder="https://yourbusiness.com" required>
-      </div>
-    </div>
-
-    <!-- Promoted city field: shown in Quick Scan when auto-detection fails -->
-    <div id="quick-city-wrapper" aria-live="polite" aria-atomic="true" style="display:none;overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;">
-      <div style="padding:14px 16px;background:var(--surface,#1e293b);border:1px solid var(--border,#334155);border-radius:10px;">
-        <label for="quick_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text,#e2e8f0);">
-          📍 Please enter your business city for AI visibility results.
-        </label>
-        <input type="text" id="quick_city" name="quick_city"
-               placeholder="e.g. Seattle, WA"
-               style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg,#0f172a);border:1px solid var(--border,#334155);border-radius:6px;color:var(--text,#e2e8f0);font-size:0.95rem;transition:border-color .2s;">
-        <div style="color:var(--text-muted,#94a3b8);font-size:0.78rem;margin-top:4px;">
-          We couldn't auto-detect your city — enter it here so AI queries target the right location.
-        </div>
-      </div>
-    </div>
-
-    <!-- Submit button for quick scan -->
-    <div class="mt-2" style="margin-bottom:20px;">
+    <div class="hero-search">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="url" id="base_url" name="base_url" placeholder="Enter your website URL (e.g., https://example.com)" required value="" autocomplete="url">
       {% if status == 'running' %}
-        <button type="button" class="btn btn-secondary" disabled>🔄 Test in progress…</button>
-        <a href="/progress" class="btn btn-primary" style="margin-left:8px;">View Progress</a>
+        <a href="/progress" class="btn-audit">View Progress</a>
       {% else %}
-        <button type="submit" class="btn btn-primary" aria-label="Launch website audit" style="width:100%;">🚀 Scan Website</button>
+        <button type="submit" class="btn-audit">Audit Website</button>
       {% endif %}
     </div>
-
-    <!-- Advanced Options: Collapsible section -->
-    <details id="advanced-options" style="margin-top:24px;margin-bottom:24px;">
-      <summary style="cursor:pointer;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-weight:600;user-select:none;display:flex;align-items:center;justify-content:space-between;">
-        <span>⚙️ Advanced Options</span>
-        <span id="advanced-toggle" style="transform:rotate(0deg);transition:transform 0.2s;display:inline-block;">▼</span>
-      </summary>
-
-      <div style="padding:16px;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;background:var(--surface);">
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="environment">Environment <span class="info-icon" tabindex="0" role="tooltip" aria-label="Environment info">i<span class="info-tip">Choose which version of your site to audit. Production is your live site visitors see. Staging and Test are pre-launch environments that may behave differently.</span></span></label>
-            <select id="environment" name="environment" required onchange="toggleProdWarning()">
-              <option value="production" selected>Production</option>
-              <option value="staging">Staging</option>
-              <option value="test">Test</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="crawl_depth">Crawl Depth <span class="info-icon" tabindex="0" role="tooltip" aria-label="Crawl depth info">i<span class="info-tip">How many levels of links to follow from your homepage. A depth of 3 means: homepage → linked pages → pages linked from those. Higher values find more pages but take longer.</span></span></label>
-            <input type="number" id="crawl_depth" name="crawl_depth" value="3" required min="1" max="10">
-          </div>
-        </div>
-
-        <div id="prod-warning" class="hidden" style="background:#7f1d1d;padding:12px 16px;border-radius:8px;margin-bottom:16px;color:#fca5a5;font-size:0.9rem;">
-          ⚠ <strong>Note:</strong> Staging and Test environments may behave differently from your live site.
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="max_pages">Max Pages to Crawl <span class="info-icon" tabindex="0" role="tooltip" aria-label="Max pages info">i<span class="info-tip">The maximum number of pages the auditor will check. Start with 100 for small sites. Larger sites may need 500+. More pages = longer audit time.</span></span></label>
-            <input type="number" id="max_pages" name="max_pages" value="100" required min="1" max="1000">
-          </div>
-          <div class="form-group">
-            <label for="concurrency">Concurrency <span class="info-icon" tabindex="0" role="tooltip" aria-label="Concurrency info">i<span class="info-tip">How many pages to scan at the same time. Higher values speed up the audit but may overload smaller servers. 5 is safe for most sites; lower it if your site is slow.</span></span></label>
-            <input type="number" id="concurrency" name="concurrency" value="5" required min="1" max="20">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="request_timeout">Request Timeout (s) <span class="info-icon" tabindex="0" role="tooltip" aria-label="Request timeout info">i<span class="info-tip">How long (in seconds) to wait for each page to respond before marking it as timed out. 15 seconds works for most sites. Increase for slow-loading pages.</span></span></label>
-            <input type="number" id="request_timeout" name="request_timeout" value="15" required min="1" max="120">
-          </div>
-          <div class="form-group">
-            <label for="chaos_intensity">Resilience Testing Level <span class="info-icon" tabindex="0" role="tooltip" aria-label="Resilience testing info">i<span class="info-tip">Controls how aggressively we test your site for error handling. Light runs quick checks. Standard (recommended) covers common failure scenarios. Thorough simulates heavy stress and edge cases.</span></span></label>
-            <select id="chaos_intensity" name="chaos_intensity" required>
-              <option value="low">Light — quick error checks</option>
-              <option value="medium" selected>Standard — recommended</option>
-              <option value="high">Thorough — deep stress testing</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="auth_cookie_name">Session Cookie Name <span class="info-icon" tabindex="0" role="tooltip" aria-label="Session cookie info">i<span class="info-tip">The name of the cookie your site uses to track logged-in users. Common values: "sessionid" (Django), "connect.sid" (Express), "PHPSESSID" (PHP). Check your browser dev tools if unsure.</span></span></label>
-          <input type="text" id="auth_cookie_name" name="auth_cookie_name" value="sessionid" required
-                 placeholder="sessionid">
-        </div>
-
-        <div class="form-group">
-          <label for="auth_url">Auth / Login URL (optional) <span class="info-icon" tabindex="0" role="tooltip" aria-label="Auth URL info">i<span class="info-tip">If your site has pages behind a login, enter the login page URL here. The auditor will attempt to authenticate so it can test protected pages too.</span></span></label>
-          <input type="url" id="auth_url" name="auth_url" placeholder="https://yourbusiness.com/login">
-        </div>
-
-        <div class="form-group">
-          <label for="seed_urls">Additional Seed URLs (one per line, optional) <span class="info-icon" tabindex="0" role="tooltip" aria-label="Seed URLs info">i<span class="info-tip">Pages you want the auditor to check that might not be reachable by following links from your homepage. Add important pages like /checkout or /pricing that may be orphaned.</span></span></label>
-          <textarea id="seed_urls" name="seed_urls"
-                    placeholder="https://yourbusiness.com/products&#10;https://yourbusiness.com/checkout"></textarea>
-        </div>
-
-        <h3 style="margin-top:20px;margin-bottom:12px;">📍 AI Visibility Options</h3>
-        <p class="text-muted text-sm" style="margin-top:0;margin-bottom:12px;">See how often AI platforms like ChatGPT, Perplexity, Claude, and Gemini recommend your business in local search queries.</p>
-        <div id="ai-detect-panel" style="background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:16px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-            <span style="font-weight:600;font-size:0.95rem;">Business Detection</span>
-            <button type="button" class="btn btn-secondary text-sm" id="detectBtn" onclick="detectBusiness()" aria-label="Detect business information from URL">🔍 Detect from URL</button>
-          </div>
-          <div id="detect-status" style="display:none;color:var(--text-muted);font-size:0.85rem;margin-bottom:8px;">
-            <span id="detect-spinner" style="display:inline-block;animation:spin 1s linear infinite;">⏳</span>
-            Scanning website for business info...
-          </div>
-          <div id="detect-result" style="display:none;font-size:0.85rem;margin-bottom:8px;padding:8px 12px;background:var(--surface);border-radius:6px;">
-            <div>Detected: <strong id="detected-name">—</strong></div>
-            <div>Sector: <span id="detected-sector" style="color:var(--accent);">—</span></div>
-            <div>Location: <span id="detected-location">—</span>
-              <span id="detect-source" style="color:var(--text-muted);font-size:0.78rem;"></span>
-            </div>
-          </div>
-          <div class="form-row" style="margin-bottom:0;">
-            <div class="form-group" style="margin-bottom:0;">
-              <label for="business_location">Business City / Location</label>
-              <input type="text" id="business_location" name="business_location"
-                     placeholder="e.g. Seattle, WA" value="" required>
-              <!-- City nudge now appears in Quick Scan area via #quick-city-wrapper -->
-              <div style="color:var(--text-muted);font-size:0.78rem;margin-top:4px;">
-                Required — enter your business city so AI visibility queries target the right location.
-              </div>
-            </div>
-          </div>
-        </div>
-        <style>
-          @keyframes spin { to { transform: rotate(360deg); } }
-          @keyframes cityPulse {
-            0%, 100% { border-color: var(--accent, #38bdf8); box-shadow: 0 0 0 0 rgba(56,189,248,0.4); }
-            50% { border-color: var(--accent, #38bdf8); box-shadow: 0 0 0 4px rgba(56,189,248,0.15); }
-          }
-          .city-needs-attention {
-            border-color: var(--accent, #38bdf8) !important;
-            animation: cityPulse 1.5s ease-in-out 3;
-          }
-        </style>
-
-        <h3 style="margin-top:20px;margin-bottom:12px;">🧪 Test Modules</h3>
-        <div class="checkbox-row">
-          <label><input type="checkbox" name="run_availability" checked > Page Availability</label>
-          <label><input type="checkbox" name="run_links" checked > Broken Links</label>
-          <label><input type="checkbox" name="run_forms" checked > Forms &amp; Interactions</label>
-          <label><input type="checkbox" name="run_chaos" checked > Error Resilience</label>
-          <label><input type="checkbox" name="run_auth" checked > Auth &amp; Sessions</label>
-          <label><input type="checkbox" name="run_security" checked > Security Scan</label>
-        </div>
-
-      </div>
-    </details>
   </form>
+
+  <!-- Promoted city field: shown when auto-detection fails -->
+  <div id="quick-city-wrapper" aria-live="polite" aria-atomic="true" style="display:none;overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;max-width:680px;margin-left:auto;margin-right:auto;">
+    <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;text-align:left;">
+      <label for="quick_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">
+        Please enter your business city for AI visibility results.
+      </label>
+      <input type="text" id="quick_city" name="quick_city"
+             placeholder="e.g. Seattle, WA"
+             style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
+      <div style="color:var(--text-muted);font-size:0.78rem;margin-top:4px;">
+        We couldn't auto-detect your city — enter it here so AI queries target the right location.
+      </div>
+    </div>
+  </div>
+
+  <div class="trust-badges">
+    <span class="trust-item"><span class="trust-check">&#10003;</span> 100% Free</span>
+    <span class="trust-item"><span class="trust-check">&#10003;</span> No Signup Required</span>
+    <span class="trust-item"><span class="trust-check">&#10003;</span> Instant Results</span>
+  </div>
 </div>
 
-<!-- -- Run History ---------------------------------------------------- -->
-<div class="card fade-up">
-  <h2>📋 Run History</h2>
-  {% if history %}
-  <table>
-    <thead>
-      <tr>
-        <th>Run ID</th>
-        <th>Target</th>
-        <th>Env</th>
-        <th>Time</th>
-        <th>Tests</th>
-        <th>Pass Rate</th>
-        <th>Status</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in history %}
-      <tr>
-        <td class="mono text-sm">{{ r.run_id }}</td>
-        <td class="text-sm">{{ r.base_url[:40] }}</td>
-        <td><span class="badge badge-info">{{ r.environment }}</span></td>
-        <td class="text-sm text-muted"><span data-utc="{{ r.started_at }}" data-utc-format="datetime">{{ r.started_at[:19] }}</span></td>
-        <td>{{ r.summary.total }}</td>
-        <td>
-          {% set rate = r.summary.pass_rate %}
-          <span style="color:{% if rate >= 90 %}var(--green){% elif rate >= 70 %}var(--yellow){% else %}var(--red){% endif %}; font-weight:600;">
-            {{ rate }}%
-          </span>
-        </td>
-        <td><span class="badge badge-{{ 'passed' if r.status == 'completed' else r.status }}">{{ r.status }}</span></td>
-        <td><a href="/report/{{ r.run_id }}">View →</a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="text-muted">No test runs yet. Launch your first one above!</p>
-  {% endif %}
+<!-- ── Stats Bar ────────────────────────────────────────────── -->
+<div class="stats-bar fade-up">
+  <div class="stat-item">
+    <div class="stat-value gradient-text">50,000+</div>
+    <div class="stat-label">Websites Audited</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value gradient-text">100%</div>
+    <div class="stat-label">Free Forever</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value gradient-text">30 sec</div>
+    <div class="stat-label">Average Scan Time</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value gradient-text">24/7</div>
+    <div class="stat-label">Always Available</div>
+  </div>
 </div>
+
+<hr class="section-divider">
+
+<!-- ── Features Section ─────────────────────────────────────── -->
+<div class="section-block fade-up">
+  <div class="section-header">
+    <h2>Everything You Need to Know</h2>
+    <p>Our comprehensive audit tool analyzes every aspect of your website to help you improve performance, security, and user experience.</p>
+  </div>
+  <div class="landing-features">
+    <div class="landing-feature-card fade-up fade-up-delay-1">
+      <div class="feature-icon">&#x1F50D;</div>
+      <h3>SEO Analysis</h3>
+      <p>Comprehensive SEO audit including meta tags, keywords, content structure, and search engine optimization best practices.</p>
+    </div>
+    <div class="landing-feature-card fade-up fade-up-delay-2">
+      <div class="feature-icon">&#x1F512;</div>
+      <h3>Security Check</h3>
+      <p>Scan for security vulnerabilities, SSL certificates, headers, and protection against common web threats.</p>
+    </div>
+    <div class="landing-feature-card fade-up fade-up-delay-3">
+      <div class="feature-icon">&#x1F6E1;</div>
+      <h3>Privacy Compliance</h3>
+      <p>Evaluate privacy policies, cookie usage, GDPR compliance, and data protection measures.</p>
+    </div>
+    <div class="landing-feature-card fade-up fade-up-delay-1">
+      <div class="feature-icon">&#x26A1;</div>
+      <h3>Performance Metrics</h3>
+      <p>Analyze page load speed, resource optimization, caching, and overall performance scores.</p>
+    </div>
+    <div class="landing-feature-card fade-up fade-up-delay-2">
+      <div class="feature-icon">&#x1F4CA;</div>
+      <h3>Detailed Reports</h3>
+      <p>Get actionable insights with prioritized recommendations to improve your website's overall health.</p>
+    </div>
+    <div class="landing-feature-card fade-up fade-up-delay-3">
+      <div class="feature-icon">&#x267F;</div>
+      <h3>Accessibility Audit</h3>
+      <p>Check for WCAG compliance, screen reader compatibility, and inclusive design practices.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ── How It Works ──────────────────────────────────────────── -->
+<div class="section-block fade-up">
+  <div class="section-header">
+    <h2>How It Works</h2>
+    <p>Get a complete website audit in four simple steps</p>
+  </div>
+  <div class="steps-grid">
+    <div class="step-card fade-up fade-up-delay-1">
+      <div class="step-number">01</div>
+      <h3>Enter Your URL</h3>
+      <p>Simply paste your website URL into our audit tool. No registration or payment required.</p>
+    </div>
+    <div class="step-card fade-up fade-up-delay-2">
+      <div class="step-number">02</div>
+      <h3>Automated Scanning</h3>
+      <p>Our advanced algorithms scan your entire website, analyzing SEO, security, performance, and more.</p>
+    </div>
+    <div class="step-card fade-up fade-up-delay-3">
+      <div class="step-number">03</div>
+      <h3>Get Your Report</h3>
+      <p>Receive a comprehensive report with actionable insights and prioritized recommendations.</p>
+    </div>
+    <div class="step-card fade-up">
+      <div class="step-number">04</div>
+      <h3>Implement Changes</h3>
+      <p>Follow our expert recommendations to improve your website's performance and ranking.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ── FAQ Section ───────────────────────────────────────────── -->
+<div class="section-block fade-up" id="faq">
+  <div class="section-header">
+    <h2>Frequently Asked Questions</h2>
+    <p>Everything you need to know about our audit tool</p>
+  </div>
+  <div class="faq-list">
+    <details class="faq-item">
+      <summary>Is the website audit really free?</summary>
+      <div class="faq-answer">Yes, our website audit tool is completely free to use. There are no hidden charges, no premium tiers, and no credit card required. You can audit as many websites as you want.</div>
+    </details>
+    <details class="faq-item">
+      <summary>Do I need to create an account?</summary>
+      <div class="faq-answer">No account is needed. Simply enter your website URL and click "Audit Website" to get your comprehensive report instantly. No signup, no email verification.</div>
+    </details>
+    <details class="faq-item">
+      <summary>What does the audit check?</summary>
+      <div class="faq-answer">Our audit covers SEO (meta tags, headings, broken links), security (SSL, headers, vulnerabilities), performance (load speed, resource optimization), accessibility (WCAG compliance), forms validation, and AI visibility across platforms like ChatGPT, Perplexity, and Claude.</div>
+    </details>
+    <details class="faq-item">
+      <summary>How long does an audit take?</summary>
+      <div class="faq-answer">Most audits complete in under 30 seconds for small to medium websites. Larger sites with hundreds of pages may take a few minutes. You can monitor progress in real-time.</div>
+    </details>
+    <details class="faq-item">
+      <summary>Can I audit any website?</summary>
+      <div class="faq-answer">You can audit any publicly accessible website. For sites behind authentication, you can provide login credentials in the advanced options to audit protected pages as well.</div>
+    </details>
+    <details class="faq-item">
+      <summary>How often should I audit my website?</summary>
+      <div class="faq-answer">We recommend auditing your website at least once a month, or after making significant changes. Regular audits help catch issues before they impact your search rankings or user experience.</div>
+    </details>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ── CTA Section ───────────────────────────────────────────── -->
+<div class="cta-section fade-up">
+  <div class="cta-label">Start optimizing your website today</div>
+  <h2>Ready to Improve Your Website?</h2>
+  <p>Get your free comprehensive audit report in seconds. No credit card required.</p>
+  <a href="#audit" class="btn btn-primary" style="padding:14px 36px;font-size:1.05rem;">Get Free Audit</a>
+</div>
+
+{% if history and history|length > 0 %}
+<!-- ── Run History (only shown if there are previous runs) ──── -->
+<hr class="section-divider">
+<div class="section-block fade-up">
+  <div class="section-header">
+    <h2>Your Recent Audits</h2>
+    <p>View results from your previous website scans</p>
+  </div>
+  <div class="card" style="max-width:900px;margin:0 auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>Run ID</th>
+          <th>Target</th>
+          <th>Env</th>
+          <th>Time</th>
+          <th>Tests</th>
+          <th>Pass Rate</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in history %}
+        <tr>
+          <td class="mono text-sm">{{ r.run_id }}</td>
+          <td class="text-sm">{{ r.base_url[:40] }}</td>
+          <td><span class="badge badge-info">{{ r.environment }}</span></td>
+          <td class="text-sm text-muted"><span data-utc="{{ r.started_at }}" data-utc-format="datetime">{{ r.started_at[:19] }}</span></td>
+          <td>{{ r.summary.total }}</td>
+          <td>
+            {% set rate = r.summary.pass_rate %}
+            <span style="color:{% if rate >= 90 %}var(--green){% elif rate >= 70 %}var(--yellow){% else %}var(--red){% endif %}; font-weight:600;">
+              {{ rate }}%
+            </span>
+          </td>
+          <td><span class="badge badge-{{ 'passed' if r.status == 'completed' else r.status }}">{{ r.status }}</span></td>
+          <td><a href="/report/{{ r.run_id }}">View &rarr;</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4" defer></script>
 <script>
-/* ── Advanced Options: Toggle animation ────────────────────────── */
-(function() {
-  var detailsEl = document.getElementById('advanced-options');
-  var toggleIcon = document.getElementById('advanced-toggle');
-
-  if (detailsEl && toggleIcon) {
-    detailsEl.addEventListener('toggle', function() {
-      if (this.open) {
-        toggleIcon.style.transform = 'rotate(180deg)';
-      } else {
-        toggleIcon.style.transform = 'rotate(0deg)';
-      }
-    });
-  }
-})();
-
 /* ── AI Visibility: Auto-detect business info from URL ─────────── */
 var _detectTimer = null;
 var _lastDetectedUrl = '';
@@ -248,8 +260,7 @@ document.getElementById('base_url').addEventListener('input', function() {
   _detectTimer = setTimeout(function() { detectBusiness(); }, 1200);
 });
 
-/* Auto-detect on blur (tab/click away) — ensures detection fires even if
-   the user pastes a URL and immediately tabs to the next field. */
+/* Auto-detect on blur */
 document.getElementById('base_url').addEventListener('blur', function() {
   var url = this.value.trim();
   if (url && url !== _lastDetectedUrl) {
@@ -271,15 +282,6 @@ function detectBusiness() {
   if (!url || url === _lastDetectedUrl) return;
   _lastDetectedUrl = url;
 
-  var statusEl = document.getElementById('detect-status');
-  var resultEl = document.getElementById('detect-result');
-  var btn = document.getElementById('detectBtn');
-
-  statusEl.style.display = 'block';
-  resultEl.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = '⏳ Detecting...';
-
   fetch('/api/detect-business', {
     method: 'POST',
     headers: {
@@ -290,96 +292,47 @@ function detectBusiness() {
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
-    statusEl.style.display = 'none';
-    resultEl.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = '🔍 Re-detect';
-
-    document.getElementById('detected-name').textContent = data.business_name || '(unknown)';
-    document.getElementById('detected-sector').textContent = (data.sector || 'local business services').replace(/\b\w/g, function(l){return l.toUpperCase();});
-    document.getElementById('detected-location').textContent = data.location || '(not found)';
-    document.getElementById('detect-source').textContent = data.lookup_source ? ' (via ' + data.lookup_source.replace(/_/g, ' ') + ')' : '';
-
-    /* Pre-populate the location field — user can edit */
     var locInput = document.getElementById('business_location');
     if (data.location && !locInput._userEdited) {
       locInput.value = data.location;
-      locInput.placeholder = 'e.g. Seattle, WA';
     }
     if (!data.location) {
-      locInput.placeholder = 'Not detected — enter your city manually';
+      promptCityIfEmpty();
     }
-
-    /* Prompt user if city is still empty after detection */
-    promptCityIfEmpty();
   })
   .catch(function(err) {
-    statusEl.style.display = 'none';
-    btn.disabled = false;
-    btn.textContent = '🔍 Detect from URL';
     console.error('Detect failed:', err);
-    /* Prompt user to enter city manually on detection failure */
     promptCityIfEmpty();
   });
 }
 
-/**
- * Prompt the user to enter their business city if the field is still empty
- * after auto-detection. Instead of opening Advanced Options, promotes a city
- * input field directly into the Quick Scan area so the user never has to
- * dig into Advanced Options.
- */
 function promptCityIfEmpty() {
   var locInput = document.getElementById('business_location');
-  if (locInput.value.trim()) return; /* city already filled — nothing to do */
+  if (locInput.value.trim()) return;
 
   var wrapper = document.getElementById('quick-city-wrapper');
   var quickCity = document.getElementById('quick_city');
   if (!wrapper || !quickCity) return;
 
-  /* Show the promoted city field with a smooth animation */
   wrapper.style.display = 'block';
-  /* Force reflow so the transition triggers */
   void wrapper.offsetHeight;
   wrapper.style.maxHeight = '200px';
   wrapper.style.opacity = '1';
   wrapper.style.marginTop = '16px';
 
-  /* Add pulse animation to the promoted input */
-  quickCity.classList.add('city-needs-attention');
-
-  /* Smooth-scroll the promoted field into view */
-  wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-  /* Focus the promoted city input after the animation */
   setTimeout(function() { quickCity.focus(); }, 450);
 
-  /* Sync promoted city field → hidden Advanced Options city field */
   function onQuickCityInput() {
     locInput.value = quickCity.value;
     locInput._userEdited = true;
-    /* Remove pulse once user starts typing */
-    quickCity.classList.remove('city-needs-attention');
     quickCity.removeEventListener('input', onQuickCityInput);
     quickCity.addEventListener('input', function() {
       locInput.value = quickCity.value;
     });
   }
   quickCity.addEventListener('input', onQuickCityInput);
-
-  /* Also sync the other direction: if user opens Advanced Options and types there */
-  function onLocInput() {
-    quickCity.value = locInput.value;
-  }
-  locInput.addEventListener('input', onLocInput);
 }
 
-/* Track if user manually edited the location field */
-document.getElementById('business_location').addEventListener('input', function() {
-  this._userEdited = true;
-});
-
-/* -- Sync promoted city field on form submit ----------------- */
 document.getElementById('runForm').addEventListener('submit', function() {
   var quickCity = document.getElementById('quick_city');
   var locInput = document.getElementById('business_location');
@@ -387,64 +340,17 @@ document.getElementById('runForm').addEventListener('submit', function() {
     locInput.value = quickCity.value.trim();
   }
 });
-
-/* -- Inline form validation -------------------------------- */
-(function() {
-  var style = document.createElement('style');
-  style.textContent = 'input:invalid:not(:focus):not(:placeholder-shown),select:invalid:not(:focus){border-color:var(--danger)!important;}.field-error{color:var(--danger);font-size:0.78rem;margin-top:4px;display:none;}input:invalid:not(:focus):not(:placeholder-shown)~.field-error{display:block;}';
-  document.head.appendChild(style);
-
-  /* Add error messages to required fields */
-  var fields = [
-    {id: 'base_url', msg: 'Please enter a valid URL (e.g. https://example.com)'},
-    {id: 'business_location', msg: 'Business city is required for AI visibility queries'},
-  ];
-  fields.forEach(function(f) {
-    var el = document.getElementById(f.id);
-    if (el && !el.nextElementSibling?.classList?.contains('field-error')) {
-      var err = document.createElement('div');
-      err.className = 'field-error';
-      err.setAttribute('role', 'alert');
-      err.textContent = f.msg;
-      el.parentNode.insertBefore(err, el.nextSibling);
-    }
-  });
-
-  /* On form submit, highlight first invalid field */
-  document.getElementById('runForm').addEventListener('invalid', function(e) {
-    e.target.style.borderColor = 'var(--danger)';
-    e.target.setAttribute('aria-invalid', 'true');
-  }, true);
-})();
 </script>
-{% endblock %}
 
-{% block seo_content %}
-<section class="seo-content fade-up">
-    <div class="container">
-        <h2>Free Website Audit Tool</h2>
-        <p>Website Auditor is a comprehensive, free website testing tool that scans your entire site for SEO issues, broken links, security vulnerabilities, form problems, and performance bottlenecks&mdash;all in a single click. Unlike paid tools like Semrush or Ahrefs, there are no page limits, no subscriptions, and no login required.</p>
-
-        <h3>What Website Auditor Checks</h3>
-        <div class="feature-grid">
-            <div class="feature-card">
-                <h3>&#x1F50D; SEO & Broken Links</h3>
-                <p>Find broken internal and external links, redirect chains, 404 errors, and orphan pages that hurt your search engine rankings.</p>
-            </div>
-            <div class="feature-card">
-                <h3>&#x1F512; Security & Headers</h3>
-                <p>Audit HTTPS configuration, security headers, cookie security (SameSite, Secure, HttpOnly), and common vulnerability indicators.</p>
-            </div>
-            <div class="feature-card">
-                <h3>&#x1F4DD; Forms & Accessibility</h3>
-                <p>Validate forms, check for missing labels, test required field validation, and ensure interactive elements are accessible.</p>
-            </div>
-        </div>
-
-        <h3>How It Works</h3>
-        <p>Enter any URL, select which test modules to run, and click the Run button. Website Auditor will crawl your site, test every page, and generate a detailed report organized by issue type and severity. Results are available instantly in your browser, with a REST API for CI/CD integration coming soon.</p>
-
-        <p style="margin-top: 24px;"><a href="/features" style="color: var(--accent);">See all features &rarr;</a> &nbsp;&nbsp; <a href="/how-it-works" style="color: var(--accent);">Learn how it works &rarr;</a></p>
-    </div>
-</section>
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes cityPulse {
+    0%, 100% { border-color: var(--accent, #38bdf8); box-shadow: 0 0 0 0 rgba(56,189,248,0.4); }
+    50% { border-color: var(--accent, #38bdf8); box-shadow: 0 0 0 4px rgba(56,189,248,0.15); }
+  }
+  .city-needs-attention {
+    border-color: var(--accent, #38bdf8) !important;
+    animation: cityPulse 1.5s ease-in-out 3;
+  }
+</style>
 {% endblock %}
