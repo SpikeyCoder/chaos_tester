@@ -1069,10 +1069,25 @@ var bugReport = (function() {
                     document.head.appendChild(s);
                 });
             }
+            /* Hide bug overlay + button so screenshot captures the page behind */
+            var overlay = document.getElementById('bugOverlay');
+            var bugBtn = document.querySelector('.bug-btn');
+            overlay.style.display = 'none';
+            if (bugBtn) bugBtn.style.display = 'none';
+            /* Small delay to let the browser repaint */
+            await new Promise(function(r) { setTimeout(r, 50); });
             var canvas = await html2canvas(document.body, { useCORS: true, scale: 1, logging: false, backgroundColor: '#0f172a' });
+            /* Restore bug overlay + button */
+            overlay.style.display = '';
+            if (bugBtn) bugBtn.style.display = '';
             return canvas.toDataURL('image/png', 0.85);
         } catch (e) {
             console.warn('Screenshot capture failed:', e);
+            /* Restore in case of error */
+            var ov = document.getElementById('bugOverlay');
+            var bb = document.querySelector('.bug-btn');
+            if (ov) ov.style.display = '';
+            if (bb) bb.style.display = '';
             return null;
         }
     }
