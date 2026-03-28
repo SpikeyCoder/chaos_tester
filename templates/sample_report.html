@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% block title %}Sample Report -- Website Auditor{% endblock %}
+{% block robots %}index, follow{% endblock %}
+{% block content %}
+<div class="report-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <h2 style="font-size:1.4rem;font-weight:700;">
+      📊 Sample Report
+      <span class="badge badge-info" style="font-size:0.75rem;margin-left:8px;">example</span>
+    </h2>
+    <p class="text-muted text-sm mt-1 report-meta">
+      This is a sample audit report showing realistic findings across all modules &middot; https://bestlocalbakery.com &middot;
+      <span class="badge badge-info">production</span> &middot;
+      2026-03-27 12:45:30 UTC &middot; 87.3s
+    </p>
+  </div>
+  <div class="report-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <a href="/" class="btn btn-secondary text-sm" aria-label="Back to Dashboard">← Dashboard</a>
+  </div>
+</div>
+
+<!-- Banner indicating this is sample data -->
+<div class="card" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.4);border-left:4px solid #3b82f6;padding:16px 20px;margin-bottom:24px;">
+  <div style="display:flex;align-items:flex-start;gap:12px;">
+    <div style="font-size:1.4rem;">ℹ️</div>
+    <div>
+      <div style="font-weight:600;color:var(--text);margin-bottom:4px;">Sample Data</div>
+      <div style="color:var(--text-muted);font-size:0.9rem;">This report demonstrates realistic audit findings for illustrative purposes. The website, findings, and metrics shown are fictional but representative of typical audits.</div>
+    </div>
+  </div>
+</div>
+
+<!-- -- Summary Stats ---------------------------------------- -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="number" style="color:var(--text)">42</div>
+    <div class="label">Total Tests</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:#4ade80;">28</div>
+    <div class="label">Passed</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:#f87171;">14</div>
+    <div class="label">Failed</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:#fbbf24;">7</div>
+    <div class="label">Warnings</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:#f87171;">3</div>
+    <div class="label">Errors</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="color:#4ade80;">66%</div>
+    <div class="label">Pass Rate</div>
+  </div>
+</div>
+
+<!-- -- Filters ---------------------------------------------- -->
+<form onsubmit="return false"><div class="card" style="padding:14px 20px;">
+  <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+    <div class="filter-group">
+      <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
+      <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="all" onclick="filterResults('all', this)">All</button>
+      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" onclick="filterResults('failed', this)">Failed</button>
+      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" onclick="filterResults('warning', this)">Warnings</button>
+      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" onclick="filterResults('passed', this)">Passed</button>
+    </div>
+    <div class="filter-group">
+      <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
+      <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" onclick="filterModule('all', this)">All</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" onclick="filterModule('availability', this)">Avail</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" onclick="filterModule('links', this)">Links</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" onclick="filterModule('forms', this)">Forms</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" onclick="filterModule('security', this)">Security</button>
+    </div>
+  </div>
+</div>
+</form>
+
+<!-- -- Results Table (condensed: first 5 visible) ----------- -->
+<div class="card">
+  <h2>📝 Detailed Findings (14)</h2>
+  <div id="detailed-results-wrapper" style="overflow-x:auto;max-height:none;">
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th style="width:50px">#</th>
+          <th>Status</th>
+          <th>Severity</th>
+          <th>Module</th>
+          <th>Finding</th>
+          <th>Description</th>
+          <th style="width:80px">Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Broken Links -->
+        <tr class="result-row" data-status="failed" data-module="links">
+          <td class="text-muted mono text-sm cell-index">1</td>
+          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
+          <td data-label="Severity"><span class="badge badge-high">high</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#a855f7;font-weight:600;">links</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">Broken Link: /menu-old</div>
+            <div class="text-muted text-sm">HTTP 404 on legacy menu page</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">Page returns 404 Not Found. This link is still referenced from the main navigation.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">💡 Remove the link or restore the /menu-old page</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/menu-old</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">245ms</td>
+        </tr>
+
+        <!-- Redirect Chain -->
+        <tr class="result-row" data-status="failed" data-module="links">
+          <td class="text-muted mono text-sm cell-index">2</td>
+          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
+          <td data-label="Severity"><span class="badge badge-medium">medium</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#a855f7;font-weight:600;">links</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">Redirect Chain Detected</div>
+            <div class="text-muted text-sm">Multiple redirects on /specials path</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">Path /specials redirects to /deals which redirects to /offers (3 hops). This slows down page load by ~150ms.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">💡 Consolidate to direct redirect: /specials → /offers</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/specials</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">312ms</td>
+        </tr>
+
+        <!-- Security: CSP -->
+        <tr class="result-row" data-status="warning" data-module="security">
+          <td class="text-muted mono text-sm cell-index">3</td>
+          <td data-label="Status"><span class="badge badge-warning">warning</span></td>
+          <td data-label="Severity"><span class="badge badge-high">high</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#ef4444;font-weight:600;">security</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">Missing Content-Security-Policy Header</div>
+            <div class="text-muted text-sm">CSP header not found in response</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">The Content-Security-Policy header is missing, leaving the site vulnerable to XSS and injection attacks.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">💡 Add CSP header with restrictive defaults: default-src 'self'; script-src 'self' 'unsafe-inline'</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">42ms</td>
+        </tr>
+
+        <!-- Security: Cookies -->
+        <tr class="result-row" data-status="failed" data-module="security">
+          <td class="text-muted mono text-sm cell-index">4</td>
+          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
+          <td data-label="Severity"><span class="badge badge-high">high</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#ef4444;font-weight:600;">security</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">Session Cookie Missing Secure Flag</div>
+            <div class="text-muted text-sm">Cookie transmitted over plain HTTP</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">The session_id cookie is transmitted over insecure HTTP connections. Attackers on the same network could intercept it.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">💡 Add Secure flag to session cookies and enforce HTTPS only</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">38ms</td>
+        </tr>
+
+        <!-- Forms: Missing Label -->
+        <tr class="result-row" data-status="failed" data-module="forms">
+          <td class="text-muted mono text-sm cell-index">5</td>
+          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
+          <td data-label="Severity"><span class="badge badge-medium">medium</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#06b6d4;font-weight:600;">forms</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">Contact Form: Missing Label on Email Field</div>
+            <div class="text-muted text-sm">Email input lacks associated label element</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">The email input field on the contact form has no &lt;label&gt; element. Screen readers cannot identify the field purpose.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">💡 Add &lt;label for="email"&gt;Email Address&lt;/label&gt; and link with id attribute</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/contact</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">156ms</td>
+        </tr>
+
+        <!-- Forms: Missing CSRF -->
+        <tr class="result-row" data-status="failed" data-module="forms" style="display:none;">
+          <td class="text-muted mono text-sm cell-index">6</td>
+          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
+          <td data-label="Severity"><span class="badge badge-high">high</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#06b6d4;font-weight:600;">forms</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">Newsletter Form: Missing CSRF Token</div>
+            <div class="text-muted text-sm">No anti-CSRF protection detected</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">The newsletter subscription form doesn't include a CSRF token, making it vulnerable to cross-site request forgery attacks.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">💡 Add a CSRF token input field to all POST forms</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/subscribe</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">98ms</td>
+        </tr>
+
+        <!-- Availability: 503 -->
+        <tr class="result-row" data-status="failed" data-module="availability" style="display:none;">
+          <td class="text-muted mono text-sm cell-index">7</td>
+          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
+          <td data-label="Severity"><span class="badge badge-critical">critical</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#3b82f6;font-weight:600;">availability</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">Careers Page Returns 503 Service Unavailable</div>
+            <div class="text-muted text-sm">Server error on /careers path</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">The careers page consistently returns HTTP 503 Service Unavailable. This could indicate a database connection issue or misconfigured proxy.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">💡 Check backend service status and database connectivity for /careers endpoint</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/careers</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">2847ms</td>
+        </tr>
+
+        <!-- Availability: Slow Load -->
+        <tr class="result-row" data-status="warning" data-module="availability" style="display:none;">
+          <td class="text-muted mono text-sm cell-index">8</td>
+          <td data-label="Status"><span class="badge badge-warning">warning</span></td>
+          <td data-label="Severity"><span class="badge badge-high">high</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#3b82f6;font-weight:600;">availability</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">About Page Slow Load Time</div>
+            <div class="text-muted text-sm">Response time exceeds threshold</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">The /about page takes 4.2 seconds to load. Best practice is under 3 seconds for optimal user experience.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">💡 Profile backend queries; consider caching, database indexing, or CDN optimization</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/about</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">4247ms</td>
+        </tr>
+
+        <!-- More findings... -->
+        <tr class="result-row" data-status="passed" data-module="links" style="display:none;">
+          <td class="text-muted mono text-sm cell-index">9</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#a855f7;font-weight:600;">links</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">All Internal Links Accessible</div>
+            <div class="text-muted text-sm">No broken internal links found</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">All 27 internal links on the site resolved successfully.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">1234ms</td>
+        </tr>
+
+        <tr class="result-row" data-status="passed" data-module="security" style="display:none;">
+          <td class="text-muted mono text-sm cell-index">10</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#ef4444;font-weight:600;">security</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">X-Frame-Options Header Present</div>
+            <div class="text-muted text-sm">Clickjacking protection enabled</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">X-Frame-Options header is properly set to DENY, preventing clickjacking attacks.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">28ms</td>
+        </tr>
+
+        <tr class="result-row" data-status="passed" data-module="forms" style="display:none;">
+          <td class="text-muted mono text-sm cell-index">11</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#06b6d4;font-weight:600;">forms</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">Feedback Form Properly Validated</div>
+            <div class="text-muted text-sm">Client and server validation present</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">The feedback form includes proper HTML5 validation and server-side checks.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">187ms</td>
+        </tr>
+
+        <tr class="result-row" data-status="passed" data-module="availability" style="display:none;">
+          <td class="text-muted mono text-sm cell-index">12</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#3b82f6;font-weight:600;">availability</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">Homepage Load Time Optimal</div>
+            <div class="text-muted text-sm">Excellent performance</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">The homepage loads in 680ms, well below the 3-second threshold.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">680ms</td>
+        </tr>
+
+        <tr class="result-row" data-status="passed" data-module="security" style="display:none;">
+          <td class="text-muted mono text-sm cell-index">13</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#ef4444;font-weight:600;">security</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">HTTPS Enabled Everywhere</div>
+            <div class="text-muted text-sm">All pages serve over secure connection</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">All pages are served via HTTPS with a valid certificate from Let's Encrypt.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">35ms</td>
+        </tr>
+
+        <tr class="result-row" data-status="warning" data-module="links" style="display:none;">
+          <td class="text-muted mono text-sm cell-index">14</td>
+          <td data-label="Status"><span class="badge badge-warning">warning</span></td>
+          <td data-label="Severity"><span class="badge badge-medium">medium</span></td>
+          <td data-label="Module" class="text-sm">
+            <span style="color:#a855f7;font-weight:600;">links</span>
+          </td>
+          <td data-label="Finding">
+            <div style="font-weight:500;">External Link to Deprecated Domain</div>
+            <div class="text-muted text-sm">Link points to old domain</div>
+          </td>
+          <td data-label="" class="text-sm cell-details">
+            <div style="margin-bottom:4px;">Footer contains link to old.bestlocalbakery.com which redirects multiple times.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">💡 Update footer link to point to current domain or remove</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">432ms</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="text-align:center;padding:12px 0;">
+    <button type="button" class="btn btn-secondary text-sm" onclick="toggleDetailedResults()" id="detailed-toggle-btn">
+      Show All 14 Findings ▼
+    </button>
+  </div>
+</div>
+
+<script>
+let currentStatus = 'all';
+let currentModule = 'all';
+let _detailedExpanded = false;
+
+function filterResults(status, btn) {
+  currentStatus = status;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function filterModule(mod, btn) {
+  currentModule = mod;
+  document.querySelectorAll('.module-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  var isFiltering = currentStatus !== 'all' || currentModule !== 'all';
+  var container = document.getElementById('detailed-results-wrapper');
+  if (isFiltering) {
+    container.classList.add('scrollable-table');
+  } else if (!_detailedExpanded) {
+    container.classList.remove('scrollable-table');
+  }
+  document.querySelectorAll('.result-row').forEach(function(row, i) {
+    var matchStatus = currentStatus === 'all' || row.dataset.status === currentStatus;
+    var matchModule = currentModule === 'all' || row.dataset.module === currentModule;
+    if (isFiltering) {
+      row.style.display = (matchStatus && matchModule) ? '' : 'none';
+    } else if (_detailedExpanded) {
+      row.style.display = (matchStatus && matchModule) ? '' : 'none';
+    } else {
+      row.style.display = (matchStatus && matchModule && i < 5) ? '' : 'none';
+    }
+  });
+}
+
+function toggleDetailedResults() {
+  _detailedExpanded = !_detailedExpanded;
+  var btn = document.getElementById('detailed-toggle-btn');
+  var rows = document.querySelectorAll('.result-row');
+
+  if (_detailedExpanded) {
+    btn.textContent = 'Show First 5 Results ▲';
+  } else {
+    btn.textContent = 'Show All 14 Findings ▼';
+  }
+
+  applyFilters();
+}
+</script>
+
+{% endblock %}

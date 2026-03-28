@@ -445,6 +445,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                 <a href="/" {% if request.path == '/' %}class="active" aria-current="page"{% endif %}>Dashboard</a>
                 <a href="/latest" {% if request.path == '/latest' or request.path.startswith('/report/') %}class="active" aria-current="page"{% endif %}>Latest Report</a>
                 <a href="/features" {% if request.path == '/features' %}class="active" aria-current="page"{% endif %}>Features</a>
+                <a href="/sample-report" {% if request.path == '/sample-report' %}class="active" aria-current="page"{% endif %}>Sample Report</a>
                 <a href="/how-it-works" {% if request.path == '/how-it-works' %}class="active" aria-current="page"{% endif %}>How It Works</a>
             </nav>
         </div>

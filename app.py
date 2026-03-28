@@ -803,6 +803,7 @@ def sitemap_xml():
         {"loc": "https://website-auditor.io/", "priority": "1.0", "changefreq": "weekly", "lastmod": today},
         {"loc": "https://website-auditor.io/features", "priority": "0.8", "changefreq": "monthly", "lastmod": "2026-03-14"},
         {"loc": "https://website-auditor.io/how-it-works", "priority": "0.8", "changefreq": "monthly", "lastmod": "2026-03-14"},
+        {"loc": "https://website-auditor.io/sample-report", "priority": "0.7", "changefreq": "monthly", "lastmod": "2026-03-14"},
         {"loc": "https://website-auditor.io/latest", "priority": "0.6", "changefreq": "daily", "lastmod": today},
     ]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -826,6 +827,11 @@ def features_page():
 @app.route("/how-it-works")
 def how_it_works_page():
     return render_template("how_it_works.html")
+
+
+@app.route("/sample-report")
+def sample_report_page():
+    return render_template("sample_report.html")
 
 
 if __name__ == "__main__":

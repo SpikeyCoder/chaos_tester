@@ -649,6 +649,77 @@ function switchPerfTab(strategy) {
     overflow-wrap: break-word;
     word-break: break-word;
   }
+
+  /* Finding Guidance System */
+  .finding-guidance-wrapper {
+    display: none;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 12px;
+    font-size: 0.9rem;
+  }
+
+  .finding-guidance-wrapper.visible {
+    display: block;
+  }
+
+  .guidance-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: none;
+    border: none;
+    padding: 4px 0;
+    margin-top: 8px;
+    transition: opacity 0.2s;
+  }
+
+  .guidance-toggle:hover {
+    opacity: 0.8;
+  }
+
+  .guidance-section {
+    margin-bottom: 12px;
+  }
+
+  .guidance-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .guidance-label {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .guidance-text {
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+
+  .guidance-text strong {
+    font-weight: 600;
+  }
+
+  .guidance-icon {
+    display: inline-block;
+    transition: transform 0.2s;
+  }
+
+  .guidance-toggle.expanded .guidance-icon {
+    transform: rotate(180deg);
+  }
   </style>
 
 <script>
@@ -886,5 +957,122 @@ function toggleAIResults() {
     btn.textContent = 'Show All ' + rows.length + ' Results \u25BC';
   }
 }
+
+/* ====== Finding Guidance System ====== */
+var findingGuidance = {
+  '404': {
+    meaning: 'This page doesn\'t exist anymore. When visitors or Google\'s crawler hits this link, they get an error. This can hurt your search rankings and frustrate customers.',
+    action: 'Either fix the link to point to the correct page, set up a redirect to a working page, or remove the broken link entirely.'
+  },
+  'redirect_chain': {
+    meaning: 'This link bounces through multiple redirects before reaching the final page. Each redirect slows down page load and can confuse search engines.',
+    action: 'Update the link to point directly to the final destination URL, skipping the intermediate redirects.'
+  },
+  'security_headers': {
+    meaning: 'Your site is missing important security protections that help prevent attacks like cross-site scripting and clickjacking.',
+    action: 'Ask your web developer or hosting provider to add the recommended security headers to your server configuration.'
+  },
+  'form_labels': {
+    meaning: 'Screen readers and assistive technologies can\'t identify what information this form field needs. This makes your site harder to use for people with disabilities.',
+    action: 'Add a descriptive label to each form field so all users can understand what information to enter.'
+  },
+  'slow_page': {
+    meaning: 'This page takes too long to load. Most visitors will leave if a page takes more than 3 seconds. Slow pages also rank lower in Google search results.',
+    action: 'Compress images, enable browser caching, and minimize JavaScript and CSS files. Consider using a CDN.'
+  },
+  'missing_https': {
+    meaning: 'Your site isn\'t using a secure connection. Visitors may see a "Not Secure" warning in their browser, and Google penalizes non-HTTPS sites in search rankings.',
+    action: 'Install an SSL certificate (many hosts offer this for free) and redirect all HTTP traffic to HTTPS.'
+  },
+  'mixed_content': {
+    meaning: 'Your secure (HTTPS) page is loading some resources over insecure HTTP. This can trigger browser warnings and compromise your site\'s security.',
+    action: 'Update all resource URLs (images, scripts, stylesheets) to use HTTPS instead of HTTP.'
+  }
+};
+
+// Pattern matching rules for finding types
+var findingPatterns = [
+  { key: '404', patterns: ['404', 'broken', 'not found', 'does not exist'] },
+  { key: 'redirect_chain', patterns: ['redirect chain', 'multiple redirect', 'chained redirect'] },
+  { key: 'security_headers', patterns: ['content-security-policy', 'x-frame-options', 'security header', 'missing.*header'] },
+  { key: 'form_labels', patterns: ['missing label', 'no label', 'form field.*label', 'label.*form'] },
+  { key: 'slow_page', patterns: ['slow load', 'page load', 'load time', 'performance', 'speed'] },
+  { key: 'missing_https', patterns: ['not https', 'no https', 'missing https', 'http://', 'not secure'] },
+  { key: 'mixed_content', patterns: ['mixed content', 'http.*https', 'insecure.*resource'] }
+];
+
+// Find matching guidance for a finding
+function matchFindingGuidance(name, description, url) {
+  var combined = (name + ' ' + description + ' ' + (url || '')).toLowerCase();
+
+  for (var i = 0; i < findingPatterns.length; i++) {
+    var patterns = findingPatterns[i].patterns;
+    for (var p = 0; p < patterns.length; p++) {
+      if (combined.indexOf(patterns[p]) !== -1) {
+        return findingGuidance[findingPatterns[i].key];
+      }
+    }
+  }
+  return null;
+}
+
+// Initialize guidance for all result rows
+function initializeFindingGuidance() {
+  var rows = document.querySelectorAll('.result-row');
+  rows.forEach(function(row, idx) {
+    var nameEl = row.querySelector('[data-label="Test"] div:first-child');
+    var descEl = row.querySelector('[data-label="Test"] .text-muted');
+    var detailsEl = row.querySelector('.cell-details');
+
+    var name = nameEl ? nameEl.textContent : '';
+    var desc = descEl ? descEl.textContent : '';
+    var details = detailsEl ? detailsEl.textContent : '';
+
+    var guidance = matchFindingGuidance(name, desc, details);
+
+    if (guidance) {
+      // Create guidance wrapper
+      var wrapper = document.createElement('div');
+      wrapper.className = 'finding-guidance-wrapper';
+      wrapper.id = 'guidance-' + idx;
+
+      var html = '<button type="button" class="guidance-toggle" onclick="toggleGuidance(\'guidance-' + idx + '\')">';
+      html += '<span class="guidance-icon">ℹ️</span> What this means';
+      html += '</button>';
+      html += '<div class="guidance-content" style="display:none;">';
+      html += '<div class="guidance-section">';
+      html += '<span class="guidance-label">What This Means</span>';
+      html += '<div class="guidance-text">' + guidance.meaning + '</div>';
+      html += '</div>';
+      html += '<div class="guidance-section">';
+      html += '<span class="guidance-label">What To Do</span>';
+      html += '<div class="guidance-text">' + guidance.action + '</div>';
+      html += '</div>';
+      html += '</div>';
+
+      wrapper.innerHTML = html;
+
+      // Insert after the row
+      row.parentNode.insertBefore(wrapper, row.nextSibling);
+    }
+  });
+}
+
+// Toggle guidance visibility
+function toggleGuidance(wrapperID) {
+  var wrapper = document.getElementById(wrapperID);
+  var toggle = wrapper.querySelector('.guidance-toggle');
+  var content = wrapper.querySelector('.guidance-content');
+  var isVisible = content.style.display !== 'none';
+
+  content.style.display = isVisible ? 'none' : 'block';
+  wrapper.classList.toggle('visible', !isVisible);
+  toggle.classList.toggle('expanded', !isVisible);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  initializeFindingGuidance();
+});
 </script>
 {% endblock %}
