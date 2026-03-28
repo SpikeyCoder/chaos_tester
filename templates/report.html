@@ -76,28 +76,28 @@
   {% endif %}
 
   <div class="exec-metrics">
-    <div class="exec-metric-card">
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('all')" title="View all issues">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-warn">⚠</div>
       </div>
       <div class="exec-metric-value">{{ total_issues }}</div>
       <div class="exec-metric-label">Total Issues Found</div>
     </div>
-    <div class="exec-metric-card">
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('failed')" title="View critical issues">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-crit">✕</div>
       </div>
       <div class="exec-metric-value">{{ critical_issues }}</div>
       <div class="exec-metric-label">Critical Issues</div>
     </div>
-    <div class="exec-metric-card">
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('passed')" title="View passed checks">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-pass">✓</div>
       </div>
       <div class="exec-metric-value">{{ checks_passed }}</div>
       <div class="exec-metric-label">Checks Passed</div>
     </div>
-    <div class="exec-metric-card">
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('all')" title="View detailed results">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-time">⚡</div>
       </div>
@@ -266,33 +266,31 @@ document.addEventListener('DOMContentLoaded', function() {
   {% endif %}
 </div>
 
-<!-- -- Filters ---------------------------------------------- -->
-<form onsubmit="return false"><div class="card" style="padding:14px 20px;">
-  <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-    <div class="filter-group">
-      <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
-      <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="all" aria-pressed="true" onclick="filterResults('all', this)">All</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" aria-pressed="false" onclick="filterResults('failed', this)">Failed</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" aria-pressed="false" onclick="filterResults('warning', this)">Warnings</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" aria-pressed="false" onclick="filterResults('passed', this)">Passed</button>
-    </div>
-    <div class="filter-group">
-      <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
-      <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" aria-pressed="true" onclick="filterModule('all', this)">All</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" aria-pressed="false" onclick="filterModule('availability', this)">Avail</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" aria-pressed="false" onclick="filterModule('links', this)">Links</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" aria-pressed="false" onclick="filterModule('forms', this)">Forms</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="chaos" aria-pressed="false" onclick="filterModule('chaos', this)">Chaos</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="auth" aria-pressed="false" onclick="filterModule('auth', this)">Auth</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" aria-pressed="false" onclick="filterModule('security', this)">Security</button>
-    </div>
-  </div>
-</div>
-</form>
-
 <!-- -- Results Table (condensed: first 5 visible) ----------- -->
-<div class="card">
-  <h2>📝 Detailed Results ({{ report.results|length }})</h2>
+<div class="card" id="detailed-results-card">
+  <h2 id="detailed-results-heading">📝 Detailed Results ({{ report.results|length }})</h2>
+  <!-- Filter bar (inside Detailed Results) -->
+  <form onsubmit="return false" style="margin-bottom:16px;">
+    <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+      <div class="filter-group">
+        <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
+        <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="all" aria-pressed="true" onclick="filterResults('all', this)">All</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" aria-pressed="false" onclick="filterResults('failed', this)">Failed</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" aria-pressed="false" onclick="filterResults('warning', this)">Warnings</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" aria-pressed="false" onclick="filterResults('passed', this)">Passed</button>
+      </div>
+      <div class="filter-group">
+        <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
+        <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" aria-pressed="true" onclick="filterModule('all', this)">All</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" aria-pressed="false" onclick="filterModule('availability', this)">Avail</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" aria-pressed="false" onclick="filterModule('links', this)">Links</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" aria-pressed="false" onclick="filterModule('forms', this)">Forms</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="chaos" aria-pressed="false" onclick="filterModule('chaos', this)">Chaos</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="auth" aria-pressed="false" onclick="filterModule('auth', this)">Auth</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" aria-pressed="false" onclick="filterModule('security', this)">Security</button>
+      </div>
+    </div>
+  </form>
   <div id="detailed-results-wrapper" style="overflow-x:auto;max-height:none;">
     <table id="resultsTable">
       <thead>
@@ -859,6 +857,22 @@ function fallbackCopy(text, btn) {
 <script>
 let currentStatus = 'all';
 let currentModule = 'all';
+
+function scrollToResults(filter) {
+  /* Optionally apply a filter before scrolling */
+  if (filter && filter !== 'all') {
+    var btn = document.querySelector('.filter-btn[data-filter="' + filter + '"]');
+    if (btn) filterResults(filter, btn);
+  } else if (filter === 'all') {
+    var allBtn = document.querySelector('.filter-btn[data-filter="all"]');
+    if (allBtn) filterResults('all', allBtn);
+  }
+  /* Smooth scroll to the Detailed Results heading */
+  var target = document.getElementById('detailed-results-heading');
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
 
 function filterResults(status, btn) {
   currentStatus = status;
