@@ -402,18 +402,249 @@ function downloadCSV() {
   URL.revokeObjectURL(u);
 }
 
-function downloadPDF() {
-  /* Hide action buttons and non-essential UI during print */
-  var style = document.createElement('style');
-  style.id = 'pdf-print-style';
-  style.textContent = '@media print { .report-actions, nav, footer, .filter-bar { display: none !important; } body { background: #fff !important; color: #111 !important; } .card, .stat-card { border: 1px solid #ddd !important; background: #fff !important; } .badge { border: 1px solid #999; } @page { margin: 1cm; } }';
-  document.head.appendChild(style);
-  window.print();
-  /* Clean up after print dialog closes */
-  setTimeout(function() {
-    var ps = document.getElementById('pdf-print-style');
-    if (ps) ps.remove();
-  }, 1000);
+async function downloadPDF() {
+  var btn = document.querySelector('.pill-btn.pill-pdf');
+  var origText = btn ? btn.innerHTML : '';
+  if (btn) { btn.innerHTML = '⏳ Generating PDF…'; btn.disabled = true; }
+
+  try {
+    /* Dynamically load jsPDF + autoTable if not present */
+    if (typeof window.jspdf === 'undefined') {
+      await new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    if (typeof window.jspdf.jsPDF.API.autoTable === 'undefined') {
+      await new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    var pageW = doc.internal.pageSize.getWidth();
+    var margin = 16;
+    var usable = pageW - margin * 2;
+    var y = 16;
+
+    /* ── Color palette ─────────────────────────────── */
+    var colors = {
+      brand:    [59, 130, 246],
+      darkBg:   [15, 23, 42],
+      cardBg:   [30, 41, 59],
+      white:    [255, 255, 255],
+      muted:    [148, 163, 184],
+      green:    [74, 222, 128],
+      red:      [239, 68, 68],
+      yellow:   [234, 179, 8],
+      orange:   [249, 115, 22],
+      border:   [51, 65, 85]
+    };
+
+    /* ── Helper: draw rounded rect ────────────────── */
+    function roundRect(x, y, w, h, r, fill, stroke) {
+      doc.setFillColor.apply(doc, fill || colors.cardBg);
+      if (stroke) doc.setDrawColor.apply(doc, stroke);
+      doc.roundedRect(x, y, w, h, r, r, stroke ? 'FD' : 'F');
+    }
+
+    /* ── Page background ──────────────────────────── */
+    function drawPageBg() {
+      doc.setFillColor.apply(doc, colors.darkBg);
+      doc.rect(0, 0, pageW, doc.internal.pageSize.getHeight(), 'F');
+    }
+    drawPageBg();
+
+    /* ── Header bar ───────────────────────────────── */
+    roundRect(margin, y, usable, 20, 3, colors.cardBg);
+    doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+    doc.setTextColor.apply(doc, colors.white);
+    doc.text('Audit Report', margin + 6, y + 9);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.setTextColor.apply(doc, colors.muted);
+    var domain = (reportData.base_url || '').replace(/^https?:\/\//, '');
+    doc.text(domain + '  •  ' + (reportData.started_at || '').slice(0, 19) + '  •  ' + reportData.duration_s + 's', margin + 6, y + 15);
+    y += 26;
+
+    /* ── Executive Summary card ───────────────────── */
+    var s = reportData.summary || {};
+    var totalIssues = (s.failed || 0) + (s.errors || 0) + (s.warnings || 0);
+    var critIssues = (s.failed || 0) + (s.errors || 0);
+    var score = Math.round(s.pass_rate || 0);
+    var scoreColor = score >= 90 ? colors.green : (score >= 70 ? colors.orange : colors.red);
+
+    roundRect(margin, y, usable, 48, 3, colors.cardBg);
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+    doc.setTextColor.apply(doc, colors.white);
+    doc.text('Executive Summary', margin + 6, y + 10);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.setTextColor.apply(doc, colors.muted);
+    doc.text('Overall website health and critical findings', margin + 6, y + 16);
+
+    /* Score */
+    doc.setFontSize(32); doc.setFont('helvetica', 'bold');
+    doc.setTextColor.apply(doc, scoreColor);
+    doc.text(score.toString(), pageW - margin - 6, y + 14, { align: 'right' });
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.setTextColor.apply(doc, colors.muted);
+    doc.text('Overall Score', pageW - margin - 6, y + 19, { align: 'right' });
+
+    /* Metric boxes inside the card */
+    var metricsY = y + 24;
+    var mw = (usable - 24) / 4;
+    var metrics = [
+      { label: 'Total Issues', value: totalIssues.toString(), color: colors.yellow },
+      { label: 'Critical Issues', value: critIssues.toString(), color: colors.red },
+      { label: 'Checks Passed', value: (s.passed || 0).toString(), color: colors.green },
+      { label: 'Scan Duration', value: reportData.duration_s + 's', color: colors.brand }
+    ];
+    metrics.forEach(function(m, i) {
+      var mx = margin + 6 + i * (mw + 4);
+      roundRect(mx, metricsY, mw, 18, 2, colors.darkBg);
+      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+      doc.setTextColor.apply(doc, m.color);
+      doc.text(m.value, mx + 4, metricsY + 8);
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+      doc.setTextColor.apply(doc, colors.muted);
+      doc.text(m.label, mx + 4, metricsY + 14);
+    });
+    y += 54;
+
+    /* ── Alert banner (if critical issues) ────────── */
+    if (critIssues > 0) {
+      roundRect(margin, y, usable, 12, 2, [50, 20, 20], colors.red);
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+      doc.setTextColor.apply(doc, colors.red);
+      doc.text('⚠  ' + critIssues + ' Critical Issue' + (critIssues !== 1 ? 's' : '') + ' Require Immediate Attention', margin + 6, y + 7.5);
+      y += 16;
+    }
+
+    /* ── Results Table ────────────────────────────── */
+    var results = reportData.results || [];
+    if (results.length > 0) {
+      doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+      doc.setTextColor.apply(doc, colors.white);
+      doc.text('Detailed Results (' + results.length + ' tests)', margin, y + 6);
+      y += 12;
+
+      /* Sort: failed/error first, then warning, then passed */
+      var order = { failed: 0, error: 1, warning: 2, passed: 3, skipped: 4 };
+      var sorted = results.slice().sort(function(a, b) {
+        return (order[a.status] || 9) - (order[b.status] || 9);
+      });
+
+      var statusColors = {
+        passed:  colors.green,
+        failed:  colors.red,
+        error:   colors.red,
+        warning: colors.yellow,
+        skipped: colors.muted
+      };
+
+      var tableBody = sorted.map(function(r) {
+        return [
+          (r.status || '').toUpperCase(),
+          r.severity || '',
+          r.module || '',
+          r.name || '',
+          (r.details || r.description || '').substring(0, 120) + ((r.details || r.description || '').length > 120 ? '…' : ''),
+          r.recommendation ? r.recommendation.substring(0, 100) + (r.recommendation.length > 100 ? '…' : '') : '—'
+        ];
+      });
+
+      doc.autoTable({
+        startY: y,
+        margin: { left: margin, right: margin },
+        head: [['Status', 'Severity', 'Module', 'Check', 'Details', 'Recommendation']],
+        body: tableBody,
+        theme: 'plain',
+        styles: {
+          fontSize: 7,
+          cellPadding: 2.5,
+          textColor: [203, 213, 225],
+          lineColor: colors.border,
+          lineWidth: 0.2,
+          overflow: 'linebreak',
+          font: 'helvetica'
+        },
+        headStyles: {
+          fillColor: colors.cardBg,
+          textColor: colors.white,
+          fontStyle: 'bold',
+          fontSize: 7.5,
+          halign: 'left'
+        },
+        alternateRowStyles: {
+          fillColor: [20, 30, 48]
+        },
+        bodyStyles: {
+          fillColor: colors.darkBg
+        },
+        columnStyles: {
+          0: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+          1: { cellWidth: 14, halign: 'center' },
+          2: { cellWidth: 18 },
+          3: { cellWidth: 30 },
+          4: { cellWidth: 50 },
+          5: { cellWidth: usable - 14 - 14 - 18 - 30 - 50 }
+        },
+        didParseCell: function(data) {
+          if (data.section === 'body' && data.column.index === 0) {
+            var st = (data.cell.raw || '').toLowerCase();
+            var c = statusColors[st] || colors.muted;
+            data.cell.styles.textColor = c;
+          }
+          if (data.section === 'body' && data.column.index === 1) {
+            var sev = (data.cell.raw || '').toLowerCase();
+            if (sev === 'critical') data.cell.styles.textColor = colors.red;
+            else if (sev === 'high') data.cell.styles.textColor = colors.orange;
+            else if (sev === 'medium') data.cell.styles.textColor = colors.yellow;
+          }
+        },
+        didDrawPage: function() {
+          /* Dark background on every new page */
+          drawPageBg();
+        },
+        willDrawPage: function() {
+          drawPageBg();
+        }
+      });
+
+      y = doc.lastAutoTable.finalY + 8;
+    }
+
+    /* ── Footer on last page ──────────────────────── */
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+    doc.setTextColor.apply(doc, colors.muted);
+    var footY = doc.internal.pageSize.getHeight() - 8;
+    doc.text('Generated by Website Auditor  •  ' + window.location.href, margin, footY);
+    doc.text('Page ' + doc.internal.getNumberOfPages() + ' of ' + doc.internal.getNumberOfPages(), pageW - margin, footY, { align: 'right' });
+
+    /* ── Add page numbers to all pages ────────────── */
+    var totalPages = doc.internal.getNumberOfPages();
+    for (var i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+      doc.setTextColor.apply(doc, colors.muted);
+      doc.text('Page ' + i + ' of ' + totalPages, pageW - margin, footY, { align: 'right' });
+      if (i < totalPages) {
+        doc.text('Generated by Website Auditor', margin, footY);
+      }
+    }
+
+    doc.save('audit_' + reportData.run_id + '.pdf');
+  } catch (e) {
+    console.error('PDF generation failed:', e);
+    alert('PDF generation failed. Please try again.');
+  } finally {
+    if (btn) { btn.innerHTML = origText; btn.disabled = false; }
+  }
 }
 
 function copyShareLink() {
