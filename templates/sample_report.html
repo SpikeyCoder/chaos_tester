@@ -31,7 +31,7 @@
 </div>
 
 <!-- -- Summary Stats ---------------------------------------- -->
-<div class="stats-grid">
+<div class="stats-grid" role="region" aria-label="Audit summary statistics">
   <div class="stat-card">
     <div class="number" style="color:var(--text)">42</div>
     <div class="label">Total Tests</div>
@@ -63,18 +63,18 @@
   <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
     <div class="filter-group">
       <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
-      <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="all" onclick="filterResults('all', this)">All</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" onclick="filterResults('failed', this)">Failed</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" onclick="filterResults('warning', this)">Warnings</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" onclick="filterResults('passed', this)">Passed</button>
+      <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="all" aria-pressed="true" onclick="filterResults('all', this)">All</button>
+      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" aria-pressed="false" onclick="filterResults('failed', this)">Failed</button>
+      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" aria-pressed="false" onclick="filterResults('warning', this)">Warnings</button>
+      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" aria-pressed="false" onclick="filterResults('passed', this)">Passed</button>
     </div>
     <div class="filter-group">
       <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
-      <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" onclick="filterModule('all', this)">All</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" onclick="filterModule('availability', this)">Avail</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" onclick="filterModule('links', this)">Links</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" onclick="filterModule('forms', this)">Forms</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" onclick="filterModule('security', this)">Security</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" aria-pressed="true" onclick="filterModule('all', this)">All</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" aria-pressed="false" onclick="filterModule('availability', this)">Avail</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" aria-pressed="false" onclick="filterModule('links', this)">Links</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" aria-pressed="false" onclick="filterModule('forms', this)">Forms</button>
+      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" aria-pressed="false" onclick="filterModule('security', this)">Security</button>
     </div>
   </div>
 </div>
@@ -365,7 +365,7 @@
     </table>
   </div>
   <div style="text-align:center;padding:12px 0;">
-    <button type="button" class="btn btn-secondary text-sm" onclick="toggleDetailedResults()" id="detailed-toggle-btn">
+    <button type="button" class="btn btn-secondary text-sm" onclick="toggleDetailedResults()" id="detailed-toggle-btn" aria-expanded="false" aria-controls="resultsTable">
       Show All 14 Findings ▼
     </button>
   </div>
@@ -378,15 +378,17 @@ let _detailedExpanded = false;
 
 function filterResults(status, btn) {
   currentStatus = status;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
   btn.classList.add('active');
+  btn.setAttribute('aria-pressed', 'true');
   applyFilters();
 }
 
 function filterModule(mod, btn) {
   currentModule = mod;
-  document.querySelectorAll('.module-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.module-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
   btn.classList.add('active');
+  btn.setAttribute('aria-pressed', 'true');
   applyFilters();
 }
 
@@ -416,6 +418,7 @@ function toggleDetailedResults() {
   var btn = document.getElementById('detailed-toggle-btn');
   var rows = document.querySelectorAll('.result-row');
 
+  btn.setAttribute('aria-expanded', _detailedExpanded ? 'true' : 'false');
   if (_detailedExpanded) {
     btn.textContent = 'Show First 5 Results ▲';
   } else {
