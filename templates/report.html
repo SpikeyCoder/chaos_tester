@@ -107,6 +107,98 @@
   </div>
 </div>
 
+<!-- -- Section Summary (circular gauges) -------------------- -->
+<div class="section-summary card fade-up" style="margin-bottom:24px;" role="region" aria-label="Section summary scores">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+    <div style="width:40px;height:40px;border-radius:10px;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2a10 10 0 0 1 7.07 2.93"/></svg>
+    </div>
+    <div>
+      <h2 style="margin:0;font-size:1.2rem;font-weight:700;color:#fff;">Section Summary</h2>
+      <p style="margin:0;font-size:0.82rem;color:var(--text-muted);">Core Web Vitals and performance metrics</p>
+    </div>
+  </div>
+  <div class="section-gauges" id="sectionGauges">
+    <!-- Gauges are rendered by JS from reportData -->
+  </div>
+</div>
+<script>
+(function() {
+  var results = (reportData.results || []);
+  /* Build per-module pass rates */
+  var modules = {};
+  results.forEach(function(r) {
+    var m = r.module || 'other';
+    if (!modules[m]) modules[m] = { total: 0, passed: 0 };
+    modules[m].total++;
+    if (r.status === 'passed') modules[m].passed++;
+  });
+  function rate(m) {
+    if (!modules[m]) return null;
+    return Math.round((modules[m].passed / modules[m].total) * 100);
+  }
+  function combine() {
+    var total = 0, passed = 0;
+    for (var i = 0; i < arguments.length; i++) {
+      var m = modules[arguments[i]];
+      if (m) { total += m.total; passed += m.passed; }
+    }
+    return total > 0 ? Math.round((passed / total) * 100) : null;
+  }
+
+  /* Check for Lighthouse performance score */
+  var perf = reportData.performance_metrics || {};
+  var perfScore = null;
+  if (perf.mobile && perf.mobile.score != null) perfScore = Math.round(perf.mobile.score * 100);
+  else if (perf.desktop && perf.desktop.score != null) perfScore = Math.round(perf.desktop.score * 100);
+
+  var sections = [];
+  if (perfScore !== null) sections.push({ label: 'Performance', score: perfScore });
+  var sec = combine('security', 'auth');
+  if (sec !== null) sections.push({ label: 'Security', score: sec });
+  var avail = rate('availability');
+  if (avail !== null) sections.push({ label: 'Availability', score: avail });
+  var lf = combine('links', 'forms');
+  if (lf !== null) sections.push({ label: 'Links & Forms', score: lf });
+  var ch = rate('chaos');
+  if (ch !== null) sections.push({ label: 'Resilience', score: ch });
+
+  /* If we don't have enough sections, add an overall */
+  if (sections.length < 3) {
+    var s = reportData.summary || {};
+    if (s.pass_rate != null) sections.push({ label: 'Overall', score: Math.round(s.pass_rate) });
+  }
+
+  /* Render SVG ring gauges */
+  var container = document.getElementById('sectionGauges');
+  if (!container || sections.length === 0) return;
+
+  sections.forEach(function(sec) {
+    var score = sec.score;
+    var color = score >= 90 ? '#4ade80' : (score >= 70 ? '#f97316' : '#ef4444');
+    var bg = score >= 90 ? 'rgba(74,222,128,0.12)' : (score >= 70 ? 'rgba(249,115,22,0.12)' : 'rgba(239,68,68,0.12)');
+    var r = 44, stroke = 7, circ = 2 * Math.PI * r;
+    var offset = circ - (score / 100) * circ;
+    var html = '<div class="section-gauge-item">' +
+      '<div class="gauge-ring" style="position:relative;width:110px;height:110px;">' +
+        '<svg viewBox="0 0 100 100" width="110" height="110">' +
+          '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
+          '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
+            'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
+            'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
+            'style="transition:stroke-dashoffset 1s ease;"/>' +
+        '</svg>' +
+        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
+          '<span style="font-size:1.6rem;font-weight:700;color:' + color + ';">' + score + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="gauge-label-text">' + sec.label + '</div>' +
+    '</div>';
+    container.insertAdjacentHTML('beforeend', html);
+  });
+})();
+</script>
+
 <!-- -- Performance Dashboard -------------------------------- -->
 {% set perf = report.get("performance_metrics", {}) if report.get("performance_metrics") else {} %}
 {% set has_perf_data = perf and (perf.get("mobile", {}).get("score") is not none or perf.get("desktop", {}).get("score") is not none) %}
@@ -523,6 +615,90 @@ async function downloadPDF() {
       doc.setTextColor.apply(doc, colors.red);
       doc.text('⚠  ' + critIssues + ' Critical Issue' + (critIssues !== 1 ? 's' : '') + ' Require Immediate Attention', margin + 6, y + 7.5);
       y += 16;
+    }
+
+    /* ── Section Summary (ring gauges in PDF) ──────── */
+    var pdfResults = reportData.results || [];
+    var pdfModules = {};
+    pdfResults.forEach(function(r) {
+      var m = r.module || 'other';
+      if (!pdfModules[m]) pdfModules[m] = { total: 0, passed: 0 };
+      pdfModules[m].total++;
+      if (r.status === 'passed') pdfModules[m].passed++;
+    });
+    function pdfRate(m) { return pdfModules[m] ? Math.round((pdfModules[m].passed / pdfModules[m].total) * 100) : null; }
+    function pdfCombine() {
+      var t = 0, p = 0;
+      for (var i = 0; i < arguments.length; i++) { var m = pdfModules[arguments[i]]; if (m) { t += m.total; p += m.passed; } }
+      return t > 0 ? Math.round((p / t) * 100) : null;
+    }
+    var pdfPerf = reportData.performance_metrics || {};
+    var pdfPerfScore = null;
+    if (pdfPerf.mobile && pdfPerf.mobile.score != null) pdfPerfScore = Math.round(pdfPerf.mobile.score * 100);
+    else if (pdfPerf.desktop && pdfPerf.desktop.score != null) pdfPerfScore = Math.round(pdfPerf.desktop.score * 100);
+
+    var pdfSections = [];
+    if (pdfPerfScore !== null) pdfSections.push({ label: 'Performance', score: pdfPerfScore });
+    var pdfSec = pdfCombine('security', 'auth');
+    if (pdfSec !== null) pdfSections.push({ label: 'Security', score: pdfSec });
+    var pdfAvail = pdfRate('availability');
+    if (pdfAvail !== null) pdfSections.push({ label: 'Availability', score: pdfAvail });
+    var pdfLf = pdfCombine('links', 'forms');
+    if (pdfLf !== null) pdfSections.push({ label: 'Links & Forms', score: pdfLf });
+    var pdfCh = pdfRate('chaos');
+    if (pdfCh !== null) pdfSections.push({ label: 'Resilience', score: pdfCh });
+
+    if (pdfSections.length > 0) {
+      var gaugeCardH = 34;
+      roundRect(margin, y, usable, gaugeCardH, 3, colors.cardBg);
+      doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+      doc.setTextColor.apply(doc, colors.white);
+      doc.text('Section Summary', margin + 6, y + 8);
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+      doc.setTextColor.apply(doc, colors.muted);
+      doc.text('Core Web Vitals and performance metrics', margin + 6, y + 13);
+
+      var gCount = pdfSections.length;
+      var gSpacing = usable / (gCount + 1);
+      pdfSections.forEach(function(sec, i) {
+        var gx = margin + gSpacing * (i + 1);
+        var gy = y + 22;
+        var gr = 6; // radius in mm
+        var gScore = sec.score;
+        var gColor = gScore >= 90 ? colors.green : (gScore >= 70 ? colors.orange : colors.red);
+        var gBgColor = colors.border;
+
+        /* Background circle */
+        doc.setDrawColor.apply(doc, gBgColor);
+        doc.setLineWidth(1.8);
+        doc.circle(gx, gy, gr, 'S');
+
+        /* Score arc — approximate with a thick colored arc */
+        doc.setDrawColor.apply(doc, gColor);
+        doc.setLineWidth(1.8);
+        var startAngle = -90 * (Math.PI / 180);
+        var endAngle = startAngle + (gScore / 100) * 2 * Math.PI;
+        /* Draw arc as small line segments */
+        var steps = Math.max(Math.round(gScore / 2), 1);
+        for (var st = 0; st < steps; st++) {
+          var a1 = startAngle + (st / steps) * (endAngle - startAngle);
+          var a2 = startAngle + ((st + 1) / steps) * (endAngle - startAngle);
+          var x1 = gx + gr * Math.cos(a1), y1 = gy + gr * Math.sin(a1);
+          var x2 = gx + gr * Math.cos(a2), y2 = gy + gr * Math.sin(a2);
+          doc.line(x1, y1, x2, y2);
+        }
+
+        /* Score text */
+        doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+        doc.setTextColor.apply(doc, gColor);
+        doc.text(gScore.toString(), gx, gy + 3, { align: 'center' });
+
+        /* Label */
+        doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+        doc.setTextColor.apply(doc, colors.muted);
+        doc.text(sec.label, gx, gy + gr + 6, { align: 'center' });
+      });
+      y += gaugeCardH + 6;
     }
 
     /* ── Results Table ────────────────────────────── */

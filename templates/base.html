@@ -438,6 +438,22 @@ tr:hover td { background: rgba(56,189,248,0.04); }
     .exec-summary-header { flex-direction: column; gap: 16px; }
     .exec-score { text-align: left; }
     .exec-metrics { grid-template-columns: repeat(2, 1fr); }
+    .section-gauges { gap: 16px; }
+    .section-gauge-item .gauge-ring { width: 90px !important; height: 90px !important; }
+    .section-gauge-item .gauge-ring svg { width: 90px; height: 90px; }
+}
+
+/* -- Section summary gauges -------------------------------- */
+.section-gauges {
+    display: flex; justify-content: space-around; align-items: center;
+    flex-wrap: wrap; gap: 24px; padding: 24px 0 8px;
+}
+.section-gauge-item {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.gauge-label-text {
+    font-size: 0.85rem; color: var(--text-muted); font-weight: 500;
+    text-align: center;
 }
 
 /* -- Progress --------------------------------------------- */
