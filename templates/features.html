@@ -40,36 +40,39 @@
 {% endblock %}
 
 {% block content %}
-<h2 style="font-size:1.5rem; margin-bottom:24px;">&#x1F50D; Features</h2>
+<div class="hero-section fade-up">
+    <h2>Powerful <span class="gradient-text">Audit Features</span></h2>
+    <p class="hero-subtitle">Everything you need to monitor, test, and improve your website — all in one free tool.</p>
+</div>
 
 <div class="feature-grid">
-    <div class="feature-card">
+    <div class="feature-card fade-up fade-up-delay-1">
         <h3>&#x2705; Page Availability</h3>
         <p>Crawl your entire site and detect HTTP errors, redirects, timeouts, and unreachable pages. Know exactly which URLs are broken before your visitors do.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card fade-up fade-up-delay-2">
         <h3>&#x1F517; Broken Link Detection</h3>
         <p>Find every broken internal and external link across your website. Identify 404 errors, redirect chains, and orphan pages that hurt SEO and user experience.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card fade-up fade-up-delay-3">
         <h3>&#x1F4DD; Form & Interaction Testing</h3>
         <p>Validate that your forms, buttons, and interactive elements work correctly. Check for missing labels, required field validation, and accessibility compliance.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card fade-up fade-up-delay-1">
         <h3>&#x1F512; Security Analysis</h3>
         <p>Audit security headers, HTTPS configuration, cookie security (SameSite, Secure, HttpOnly), mixed content warnings, and common vulnerability indicators.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card fade-up fade-up-delay-2">
         <h3>&#x1F504; Error Resilience Testing</h3>
         <p>Test how your site handles failures with configurable resilience testing levels. Simulate slow responses, errors, and edge cases to make sure your site stays up.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card fade-up fade-up-delay-3">
         <h3>&#x1F510; Auth & Session Testing</h3>
         <p>Test authenticated areas of your site by providing login URLs and session cookies. Verify that protected pages behave correctly for logged-in users.</p>
     </div>
 </div>
 
-<div class="card mt-3">
+<div class="card mt-3 fade-up">
     <h2>Why Choose Website Auditor?</h2>
     <div class="feature-grid">
         <div class="feature-card">
@@ -87,7 +90,7 @@
     </div>
 </div>
 
-<div class="card mt-3">
+<div class="card mt-3 fade-up">
     <h2>💬 What Small Business Owners Say</h2>
     <div class="feature-grid">
         <div class="feature-card">
@@ -108,7 +111,7 @@
     </div>
 </div>
 
-<div class="card mt-3">
+<div class="card mt-3 fade-up">
     <h2>Frequently Asked Questions</h2>
     <div style="margin-top: 16px;">
         <details class="faq-item">
@@ -134,15 +137,20 @@
     </div>
 </div>
 <style>
-.faq-item { border-bottom: 1px solid var(--border); padding: 16px 0; }
-.faq-item:first-child { padding-top: 0; }
-.faq-item:last-child { border-bottom: none; }
+.faq-item {
+    background: var(--surface); backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 16px 20px; margin-bottom: 12px;
+    transition: border-color .3s;
+}
+.faq-item[open] { border-color: rgba(59,130,246,0.5); }
 .faq-item summary {
-    color: var(--accent); font-weight: 600; font-size: 1rem;
+    color: var(--text); font-weight: 600; font-size: 1rem;
     cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between;
 }
 .faq-item summary::-webkit-details-marker { display: none; }
-.faq-item summary::after { content: "+"; font-size: 1.4rem; color: var(--text-muted); transition: transform .2s; }
+.faq-item summary::after { content: "+"; font-size: 1.4rem; color: var(--accent); transition: transform .2s; }
 .faq-item[open] summary::after { content: "−"; }
 .faq-item p { margin-top: 10px; }
 </style>

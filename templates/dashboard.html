@@ -2,8 +2,14 @@
 {% block title %}Website Auditor -- Dashboard{% endblock %}
 
 {% block content %}
+<!-- -- Hero Section -------------------------------------------------- -->
+<div class="hero-section fade-up">
+  <h2>Audit Any Website <span class="gradient-text">in One Click</span></h2>
+  <p class="hero-subtitle">Scan for SEO issues, broken links, security vulnerabilities, and performance problems — completely free.</p>
+</div>
+
 <!-- -- Run Configuration -------------------------------------------------- -->
-<div class="card">
+<div class="card fade-up glow-accent">
   <h2>🚀 Launch Test Run</h2>
 
   <form method="POST" action="/run" id="runForm">
@@ -173,7 +179,7 @@
 </div>
 
 <!-- -- Run History ---------------------------------------------------- -->
-<div class="card">
+<div class="card fade-up">
   <h2>📋 Run History</h2>
   {% if history %}
   <table>
@@ -414,7 +420,7 @@ document.getElementById('runForm').addEventListener('submit', function() {
 {% endblock %}
 
 {% block seo_content %}
-<section class="seo-content">
+<section class="seo-content fade-up">
     <div class="container">
         <h2>Free Website Audit Tool</h2>
         <p>Website Auditor is a comprehensive, free website testing tool that scans your entire site for SEO issues, broken links, security vulnerabilities, form problems, and performance bottlenecks&mdash;all in a single click. Unlike paid tools like Semrush or Ahrefs, there are no page limits, no subscriptions, and no login required.</p>

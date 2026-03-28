@@ -5,15 +5,18 @@
 {% block og_description %}Enter a URL, choose your tests, get an instant audit report. Free and easy website scanning.{% endblock %}
 
 {% block content %}
-<h2 style="font-size:1.5rem; margin-bottom:24px;">&#x2699;&#xFE0F; How It Works</h2>
+<div class="hero-section fade-up">
+    <h2>How It <span class="gradient-text">Works</span></h2>
+    <p class="hero-subtitle">Three simple steps to a complete website audit.</p>
+</div>
 
-<div class="card">
+<div class="card fade-up fade-up-delay-1">
     <h2>Step 1: Enter Your URL</h2>
     <p class="text-muted" style="margin-bottom:16px;">Paste any website URL into the dashboard. Website Auditor accepts any publicly accessible URL&mdash;staging environments, production sites, or localhost for local development.</p>
     <p class="text-muted">Configure optional settings like crawl depth (how many levels deep to scan), max pages to crawl, request timeout, and concurrency level for parallel scanning.</p>
 </div>
 
-<div class="card">
+<div class="card fade-up fade-up-delay-2">
     <h2>Step 2: Select Test Modules</h2>
     <p class="text-muted" style="margin-bottom:16px;">Choose which audit modules to run. Each module focuses on a specific aspect of your website:</p>
     <ul style="color: var(--text-muted); list-style: disc; padding-left: 24px; margin-bottom: 16px;">
@@ -26,7 +29,7 @@
     <p class="text-muted">All modules are selected by default. Deselect any you want to skip.</p>
 </div>
 
-<div class="card">
+<div class="card fade-up fade-up-delay-3">
     <h2>Step 3: Review Your Report</h2>
     <p class="text-muted" style="margin-bottom:16px;">After the audit completes, you get a detailed report organized by module. Each finding includes:</p>
     <ul style="color: var(--text-muted); list-style: disc; padding-left: 24px; margin-bottom: 16px;">
@@ -38,12 +41,12 @@
     <p class="text-muted">Reports are accessible via the Latest Report link in the navigation, with a REST API for programmatic access coming soon.</p>
 </div>
 
-<div class="card">
+<div class="card fade-up">
     <h2>Advanced: REST API Access — Coming Soon</h2>
     <p class="text-muted" style="margin-bottom:16px;">A JSON API for integrating audits into CI/CD pipelines, monitoring dashboards, or custom workflows is currently in development. Stay tuned!</p>
 </div>
 
-<div style="text-align:center; margin-top:32px;">
+<div class="fade-up" style="text-align:center; margin-top:32px;">
     <a href="/" class="btn btn-primary" style="font-size:1.1rem; padding: 14px 32px;">&#x1F680; Start Your Free Audit Now</a>
 </div>
 {% endblock %}
