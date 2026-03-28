@@ -303,6 +303,143 @@ tr:hover td { background: rgba(56,189,248,0.04); }
 .stat-card .number { font-size: 1.6rem; font-weight: 700; }
 .stat-card .label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
 
+/* -- Report header (redesigned) --------------------------- */
+.report-top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
+}
+.report-top-bar .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--text-muted); font-size: 0.95rem; font-weight: 500;
+    text-decoration: none; transition: color .2s;
+}
+.report-top-bar .back-link:hover { color: #fff; }
+.report-top-bar .report-title-group { flex: 1; min-width: 0; }
+.report-top-bar .report-title-group h2 {
+    font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0;
+}
+.report-top-bar .report-title-group .report-subtitle {
+    font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;
+}
+.report-action-pills { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.report-action-pills .pill-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; border-radius: 10px; font-size: 0.85rem;
+    font-weight: 600; text-decoration: none; cursor: pointer;
+    border: none; transition: transform .15s, box-shadow .2s;
+}
+.report-action-pills .pill-btn:hover { transform: translateY(-1px); }
+.pill-btn.pill-share {
+    background: rgba(100,116,139,0.25); color: #cbd5e1;
+    border: 1px solid rgba(148,163,184,0.25);
+}
+.pill-btn.pill-share:hover { background: rgba(100,116,139,0.4); color: #fff; }
+.pill-btn.pill-pdf {
+    background: rgba(59,130,246,0.2); color: #60a5fa;
+    border: 1px solid rgba(59,130,246,0.3);
+}
+.pill-btn.pill-pdf:hover { background: rgba(59,130,246,0.35); color: #93c5fd; }
+.pill-btn.pill-schedule {
+    background: rgba(59,130,246,0.15); color: #93c5fd;
+    border: 1px solid rgba(59,130,246,0.35);
+}
+.pill-btn.pill-schedule:hover { background: rgba(59,130,246,0.3); color: #bfdbfe; }
+
+/* -- Executive summary card ------------------------------- */
+.exec-summary {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 32px;
+    margin-bottom: 28px;
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+}
+.exec-summary-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+}
+.exec-summary-header h2 { font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0 0 4px; }
+.exec-summary-header .exec-subtitle { font-size: 0.9rem; color: var(--text-muted); }
+.exec-score {
+    text-align: center; min-width: 100px;
+}
+.exec-score .score-number {
+    font-size: 3rem; font-weight: 800; line-height: 1;
+}
+.exec-score .score-label {
+    font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;
+}
+.exec-alert {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 16px 20px; border-radius: 12px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(220,38,38,0.3);
+    background: rgba(220,38,38,0.08);
+}
+.exec-alert .alert-icon {
+    font-size: 1.2rem; flex-shrink: 0; margin-top: 2px;
+}
+.exec-alert .alert-title {
+    font-size: 1rem; font-weight: 700; color: #ef4444; margin-bottom: 4px;
+}
+.exec-alert .alert-desc {
+    font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;
+}
+.exec-alert-warning {
+    border-color: rgba(234,179,8,0.3);
+    background: rgba(234,179,8,0.08);
+}
+.exec-alert-warning .alert-title { color: #eab308; }
+.exec-alert-success {
+    border-color: rgba(74,222,128,0.3);
+    background: rgba(74,222,128,0.08);
+}
+.exec-alert-success .alert-title { color: #4ade80; }
+.exec-metrics {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+}
+.exec-metric-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+    transition: border-color .3s, transform .3s;
+}
+.exec-metric-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+.exec-metric-top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+}
+.exec-metric-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+}
+.exec-metric-icon.icon-warn { background: rgba(234,179,8,0.15); color: #eab308; }
+.exec-metric-icon.icon-crit { background: rgba(220,38,38,0.15); color: #ef4444; }
+.exec-metric-icon.icon-pass { background: rgba(74,222,128,0.15); color: #4ade80; }
+.exec-metric-icon.icon-time { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.exec-metric-trend {
+    font-size: 0.78rem; font-weight: 600; display: inline-flex;
+    align-items: center; gap: 3px;
+}
+.exec-metric-trend.trend-down { color: #4ade80; }
+.exec-metric-trend.trend-up { color: #ef4444; }
+.exec-metric-trend.trend-same { color: var(--text-muted); }
+.exec-metric-trend.trend-good { color: #4ade80; }
+.exec-metric-value {
+    font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: 4px;
+}
+.exec-metric-label {
+    font-size: 0.82rem; color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+    .report-top-bar { flex-direction: column; align-items: flex-start; }
+    .report-action-pills { width: 100%; }
+    .pill-btn { flex: 1; justify-content: center; }
+    .exec-summary { padding: 20px; }
+    .exec-summary-header { flex-direction: column; gap: 16px; }
+    .exec-score { text-align: left; }
+    .exec-metrics { grid-template-columns: repeat(2, 1fr); }
+}
+
 /* -- Progress --------------------------------------------- */
 .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
 .progress-bar .fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width .4s; }
@@ -1257,7 +1394,15 @@ var WATime = (function() {
     document.querySelectorAll('[data-utc]').forEach(function(el) {
       var iso = el.getAttribute('data-utc');
       var fmt = el.getAttribute('data-utc-format') || 'datetime';
-      el.textContent = fmt === 'time' ? timeFromISO(iso) : fromISO(iso);
+      if (fmt === 'relative') {
+        var d = parseUTC(iso); var now = new Date(); var diff = Math.floor((now - d) / 1000);
+        if (diff < 60) el.textContent = 'just now';
+        else if (diff < 3600) el.textContent = Math.floor(diff / 60) + ' minutes ago';
+        else if (diff < 86400) el.textContent = Math.floor(diff / 3600) + ' hours ago';
+        else el.textContent = Math.floor(diff / 86400) + ' days ago';
+      } else {
+        el.textContent = fmt === 'time' ? timeFromISO(iso) : fromISO(iso);
+      }
       el.title = iso + ' UTC';
     });
   }

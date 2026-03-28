@@ -2,54 +2,108 @@
 {% block title %}Report {{ report.run_id }} -- Website Auditor{% endblock %}
 {% block robots %}noindex, nofollow{% endblock %}
 {% block content %}
-<div class="report-header fade-up" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
-  <div>
-    <h2 style="font-size:1.4rem;font-weight:700;">
-      📊 Test Report
-      <span class="badge badge-{{ 'passed' if report.status == 'completed' else 'failed' }}" style="font-size:0.75rem;margin-left:8px;">{{ report.status }}</span>
-    </h2>
-    <p class="text-muted text-sm mt-1 report-meta">
-      Run <code>{{ report.run_id }}</code> &middot; {{ report.base_url }} &middot;
-      <span class="badge badge-info">{{ report.environment }}</span> &middot;
-      <span data-utc="{{ report.started_at }}" data-utc-format="datetime">{{ report.started_at[:19] }} UTC</span> &middot; {{ report.duration_s }}s
-    </p>
+<!-- -- Report Top Bar -------------------------------------- -->
+<div class="report-top-bar fade-up">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="/" class="back-link" aria-label="Back to Dashboard">← Back</a>
+    <div class="report-title-group">
+      <h2>Audit Report</h2>
+      <div class="report-subtitle">
+        {{ report.base_url|replace('https://','')|replace('http://','') }} &bull;
+        Completed <span data-utc="{{ report.started_at }}" data-utc-format="relative">{{ report.started_at[:19] }} UTC</span>
+      </div>
+    </div>
   </div>
-  <div class="report-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-    <a href="#" onclick="downloadJSON(); return false;" class="btn btn-secondary text-sm" role="button" aria-label="Download report as JSON">⬇ JSON</a>
-    <a href="#" onclick="downloadCSV(); return false;" class="btn btn-secondary text-sm" role="button" aria-label="Download report as CSV">⬇ CSV</a>
-    <a href="#" onclick="downloadPDF(); return false;" class="btn btn-secondary text-sm" role="button" aria-label="Download report as PDF">⬇ PDF</a>
-    <a href="#" onclick="copyShareLink(); return false;" class="btn btn-secondary text-sm" id="share-link-btn" role="button" aria-label="Copy shareable link to clipboard">🔗 Copy Link</a>
-    <a href="/" class="btn btn-secondary text-sm" aria-label="Back to Dashboard">← Dashboard</a>
+  <div class="report-action-pills">
+    <button type="button" class="pill-btn pill-share" onclick="copyShareLink()" id="share-link-btn" aria-label="Share report">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share
+    </button>
+    <button type="button" class="pill-btn pill-pdf" onclick="downloadPDF()" aria-label="Export PDF">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+    <button type="button" class="pill-btn pill-schedule" onclick="window.location.href='/'" aria-label="Schedule Retest">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Schedule Retest
+    </button>
   </div>
 </div>
 
-<!-- -- Summary Stats ---------------------------------------- -->
+<!-- -- Executive Summary ----------------------------------- -->
 {% set s = report.summary %}
-<div class="stats-grid fade-up" role="region" aria-label="Audit summary statistics">
-  <div class="stat-card">
-    <div class="number" style="color:var(--text)">{{ s.total }}</div>
-    <div class="label">Total Tests</div>
+{% set rate = s.pass_rate %}
+{% set total_issues = s.failed + s.errors + s.warnings %}
+{% set critical_issues = s.failed + s.errors %}
+{% set checks_passed = s.passed %}
+{% set overall_score = rate|round|int %}
+<div class="exec-summary fade-up" role="region" aria-label="Executive summary">
+  <div class="exec-summary-header">
+    <div>
+      <h2>Executive Summary</h2>
+      <div class="exec-subtitle">Overall website health and critical findings</div>
+    </div>
+    <div class="exec-score">
+      <div class="score-number" style="color:{% if overall_score >= 90 %}var(--green){% elif overall_score >= 70 %}#f97316{% else %}var(--red){% endif %}">{{ overall_score }}</div>
+      <div class="score-label">Overall Score</div>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="number" style="color:var(--green)">{{ s.passed }}</div>
-    <div class="label">Passed</div>
+
+  {% if critical_issues > 0 %}
+  <div class="exec-alert{% if critical_issues == 0 %} exec-alert-success{% endif %}">
+    <div class="alert-icon">⚠</div>
+    <div>
+      <div class="alert-title">{{ critical_issues }} Critical Issue{{ 's' if critical_issues != 1 }} Require{{ '' if critical_issues != 1 else 's' }} Immediate Attention</div>
+      <div class="alert-desc">These security vulnerabilities pose significant risks and should be addressed as soon as possible.</div>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="number" style="color:var(--red)">{{ s.failed }}</div>
-    <div class="label">Failed</div>
+  {% elif total_issues > 0 %}
+  <div class="exec-alert exec-alert-warning">
+    <div class="alert-icon">⚠</div>
+    <div>
+      <div class="alert-title">{{ total_issues }} Issue{{ 's' if total_issues != 1 }} Found</div>
+      <div class="alert-desc">Some non-critical issues were detected. Review the details below to improve your site's health.</div>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="number" style="color:var(--yellow)">{{ s.warnings }}</div>
-    <div class="label">Warnings</div>
+  {% else %}
+  <div class="exec-alert exec-alert-success">
+    <div class="alert-icon">✓</div>
+    <div>
+      <div class="alert-title">All Checks Passed</div>
+      <div class="alert-desc">No issues were detected. Your website is in great health.</div>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="number" style="color:var(--red)">{{ s.errors }}</div>
-    <div class="label">Errors</div>
-  </div>
-  <div class="stat-card">
-    {% set rate = s.pass_rate %}
-    <div class="number" style="color:{% if rate >= 90 %}var(--green){% elif rate >= 70 %}var(--yellow){% else %}var(--red){% endif %}">{{ rate }}%</div>
-    <div class="label">Pass Rate</div>
+  {% endif %}
+
+  <div class="exec-metrics">
+    <div class="exec-metric-card">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-warn">⚠</div>
+      </div>
+      <div class="exec-metric-value">{{ total_issues }}</div>
+      <div class="exec-metric-label">Total Issues Found</div>
+    </div>
+    <div class="exec-metric-card">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-crit">✕</div>
+      </div>
+      <div class="exec-metric-value">{{ critical_issues }}</div>
+      <div class="exec-metric-label">Critical Issues</div>
+    </div>
+    <div class="exec-metric-card">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-pass">✓</div>
+      </div>
+      <div class="exec-metric-value">{{ checks_passed }}</div>
+      <div class="exec-metric-label">Checks Passed</div>
+    </div>
+    <div class="exec-metric-card">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-time">⚡</div>
+      </div>
+      <div class="exec-metric-value">{{ report.duration_s|round|int }}s</div>
+      <div class="exec-metric-label">Scan Duration</div>
+    </div>
   </div>
 </div>
 
