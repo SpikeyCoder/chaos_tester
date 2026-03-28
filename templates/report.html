@@ -123,7 +123,8 @@
   </div>
 </div>
 <script>
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof reportData === 'undefined') return;
   var results = (reportData.results || []);
   /* Build per-module pass rates */
   var modules = {};
@@ -196,7 +197,7 @@
     '</div>';
     container.insertAdjacentHTML('beforeend', html);
   });
-})();
+});
 </script>
 
 <!-- -- Performance Dashboard -------------------------------- -->
