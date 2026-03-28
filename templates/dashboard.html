@@ -36,7 +36,7 @@
       {% if status == 'running' %}
         <a href="/progress" class="btn-audit">View Progress</a>
       {% else %}
-        <button type="submit" class="btn-audit">Audit Website</button>
+        <button type="submit" class="btn-audit" id="auditBtn" disabled style="opacity:0.5;cursor:not-allowed;">Audit Website</button>
       {% endif %}
     </div>
   </form>
@@ -251,13 +251,35 @@
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4" defer></script>
 <script>
-/* ── AI Visibility: Auto-detect business info from URL ─────────── */
+/* ── Audit button enable/disable ───────────────────────────────── */
 var _detectTimer = null;
 var _lastDetectedUrl = '';
+var _cityResolved = false;
+
+function enableAuditBtn() {
+  var btn = document.getElementById('auditBtn');
+  if (!btn) return;
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.cursor = 'pointer';
+  _cityResolved = true;
+}
+
+function disableAuditBtn() {
+  var btn = document.getElementById('auditBtn');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.style.cursor = 'not-allowed';
+  _cityResolved = false;
+}
 
 /* Auto-detect when user changes the URL field (debounced) */
 document.getElementById('base_url').addEventListener('input', function() {
   clearTimeout(_detectTimer);
+  /* Reset state when URL changes */
+  disableAuditBtn();
+  _lastDetectedUrl = '';
   _detectTimer = setTimeout(function() { detectBusiness(); }, 1200);
 });
 
@@ -283,6 +305,9 @@ function detectBusiness() {
   if (!url || url === _lastDetectedUrl) return;
   _lastDetectedUrl = url;
 
+  /* Show detecting state */
+  disableAuditBtn();
+
   fetch('/api/detect-business', {
     method: 'POST',
     headers: {
@@ -296,25 +321,36 @@ function detectBusiness() {
     var locInput = document.getElementById('business_location');
     if (data.location && !locInput._userEdited) {
       locInput.value = data.location;
-    }
-    if (!data.location) {
+      /* City auto-detected — enable the button */
+      enableAuditBtn();
+    } else if (locInput.value.trim()) {
+      /* City was already manually filled — enable */
+      enableAuditBtn();
+    } else {
+      /* No city detected — show city field, keep button disabled */
       promptCityIfEmpty();
     }
   })
   .catch(function(err) {
     console.error('Detect failed:', err);
-    promptCityIfEmpty();
+    var locInput = document.getElementById('business_location');
+    if (locInput.value.trim()) {
+      enableAuditBtn();
+    } else {
+      promptCityIfEmpty();
+    }
   });
 }
 
 function promptCityIfEmpty() {
   var locInput = document.getElementById('business_location');
-  if (locInput.value.trim()) return;
+  if (locInput.value.trim()) { enableAuditBtn(); return; }
 
   var wrapper = document.getElementById('quick-city-wrapper');
   var quickCity = document.getElementById('quick_city');
   if (!wrapper || !quickCity) return;
 
+  /* Show the city field */
   wrapper.style.display = 'block';
   void wrapper.offsetHeight;
   wrapper.style.maxHeight = '200px';
@@ -323,22 +359,29 @@ function promptCityIfEmpty() {
 
   setTimeout(function() { quickCity.focus(); }, 450);
 
-  function onQuickCityInput() {
+  /* Enable button as soon as user types a city */
+  quickCity.addEventListener('input', function() {
     locInput.value = quickCity.value;
     locInput._userEdited = true;
-    quickCity.removeEventListener('input', onQuickCityInput);
-    quickCity.addEventListener('input', function() {
-      locInput.value = quickCity.value;
-    });
-  }
-  quickCity.addEventListener('input', onQuickCityInput);
+    if (quickCity.value.trim().length > 0) {
+      enableAuditBtn();
+    } else {
+      disableAuditBtn();
+    }
+  });
 }
 
-document.getElementById('runForm').addEventListener('submit', function() {
+/* Sync city on form submit */
+document.getElementById('runForm').addEventListener('submit', function(e) {
   var quickCity = document.getElementById('quick_city');
   var locInput = document.getElementById('business_location');
   if (quickCity && quickCity.value.trim() && !locInput.value.trim()) {
     locInput.value = quickCity.value.trim();
+  }
+  /* Final safety check */
+  if (!locInput.value.trim()) {
+    e.preventDefault();
+    promptCityIfEmpty();
   }
 });
 </script>
