@@ -1,6 +1,6 @@
 function toggleProdWarning() {
   var env = document.getElementById('environment').value;
-  document.getElementById('prod-warning').classList.toggle('hidden', env !== 'production');
+  document.getElementById('prod-warning').classList.toggle('hidden', env === 'production');
 }
 
 /* -- Inline progress overlay for BUG-018 -------------------------------- */

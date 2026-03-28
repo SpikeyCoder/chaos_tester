@@ -15,6 +15,8 @@
     </p>
   </div>
   <div class="report-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <a href="#" onclick="downloadPDF(); return false;" class="btn btn-secondary text-sm" role="button" aria-label="Download report as PDF">⬇ PDF</a>
+    <a href="#" onclick="copyShareLink(); return false;" class="btn btn-secondary text-sm" id="share-link-btn" role="button" aria-label="Copy shareable link to clipboard">🔗 Copy Link</a>
     <a href="/" class="btn btn-secondary text-sm" aria-label="Back to Dashboard">← Dashboard</a>
   </div>
 </div>
@@ -426,6 +428,35 @@ function toggleDetailedResults() {
   }
 
   applyFilters();
+}
+
+function downloadPDF() {
+  var style = document.createElement('style');
+  style.id = 'pdf-print-style';
+  style.textContent = '@media print { .report-actions, nav, footer, .filter-bar { display: none !important; } body { background: #fff !important; color: #111 !important; } .card, .stat-card { border: 1px solid #ddd !important; background: #fff !important; } .badge { border: 1px solid #999; } @page { margin: 1cm; } }';
+  document.head.appendChild(style);
+  window.print();
+  setTimeout(function() { var ps = document.getElementById('pdf-print-style'); if (ps) ps.remove(); }, 1000);
+}
+
+function copyShareLink() {
+  var url = window.location.href;
+  var btn = document.getElementById('share-link-btn');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function() {
+      btn.textContent = '\u2713 Copied!';
+      setTimeout(function() { btn.textContent = '\uD83D\uDD17 Copy Link'; }, 2000);
+    }).catch(function() { fallbackCopy(url, btn); });
+  } else { fallbackCopy(url, btn); }
+}
+
+function fallbackCopy(text, btn) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px;';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); btn.textContent = '\u2713 Copied!'; setTimeout(function() { btn.textContent = '\uD83D\uDD17 Copy Link'; }, 2000); }
+  catch(e) { prompt('Copy this link:', text); }
+  document.body.removeChild(ta);
 }
 </script>
 

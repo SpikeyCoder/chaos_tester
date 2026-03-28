@@ -129,6 +129,42 @@ input:focus, select:focus, textarea:focus {
 }
 textarea { resize: vertical; min-height: 60px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.form-row > :only-child { grid-column: 1 / -1; }
+
+/* -- Info-icon tooltips ----------------------------------- */
+.info-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--border); color: var(--text-muted);
+    font-size: 0.65rem; font-weight: 700; font-style: normal;
+    cursor: help; margin-left: 6px; position: relative;
+    vertical-align: middle; line-height: 1; flex-shrink: 0;
+    transition: background .2s, color .2s;
+}
+.info-icon:hover, .info-icon:focus {
+    background: var(--accent); color: var(--bg);
+    outline: none;
+}
+.info-icon .info-tip {
+    display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%); width: 240px; padding: 10px 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; font-size: 0.8rem; font-weight: 400;
+    color: var(--text-muted); line-height: 1.45;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35); z-index: 50;
+    pointer-events: none; text-align: left; white-space: normal;
+}
+.info-icon .info-tip::after {
+    content: ''; position: absolute; top: 100%; left: 50%;
+    transform: translateX(-50%); border: 6px solid transparent;
+    border-top-color: var(--border);
+}
+.info-icon:hover .info-tip,
+.info-icon:focus .info-tip { display: block; }
+@media (max-width: 600px) {
+    .info-icon .info-tip { width: 200px; left: auto; right: -8px; transform: none; }
+    .info-icon .info-tip::after { left: auto; right: 12px; transform: none; }
+}
 
 /* -- Buttons ---------------------------------------------- */
 .btn {
