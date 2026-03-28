@@ -126,13 +126,26 @@
               <label for="business_location">Business City / Location</label>
               <input type="text" id="business_location" name="business_location"
                      placeholder="e.g. Seattle, WA" value="" required>
+              <div id="city-nudge" style="display:none;color:var(--warning,#f59e0b);font-size:0.82rem;margin-top:6px;font-weight:600;">
+                ⚠ City not detected — please enter your business city for AI visibility results.
+              </div>
               <div style="color:var(--text-muted);font-size:0.78rem;margin-top:4px;">
                 Required — enter your business city so AI visibility queries target the right location.
               </div>
             </div>
           </div>
         </div>
-        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        <style>
+          @keyframes spin { to { transform: rotate(360deg); } }
+          @keyframes cityPulse {
+            0%, 100% { border-color: var(--warning, #f59e0b); box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+            50% { border-color: var(--warning, #f59e0b); box-shadow: 0 0 0 4px rgba(245,158,11,0.15); }
+          }
+          .city-needs-attention {
+            border-color: var(--warning, #f59e0b) !important;
+            animation: cityPulse 1.5s ease-in-out 3;
+          }
+        </style>
 
         <h3 style="margin-top:20px;margin-bottom:12px;">🧪 Test Modules</h3>
         <div class="checkbox-row">
@@ -219,6 +232,16 @@ document.getElementById('base_url').addEventListener('input', function() {
   _detectTimer = setTimeout(function() { detectBusiness(); }, 1200);
 });
 
+/* Auto-detect on blur (tab/click away) — ensures detection fires even if
+   the user pastes a URL and immediately tabs to the next field. */
+document.getElementById('base_url').addEventListener('blur', function() {
+  var url = this.value.trim();
+  if (url && url !== _lastDetectedUrl) {
+    clearTimeout(_detectTimer);
+    detectBusiness();
+  }
+});
+
 /* Also detect on page load if a URL is already filled */
 (function() {
   var url = document.getElementById('base_url').value.trim();
@@ -270,13 +293,52 @@ function detectBusiness() {
     if (!data.location) {
       locInput.placeholder = 'Not detected — enter your city manually';
     }
+
+    /* Prompt user if city is still empty after detection */
+    promptCityIfEmpty();
   })
   .catch(function(err) {
     statusEl.style.display = 'none';
     btn.disabled = false;
     btn.textContent = '🔍 Detect from URL';
     console.error('Detect failed:', err);
+    /* Prompt user to enter city manually on detection failure */
+    promptCityIfEmpty();
   });
+}
+
+/**
+ * Prompt the user to enter their business city if the field is still empty
+ * after auto-detection. Opens the Advanced Options panel, highlights the
+ * city field, and shows an inline nudge message.
+ */
+function promptCityIfEmpty() {
+  var locInput = document.getElementById('business_location');
+  if (locInput.value.trim()) return; /* city already filled — nothing to do */
+
+  /* Ensure Advanced Options is open so the city field is visible */
+  var details = document.getElementById('advanced-options');
+  if (details && !details.open) {
+    details.open = true;
+  }
+
+  /* Add highlight class for the pulse animation */
+  locInput.classList.add('city-needs-attention');
+
+  /* Show the inline nudge message */
+  var nudge = document.getElementById('city-nudge');
+  if (nudge) nudge.style.display = 'block';
+
+  /* Smooth-scroll the city field into view */
+  locInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  /* Remove highlight once the user starts typing */
+  function onCityInput() {
+    locInput.classList.remove('city-needs-attention');
+    if (nudge) nudge.style.display = 'none';
+    locInput.removeEventListener('input', onCityInput);
+  }
+  locInput.addEventListener('input', onCityInput);
 }
 
 /* Track if user manually edited the location field */
