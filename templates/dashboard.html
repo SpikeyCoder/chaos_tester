@@ -260,8 +260,10 @@
 <script>
 /* ── Audit button + city detection ─────────────────────────────── */
 var _detectTimer = null;
+var _blurTimer = null;
 var _lastDetectedUrl = '';
 var _cityListenerAdded = false;
+var _isMobile = /Mobi|Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || ('ontouchstart' in window);
 
 function enableAuditBtn() {
   var btn = document.getElementById('auditBtn');
@@ -328,21 +330,34 @@ function hideCityField() {
   setTimeout(function() { wrapper.style.display = 'none'; }, 400);
 }
 
-/* Auto-detect on blur (fires immediately, no debounce wait) */
+/* Auto-detect on blur — debounced to avoid false triggers from mobile virtual keyboard */
 document.getElementById('base_url').addEventListener('blur', function() {
-  var url = this.value.trim();
+  var urlField = this;
+  var url = urlField.value.trim();
+  clearTimeout(_blurTimer);
   if (url && url !== _lastDetectedUrl) {
-    clearTimeout(_detectTimer);
-    detectBusiness();
+    var delay = _isMobile ? 400 : 150;
+    _blurTimer = setTimeout(function() {
+      /* If the URL field regained focus (e.g. keyboard reappeared), skip detection */
+      if (document.activeElement === urlField) return;
+      clearTimeout(_detectTimer);
+      detectBusiness();
+    }, delay);
   }
 });
 
 /* Auto-detect when user changes the URL field (debounced 600ms) */
 document.getElementById('base_url').addEventListener('input', function() {
   clearTimeout(_detectTimer);
+  clearTimeout(_blurTimer);  /* Cancel any pending blur-triggered detection */
   _lastDetectedUrl = '';
   disableAuditBtn();
   _detectTimer = setTimeout(function() { detectBusiness(); }, 600);
+});
+
+/* Cancel blur detection if user returns to URL field (e.g. mobile keyboard reappears) */
+document.getElementById('base_url').addEventListener('focus', function() {
+  clearTimeout(_blurTimer);
 });
 
 /* Also detect on page load if a URL is already filled */
@@ -394,7 +409,13 @@ function detectBusiness() {
     } else {
       /* Detection failed, no city — update label, keep field visible */
       showCityField(false);
-      setTimeout(function() { quickCity.focus(); }, 100);
+      /* Only auto-focus city on desktop; on mobile, don't steal focus */
+      if (!_isMobile) {
+        setTimeout(function() {
+          var urlField = document.getElementById('base_url');
+          if (document.activeElement !== urlField) quickCity.focus();
+        }, 100);
+      }
     }
   })
   .catch(function(err) {
@@ -407,7 +428,12 @@ function detectBusiness() {
       enableAuditBtn();
     } else {
       showCityField(false);
-      setTimeout(function() { quickCity.focus(); }, 100);
+      if (!_isMobile) {
+        setTimeout(function() {
+          var urlField = document.getElementById('base_url');
+          if (document.activeElement !== urlField) quickCity.focus();
+        }, 100);
+      }
     }
   });
 }
