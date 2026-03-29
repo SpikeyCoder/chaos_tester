@@ -53,8 +53,8 @@
   <div class="exec-alert{% if critical_issues == 0 %} exec-alert-success{% endif %}">
     <div class="alert-icon">⚠</div>
     <div>
-      <div class="alert-title">{{ critical_issues }} Critical Issue{{ 's' if critical_issues != 1 }} Require{{ '' if critical_issues != 1 else 's' }} Immediate Attention</div>
-      <div class="alert-desc">These security vulnerabilities pose significant risks and should be addressed as soon as possible.</div>
+      <div class="alert-title">{{ critical_issues }} Issue{{ 's' if critical_issues != 1 }} Found That May Affect Your Customers</div>
+      <div class="alert-desc">These issues could impact your visitors' experience, search engine rankings, or site security. Review the details below for plain-language explanations and recommended fixes.</div>
     </div>
   </div>
   {% elif total_issues > 0 %}
@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </thead>
       <tbody>
         {% for r in report.results %}
-        <tr class="result-row" data-status="{{ r.status }}" data-module="{{ r.module }}" {% if loop.index > 5 %}style="display:none;"{% endif %}>
+        <tr class="result-row" data-status="{{ r.status }}" data-module="{{ r.module }}" {% if loop.index > 5 %}style="display:none;"{% endif %} onclick="toggleResultDetail(this)" style="cursor:pointer;{% if loop.index > 5 %}display:none;{% endif %}">
           <td class="text-muted mono text-sm cell-index">{{ loop.index }}</td>
           <td data-label="Status"><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
           <td data-label="Severity"><span class="badge badge-{{ r.severity }}">{{ r.severity }}</span></td>
@@ -315,10 +315,13 @@ document.addEventListener('DOMContentLoaded', function() {
             <span style="color:{{ mc.get(r.module, '#8b8fa3') }};font-weight:600;">{{ r.module }}</span>
           </td>
           <td data-label="Test">
-            <div style="font-weight:500;">{{ r.name }}</div>
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;">
+              <span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">▶</span>
+              {{ r.name }}
+            </div>
             {% if r.description %}<div class="text-muted text-sm" style="word-wrap:break-word;overflow-wrap:break-word;">{{ r.description }}</div>{% endif %}
           </td>
-          <td data-label="" class="text-sm cell-details">
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
             {% if r.details %}<div style="margin-bottom:4px;word-wrap:break-word;overflow-wrap:break-word;">{{ r.details }}</div>{% endif %}
             {% if r.recommendation %}
             <div style="color:var(--accent);font-size:0.8rem;word-wrap:break-word;overflow-wrap:break-word;">💡 {{ r.recommendation }}</div>
@@ -857,6 +860,16 @@ function fallbackCopy(text, btn) {
 <script>
 let currentStatus = 'all';
 let currentModule = 'all';
+
+/* F-05: Expand/collapse result row details */
+function toggleResultDetail(row) {
+  var detailCell = row.querySelector('.result-detail-cell');
+  var chevron = row.querySelector('.expand-chevron');
+  if (!detailCell) return;
+  var isOpen = detailCell.style.display !== 'none';
+  detailCell.style.display = isOpen ? 'none' : '';
+  if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
 
 function scrollToResults(filter) {
   /* Optionally apply a filter before scrolling */

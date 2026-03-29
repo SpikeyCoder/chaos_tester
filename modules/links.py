@@ -72,9 +72,12 @@ class BrokenLinkScanner(BaseModule):
             if href.startswith(("http://", "https://")):
                 resources.append((href, "link"))
 
-        # <img src>
+        # <img src> — skip data: URIs (inline SVG/base64 images are not broken)
         for img in soup.find_all("img", src=True):
-            src = urljoin(page_url, img["src"])
+            raw_src = img["src"].strip()
+            if raw_src.startswith("data:"):
+                continue  # F-06: data URIs are valid inline images, not broken
+            src = urljoin(page_url, raw_src)
             resources.append((src, "image"))
 
         # <script src>

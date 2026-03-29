@@ -123,7 +123,7 @@ header.scrolled {
 header h1 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
 header h1 .site-logo { width: 28px; height: 28px; vertical-align: middle; }
 nav { display: flex; gap: 24px; align-items: center; }
-nav a { color: var(--text-muted); font-size: 1rem; font-weight: 500; transition: color .2s; }
+nav a { color: var(--text-muted); font-size: 1rem; font-weight: 500; transition: color .2s; padding: 10px 4px; min-height: 44px; display: inline-flex; align-items: center; }
 nav a:hover, nav a.active { color: #fff; }
 
 /* -- Cards (glassmorphism) -------------------------------- */
@@ -205,7 +205,7 @@ textarea { resize: vertical; min-height: 60px; }
 /* -- Buttons ---------------------------------------------- */
 .btn {
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 22px;
+    padding: 12px 22px; min-height: 44px;
     border: none; border-radius: var(--radius-sm);
     font-size: 0.95rem; font-weight: 600;
     cursor: pointer; transition: all .2s;
@@ -324,7 +324,7 @@ tr:hover td { background: rgba(56,189,248,0.04); }
 .report-action-pills { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .report-action-pills .pill-btn {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 10px 20px; border-radius: 10px; font-size: 0.85rem;
+    padding: 12px 20px; min-height: 44px; border-radius: 10px; font-size: 0.85rem;
     font-weight: 600; text-decoration: none; cursor: pointer;
     border: none; transition: transform .15s, box-shadow .2s;
 }
@@ -514,7 +514,7 @@ footer {
     contain-intrinsic-size: auto 80px;
 }
 footer p { color: var(--text-muted); font-size: 0.85rem; }
-footer a { color: var(--accent); }
+footer a { color: var(--accent); padding: 10px 4px; min-height: 44px; display: inline-flex; align-items: center; }
 footer nav { justify-content: center; margin-top: 8px; }
 
 /* -- Skip link -------------------------------------------- */
@@ -640,7 +640,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .hero-search input[type="url"]::placeholder { color: var(--text-muted); }
 .hero-search input[type="url"]:focus { box-shadow: none; border: none; }
 .hero-search .btn-audit {
-    flex-shrink: 0; padding: 14px 28px;
+    flex-shrink: 0; padding: 14px 28px; min-height: 48px;
     background: var(--accent); color: #fff;
     border: none; border-radius: var(--radius-md);
     font-size: 1rem; font-weight: 600;
@@ -804,7 +804,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 /* -- Nav CTA button --------------------------------------- */
 .nav-cta {
-    padding: 8px 20px; background: var(--accent); color: #fff !important;
+    padding: 12px 24px; min-height: 44px; background: var(--accent); color: #fff !important;
     border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;
     transition: background .2s, box-shadow .2s;
 }
@@ -1471,11 +1471,34 @@ var WATime = (function() {
   onScroll();
 })();
 
-/* Scroll-reveal animation via IntersectionObserver */
+/* Scroll-reveal animation via IntersectionObserver
+   F-01 FIX: Elements already in the viewport on page load are immediately
+   made visible so above-the-fold content (hero, form, etc.) is never hidden. */
 (function() {
   var elements = document.querySelectorAll('.fade-up');
   if (!elements.length) return;
-  if ('IntersectionObserver' in window) {
+
+  /* Immediately reveal any element already in or near the viewport */
+  function revealIfVisible(el) {
+    var rect = el.getBoundingClientRect();
+    var inViewport = rect.top < (window.innerHeight || document.documentElement.clientHeight) + 50;
+    if (inViewport) {
+      el.classList.add('visible');
+      return true;
+    }
+    return false;
+  }
+
+  /* First pass: show above-the-fold content right now */
+  var belowFold = [];
+  elements.forEach(function(el) {
+    if (!revealIfVisible(el)) {
+      belowFold.push(el);
+    }
+  });
+
+  /* Observe only below-the-fold elements for scroll-reveal */
+  if (belowFold.length && 'IntersectionObserver' in window) {
     var observer = new IntersectionObserver(function(entries) {
       entries.forEach(function(entry) {
         if (entry.isIntersecting) {
@@ -1484,8 +1507,8 @@ var WATime = (function() {
         }
       });
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-    elements.forEach(function(el) { observer.observe(el); });
-  } else {
+    belowFold.forEach(function(el) { observer.observe(el); });
+  } else if (!('IntersectionObserver' in window)) {
     /* Fallback: show everything */
     elements.forEach(function(el) { el.classList.add('visible'); });
   }
