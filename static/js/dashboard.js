@@ -124,6 +124,14 @@ document.getElementById('runForm').addEventListener('submit', function(e) {
     }
   });
 
+  /* ── Ensure base_url in payload has the normalized value ──
+     On some mobile browsers, FormData may read the pre-normalization value
+     from type="url" inputs even after we set urlField.value above.
+     Explicitly overwrite with the (already-normalised) DOM value. */
+  if (urlField) {
+    data.base_url = urlField.value.trim();
+  }
+
   console.log("[DEBUG] Sending data:", JSON.stringify(data));
   fetch('/run', {
     method: 'POST',

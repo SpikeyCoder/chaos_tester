@@ -290,8 +290,15 @@ def start_run():
         _get = lambda key, default="": request.form.get(key, default)  # noqa: E731
         _bool = lambda key: request.form.get(key) == "on"  # noqa: E731
 
+    # Normalize URL: auto-prepend https:// if no scheme is present.
+    # The client JS does this too, but some mobile browsers don't propagate
+    # the programmatic .value change into FormData for type="url" inputs.
+    raw_url = _get("base_url", "http://localhost:8000").strip()
+    if raw_url and not raw_url.startswith(("http://", "https://")):
+        raw_url = "https://" + raw_url
+
     config = ChaosConfig(
-        base_url=_get("base_url", "http://localhost:8000").strip(),
+        base_url=raw_url,
         environment=_get("environment", "staging"),
         allow_production=_bool("allow_production"),
         max_pages=_clamp_int(_get("max_pages"), 100, 1, 1000),
