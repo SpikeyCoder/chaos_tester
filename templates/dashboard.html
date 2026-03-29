@@ -408,15 +408,21 @@ function detectBusiness() {
     var locInput = document.getElementById('business_location');
     var quickCity = document.getElementById('quick_city');
     if (data.location && !locInput._userEdited) {
-      /* City auto-detected — fill it in, hide the field, enable button */
+      /* City auto-detected — fill it in, keep field visible so user can verify */
       locInput.value = data.location;
       if (!quickCity.value.trim()) quickCity.value = data.location;
-      hideCityField();
+      var spinner = document.getElementById('city-spinner');
+      var label = document.getElementById('city-label-text');
+      var hint = document.getElementById('city-hint');
+      if (spinner) spinner.style.display = 'none';
+      if (label) label.textContent = 'Business city detected — verify or edit before auditing';
+      if (hint) hint.textContent = 'We detected "' + data.location + '". Change it if this isn\u2019t right.';
       enableAuditBtn();
     } else if (locInput.value.trim() || quickCity.value.trim()) {
-      /* User already typed a city — enable button */
+      /* User already typed a city — enable button, keep field visible */
       if (quickCity.value.trim()) locInput.value = quickCity.value;
-      hideCityField();
+      var spinner2 = document.getElementById('city-spinner');
+      if (spinner2) spinner2.style.display = 'none';
       enableAuditBtn();
     } else {
       /* Detection failed, no city — update label, keep field visible */
