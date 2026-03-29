@@ -998,7 +998,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                 <span></span><span></span><span></span>
             </button>
             <nav id="mainNav" aria-label="Main navigation">
-                <a href="/how-it-works" {% if request.path == '/how-it-works' %}class="active" aria-current="page"{% endif %}>How It Works</a>
+                <a href="/#how-it-works" onclick="if(window.location.pathname==='/'){event.preventDefault();document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'});}">How It Works</a>
                 <a href="/#faq" onclick="if(window.location.pathname==='/'){event.preventDefault();document.getElementById('faq').scrollIntoView({behavior:'smooth'});}">FAQ</a>
                 <a href="/#audit" class="nav-cta">Start Audit</a>
             </nav>
@@ -1023,7 +1023,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
         <div class="container">
             <p>&copy; 2026 Armstrong HoldCo LLC &mdash; Website Auditor &mdash; Free website audit tool for SEO, security, and performance.</p>
             <nav aria-label="Footer navigation">
-                <a href="/how-it-works">How It Works</a>
+                <a href="/#how-it-works">How It Works</a>
                 <a href="https://github.com/SpikeyCoder/chaos_tester" rel="noopener" target="_blank">GitHub</a>
             </nav>
         </div>
