@@ -31,6 +31,7 @@ from flask import (
 from .config import ChaosConfig
 from .runner import ChaosTestRunner
 from .models import TestRun
+from . import supabase_client as supa
 
 # -- Setup ---------------------------------------------------------
 
@@ -229,14 +230,28 @@ def _run_tests(config: ChaosConfig):
 
     # Save report
     report_data = test_run.to_dict()
+
+    # Generate a content-addressable hash ID for persistent storage
+    hash_id = supa.generate_report_id(
+        report_data.get("base_url", ""),
+        report_data.get("started_at", ""),
+        len(report_data.get("results", [])),
+    )
+    report_data["hash_id"] = hash_id
+
     report_file = REPORTS_DIR / f"run_{test_run.run_id}.json"
     report_file.write_text(json.dumps(report_data, indent=2))
 
     with _lock:
         _run_history.append(report_data)
         _run_index[report_data["run_id"]] = report_data
+        # Also index by hash_id so either ID resolves
+        _run_index[hash_id] = report_data
 
-    logger.info("Report saved: %s", report_file)
+    logger.info("Report saved locally: %s (hash_id: %s)", report_file, hash_id)
+
+    # Persist to Supabase (fire-and-forget; local is primary)
+    supa.save_report(report_data)
 
 
 # -- Routes --------------------------------------------------------
@@ -338,36 +353,52 @@ def stream():
     return Response(_event_stream(), mimetype="text/event-stream")
 
 
-@app.route("/report/<run_id>")
-def view_report(run_id):
-    _validate_run_id(run_id)
+def _resolve_report(run_id: str) -> dict | None:
+    """3-tier report lookup: memory → disk → Supabase."""
     with _lock:
         report = _run_index.get(run_id)
     if report:
-        return render_template("report.html", report=report)
-    # Fallback: try loading from disk (handles container restarts / new instances)
+        return report
     report_file = REPORTS_DIR / f"run_{run_id}.json"
     if report_file.exists():
         try:
-            data = json.loads(report_file.read_text())
+            report = json.loads(report_file.read_text())
             with _lock:
-                _run_index[run_id] = data
-            return render_template("report.html", report=data)
+                _run_index[run_id] = report
+            return report
         except Exception:
             pass
-    # No report found anywhere - redirect to dashboard instead of 404
-    flash("Report not found. It may have been cleared or has not been generated yet.", "warning")
-    return redirect(url_for("index"))
+    report = supa.load_report(run_id)
+    if report:
+        with _lock:
+            _run_index[run_id] = report
+        logger.info("Report %s loaded from Supabase", run_id)
+    return report
+
+
+@app.route("/report/<run_id>")
+def view_report(run_id):
+    _validate_run_id(run_id)
+    report = _resolve_report(run_id)
+
+    if not report:
+        flash("Report not found. It may have expired or the link is invalid.", "warning")
+        return redirect(url_for("index"))
+
+    # Fetch domain history for the "Previous audits" panel
+    domain = supa.normalize_domain(report.get("base_url", ""))
+    domain_history = supa.get_domain_history(domain, limit=10)
+
+    return render_template("report.html", report=report, domain_history=domain_history, domain=domain)
 
 
 @app.route("/report/<run_id>/json")
 def report_json(run_id):
     """View report as JSON in browser (API-style)."""
     _validate_run_id(run_id)
-    with _lock:
-        for report in _run_history:
-            if report.get("run_id") == run_id:
-                return jsonify(report)
+    report = _resolve_report(run_id)
+    if report:
+        return jsonify(report)
     return jsonify({"error": "Not found"}), 404
 
 
@@ -375,16 +406,15 @@ def report_json(run_id):
 def report_download_json(run_id):
     """Download report as a .json file."""
     _validate_run_id(run_id)
-    with _lock:
-        for report in _run_history:
-            if report.get("run_id") == run_id:
-                payload = json.dumps(report, indent=2)
-                resp = make_response(payload)
-                resp.headers["Content-Type"] = "application/json"
-                resp.headers["Content-Disposition"] = (
-                    f'attachment; filename="chaos_report_{run_id}.json"'
-                )
-                return resp
+    report = _resolve_report(run_id)
+    if report:
+        payload = json.dumps(report, indent=2)
+        resp = make_response(payload)
+        resp.headers["Content-Type"] = "application/json"
+        resp.headers["Content-Disposition"] = (
+            f'attachment; filename="audit_report_{run_id}.json"'
+        )
+        return resp
     return jsonify({"error": "Not found"}), 404
 
 
@@ -392,41 +422,38 @@ def report_download_json(run_id):
 def report_download_csv(run_id):
     """Download report results as a .csv file."""
     _validate_run_id(run_id)
-    with _lock:
-        for report in _run_history:
-            if report.get("run_id") == run_id:
-                output = io.StringIO()
-                writer = csv.writer(output)
+    report = _resolve_report(run_id)
+    if report:
+        output = io.StringIO()
+        writer = csv.writer(output)
 
-                # Header row
-                writer.writerow([
-                    "test_id", "module", "status", "severity", "name",
-                    "description", "url", "details", "recommendation",
-                    "duration_ms", "timestamp",
-                ])
+        writer.writerow([
+            "test_id", "module", "status", "severity", "name",
+            "description", "url", "details", "recommendation",
+            "duration_ms", "timestamp",
+        ])
 
-                # Data rows
-                for r in report.get("results", []):
-                    writer.writerow([
-                        r.get("test_id", ""),
-                        r.get("module", ""),
-                        r.get("status", ""),
-                        r.get("severity", ""),
-                        r.get("name", ""),
-                        r.get("description", ""),
-                        r.get("url", ""),
-                        r.get("details", ""),
-                        r.get("recommendation", ""),
-                        r.get("duration_ms", 0),
-                        r.get("timestamp", ""),
-                    ])
+        for r in report.get("results", []):
+            writer.writerow([
+                r.get("test_id", ""),
+                r.get("module", ""),
+                r.get("status", ""),
+                r.get("severity", ""),
+                r.get("name", ""),
+                r.get("description", ""),
+                r.get("url", ""),
+                r.get("details", ""),
+                r.get("recommendation", ""),
+                r.get("duration_ms", 0),
+                r.get("timestamp", ""),
+            ])
 
-                resp = make_response(output.getvalue())
-                resp.headers["Content-Type"] = "text/csv"
-                resp.headers["Content-Disposition"] = (
-                    f'attachment; filename="chaos_report_{run_id}.csv"'
-                )
-                return resp
+        resp = make_response(output.getvalue())
+        resp.headers["Content-Type"] = "text/csv"
+        resp.headers["Content-Disposition"] = (
+            f'attachment; filename="audit_report_{run_id}.csv"'
+        )
+        return resp
     return jsonify({"error": "Not found"}), 404
 
 
@@ -440,6 +467,13 @@ def latest_report():
             run_id = _run_history[-1]["run_id"]
             return redirect(url_for("view_report", run_id=run_id))
     return redirect(url_for("index"))
+
+
+@app.route("/api/domain-history/<path:domain>")
+def api_domain_history(domain):
+    """Get audit history for a domain (public, no auth)."""
+    history = supa.get_domain_history(domain, limit=10)
+    return jsonify(history)
 
 
 @app.route("/api/status")

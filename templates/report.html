@@ -465,6 +465,67 @@ document.addEventListener('DOMContentLoaded', function() {
   {% endif %}
 </div>
 
+<!-- -- Domain Audit History ----------------------------------------- -->
+{% if domain_history and domain_history|length > 1 %}
+<div class="card fade-up" style="margin-top:24px;">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+    <div style="width:40px;height:40px;border-radius:10px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div>
+      <h2 style="margin:0;font-size:1.2rem;font-weight:700;">Audit History for {{ domain }}</h2>
+      <p style="margin:0;font-size:0.82rem;color:var(--text-muted);">Compare scores over time &middot; {{ domain_history|length }} audit{{ 's' if domain_history|length != 1 }} on record</p>
+    </div>
+  </div>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Score</th>
+          <th>Tests</th>
+          <th>Passed</th>
+          <th>Failed</th>
+          <th>Duration</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in domain_history %}
+        <tr style="{% if h.id == report.get('hash_id', '') %}background:rgba(59,130,246,0.08);{% endif %}">
+          <td class="text-sm">
+            <span data-utc="{{ h.started_at }}" data-utc-format="datetime">{{ h.started_at[:16] }}</span>
+            {% if h.id == report.get('hash_id', '') %}<span class="badge badge-info" style="font-size:0.7rem;margin-left:6px;">current</span>{% endif %}
+          </td>
+          <td>
+            {% set score = h.overall_score|default(0)|round|int %}
+            <span style="color:{% if score >= 90 %}var(--green){% elif score >= 70 %}#f97316{% else %}var(--red){% endif %};font-weight:700;">
+              {{ score }}%
+            </span>
+          </td>
+          <td class="text-sm">{{ h.total_tests|default('-') }}</td>
+          <td class="text-sm" style="color:var(--green);">{{ h.passed|default('-') }}</td>
+          <td class="text-sm" style="color:var(--red);">{{ h.failed|default('-') }}</td>
+          <td class="text-sm text-muted">{{ h.duration_s|default(0)|round(1) }}s</td>
+          <td>
+            {% if h.id != report.get('hash_id', '') %}
+            <a href="/report/{{ h.id }}" class="text-sm" style="color:var(--accent);text-decoration:none;">View &rarr;</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if report.get('hash_id') %}
+  <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);text-align:center;">
+    <span class="text-muted text-sm">Permanent link: </span>
+    <a href="/report/{{ report.hash_id }}" class="text-sm" style="color:var(--accent);">website-auditor.io/report/{{ report.hash_id }}</a>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
 <script>
 var reportData = {{ report | tojson }};
 
