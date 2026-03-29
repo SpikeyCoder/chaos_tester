@@ -2,29 +2,38 @@
 {% block title %}Sample Report -- Website Auditor{% endblock %}
 {% block robots %}index, follow{% endblock %}
 {% block content %}
-<div class="report-header fade-up" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
-  <div>
-    <h2 style="font-size:1.4rem;font-weight:700;">
-      📊 Sample Report
-      <span class="badge badge-info" style="font-size:0.75rem;margin-left:8px;">example</span>
-    </h2>
-    <p class="text-muted text-sm mt-1 report-meta">
-      This is a sample audit report showing realistic findings across all modules &middot; https://bestlocalbakery.com &middot;
-      <span class="badge badge-info">production</span> &middot;
-      2026-03-27 12:45:30 UTC &middot; 87.3s
-    </p>
+<!-- -- Report Top Bar -------------------------------------- -->
+<div class="report-top-bar fade-up">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="/" class="back-link" aria-label="Back to Dashboard">← Back</a>
+    <div class="report-title-group">
+      <h2>Audit Report</h2>
+      <div class="report-subtitle">
+        bestlocalbakery.com &bull;
+        Completed just now
+      </div>
+    </div>
   </div>
-  <div class="report-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-    <a href="#" onclick="downloadPDF(); return false;" class="btn btn-secondary text-sm" role="button" aria-label="Download report as PDF">⬇ PDF</a>
-    <a href="#" onclick="copyShareLink(); return false;" class="btn btn-secondary text-sm" id="share-link-btn" role="button" aria-label="Copy shareable link to clipboard">🔗 Copy Link</a>
-    <a href="/" class="btn btn-secondary text-sm" aria-label="Back to Dashboard">← Dashboard</a>
+  <div class="report-action-pills">
+    <button type="button" class="pill-btn pill-share" onclick="copyShareLink()" id="share-link-btn" aria-label="Share report">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share
+    </button>
+    <button type="button" class="pill-btn pill-pdf" onclick="downloadPDF()" aria-label="Export PDF">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+    <button type="button" class="pill-btn pill-schedule" onclick="window.location.href='/'" aria-label="Schedule Retest">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Schedule Retest
+    </button>
   </div>
 </div>
 
 <!-- Banner indicating this is sample data -->
 <div class="card" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.4);border-left:4px solid #3b82f6;padding:16px 20px;margin-bottom:24px;">
   <div style="display:flex;align-items:flex-start;gap:12px;">
-    <div style="font-size:1.4rem;">ℹ️</div>
+    <div style="font-size:1.4rem;">&#x2139;&#xFE0F;</div>
     <div>
       <div style="font-weight:600;color:var(--text);margin-bottom:4px;">Sample Data</div>
       <div style="color:var(--text-muted);font-size:0.9rem;">This report demonstrates realistic audit findings for illustrative purposes. The website, findings, and metrics shown are fictional but representative of typical audits.</div>
@@ -32,59 +41,255 @@
   </div>
 </div>
 
-<!-- -- Summary Stats ---------------------------------------- -->
-<div class="stats-grid fade-up" role="region" aria-label="Audit summary statistics">
-  <div class="stat-card">
-    <div class="number" style="color:var(--text)">42</div>
-    <div class="label">Total Tests</div>
+<!-- -- Executive Summary ----------------------------------- -->
+<div class="exec-summary fade-up" role="region" aria-label="Executive summary">
+  <div class="exec-summary-header">
+    <div>
+      <h2>Executive Summary</h2>
+      <div class="exec-subtitle">Overall website health and critical findings</div>
+    </div>
+    <div class="exec-score">
+      <div class="score-number" style="color:var(--green)">93</div>
+      <div class="score-label">Overall Score</div>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="number" style="color:#4ade80;">28</div>
-    <div class="label">Passed</div>
+
+  <div class="exec-alert">
+    <div class="alert-icon">&#x26A0;</div>
+    <div>
+      <div class="alert-title">4 Issues Found That May Affect Your Customers</div>
+      <div class="alert-desc">These issues could impact your visitors' experience, search engine rankings, or site security. Review the details below for plain-language explanations and recommended fixes.</div>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="number" style="color:#f87171;">14</div>
-    <div class="label">Failed</div>
-  </div>
-  <div class="stat-card">
-    <div class="number" style="color:#fbbf24;">7</div>
-    <div class="label">Warnings</div>
-  </div>
-  <div class="stat-card">
-    <div class="number" style="color:#f87171;">3</div>
-    <div class="label">Errors</div>
-  </div>
-  <div class="stat-card">
-    <div class="number" style="color:#4ade80;">66%</div>
-    <div class="label">Pass Rate</div>
+
+  <div class="exec-metrics">
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('all')" title="View all issues">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-warn">&#x26A0;</div>
+      </div>
+      <div class="exec-metric-value">7</div>
+      <div class="exec-metric-label">Total Issues Found</div>
+    </div>
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('failed')" title="View critical issues">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-crit">&#x2715;</div>
+      </div>
+      <div class="exec-metric-value">4</div>
+      <div class="exec-metric-label">Critical Issues</div>
+    </div>
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('passed')" title="View passed checks">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-pass">&#x2713;</div>
+      </div>
+      <div class="exec-metric-value">87</div>
+      <div class="exec-metric-label">Checks Passed</div>
+    </div>
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('all')" title="View detailed results">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-time">&#x26A1;</div>
+      </div>
+      <div class="exec-metric-value">18s</div>
+      <div class="exec-metric-label">Scan Duration</div>
+    </div>
   </div>
 </div>
 
-<!-- -- Filters ---------------------------------------------- -->
-<form onsubmit="return false"><div class="card" style="padding:14px 20px;">
-  <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-    <div class="filter-group">
-      <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
-      <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="all" aria-pressed="true" onclick="filterResults('all', this)">All</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" aria-pressed="false" onclick="filterResults('failed', this)">Failed</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" aria-pressed="false" onclick="filterResults('warning', this)">Warnings</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" aria-pressed="false" onclick="filterResults('passed', this)">Passed</button>
+<!-- -- Snapshot Summary (circular gauges) -------------------- -->
+<div class="section-summary card fade-up" style="margin-bottom:24px;" role="region" aria-label="Section summary scores">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+    <div style="width:40px;height:40px;border-radius:10px;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2a10 10 0 0 1 7.07 2.93"/></svg>
     </div>
-    <div class="filter-group">
-      <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
-      <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" aria-pressed="true" onclick="filterModule('all', this)">All</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" aria-pressed="false" onclick="filterModule('availability', this)">Avail</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" aria-pressed="false" onclick="filterModule('links', this)">Links</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" aria-pressed="false" onclick="filterModule('forms', this)">Forms</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" aria-pressed="false" onclick="filterModule('security', this)">Security</button>
+    <div>
+      <h2 style="margin:0;font-size:1.2rem;font-weight:700;color:#fff;">Snapshot Summary</h2>
+      <p style="margin:0;font-size:0.82rem;color:var(--text-muted);">Core Web Vitals and performance metrics</p>
     </div>
   </div>
+  <div class="section-gauges" id="sectionGauges">
+    <!-- Gauges rendered by JS below -->
+  </div>
 </div>
-</form>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var sections = [
+    { label: 'Performance', score: 96 },
+    { label: 'Security', score: 90 },
+    { label: 'Availability', score: 90 },
+    { label: 'Links & Forms', score: 95 },
+    { label: 'Resilience', score: 100 }
+  ];
+  var container = document.getElementById('sectionGauges');
+  if (!container) return;
+  sections.forEach(function(sec) {
+    var score = sec.score;
+    var color = score >= 90 ? '#4ade80' : (score >= 70 ? '#f97316' : '#ef4444');
+    var r = 44, stroke = 7, circ = 2 * Math.PI * r;
+    var offset = circ - (score / 100) * circ;
+    var html = '<div class="section-gauge-item">' +
+      '<div class="gauge-ring" style="position:relative;width:110px;height:110px;">' +
+        '<svg viewBox="0 0 100 100" width="110" height="110">' +
+          '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
+          '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
+            'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
+            'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
+            'style="transition:stroke-dashoffset 1s ease;"/>' +
+        '</svg>' +
+        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
+          '<span style="font-size:1.6rem;font-weight:700;color:' + color + ';">' + score + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="gauge-label-text">' + sec.label + '</div>' +
+    '</div>';
+    container.insertAdjacentHTML('beforeend', html);
+  });
+});
+</script>
+
+<!-- -- Performance Dashboard -------------------------------- -->
+<div id="perf-dashboard" class="card" style="margin-bottom:24px">
+  <h2 style="margin:0 0 16px">&#x26A1; Performance Metrics</h2>
+  <div class="perf-tabs">
+    <button type="button" class="perf-tab active" onclick="switchSamplePerfTab('mobile')" id="tab-mobile">&#x1F4F1; Mobile</button>
+    <button type="button" class="perf-tab" onclick="switchSamplePerfTab('desktop')" id="tab-desktop">&#x1F5A5; Desktop</button>
+  </div>
+  <!-- Mobile panel -->
+  <div class="perf-panel" id="panel-mobile">
+    <div style="text-align:center;margin-bottom:20px">
+      <div id="sample-perf-gauge-mobile" class="gauge-container gauge-main"></div>
+      <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Overall Score</div>
+    </div>
+    <div class="perf-grid" id="sample-perf-metrics-mobile"></div>
+    <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+      <h3 style="font-size:1rem;font-weight:600;margin:0 0 12px;">&#x1F4A1; Top Recommendations</h3>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid var(--yellow);">
+        <div style="font-weight:600;font-size:0.9rem;">Render-blocking requests</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Requests are blocking the page's initial render, which may delay LCP. Deferring or inlining can move these network requests out of the critical path.</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid var(--yellow);">
+        <div style="font-weight:600;font-size:0.9rem;">Network dependency tree</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Avoid chaining critical requests by reducing the length of chains, reducing the download size of resources, or deferring the download of unnecessary resources to improve page load.</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid var(--green);">
+        <div style="font-weight:600;font-size:0.9rem;">Use efficient cache lifetimes</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">A long cache lifetime can speed up repeat visits to your page. Learn more about efficient caching.</div>
+      </div>
+    </div>
+  </div>
+  <!-- Desktop panel (hidden by default) -->
+  <div class="perf-panel" id="panel-desktop" style="display:none;">
+    <div style="text-align:center;margin-bottom:20px">
+      <div id="sample-perf-gauge-desktop" class="gauge-container gauge-main"></div>
+      <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Overall Score</div>
+    </div>
+    <div class="perf-grid" id="sample-perf-metrics-desktop"></div>
+  </div>
+</div>
+
+<script>
+/* Sample performance gauge rendering */
+document.addEventListener('DOMContentLoaded', function() {
+  function renderPerfGauge(containerId, score) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var color = score >= 90 ? '#4ade80' : (score >= 70 ? '#f97316' : '#ef4444');
+    var r = 44, stroke = 7, circ = 2 * Math.PI * r;
+    var offset = circ - (score / 100) * circ;
+    container.innerHTML = '<div class="gauge-ring" style="position:relative;width:140px;height:140px;margin:0 auto;">' +
+      '<svg viewBox="0 0 100 100" width="140" height="140">' +
+        '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
+        '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
+          'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
+          'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
+          'style="transition:stroke-dashoffset 1s ease;"/>' +
+      '</svg>' +
+      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
+        '<span style="font-size:2.2rem;font-weight:700;color:' + color + ';">' + score + '</span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderMetricGauges(containerId, metrics) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    metrics.forEach(function(m) {
+      var color = m.score >= 90 ? '#4ade80' : (m.score >= 70 ? '#f97316' : '#ef4444');
+      var r = 36, stroke = 6, circ = 2 * Math.PI * r;
+      var offset = circ - (m.score / 100) * circ;
+      var html = '<div class="gauge-card">' +
+        '<div class="gauge-container gauge-metric" style="position:relative;width:90px;height:90px;margin:0 auto;">' +
+          '<svg viewBox="0 0 100 100" width="90" height="90">' +
+            '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
+            '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
+              'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
+              'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
+              'style="transition:stroke-dashoffset 1s ease;"/>' +
+          '</svg>' +
+          '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
+            '<span style="font-size:1rem;font-weight:700;color:' + color + ';">' + m.display + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="gauge-label">' + m.label + '</div>' +
+      '</div>';
+      container.insertAdjacentHTML('beforeend', html);
+    });
+  }
+
+  /* Mobile */
+  renderPerfGauge('sample-perf-gauge-mobile', 96);
+  renderMetricGauges('sample-perf-metrics-mobile', [
+    { label: 'First Contentful Paint', score: 99, display: '0.3s' },
+    { label: 'Speed Index', score: 97, display: '0.6s' },
+    { label: 'Largest Contentful Paint', score: 96, display: '0.8s' },
+    { label: 'Cumulative Layout Shift', score: 100, display: '0.001' },
+    { label: 'Time to Interactive', score: 90, display: '2.4s' },
+    { label: 'Total Blocking Time', score: 92, display: '120ms' }
+  ]);
+
+  /* Desktop */
+  renderPerfGauge('sample-perf-gauge-desktop', 99);
+  renderMetricGauges('sample-perf-metrics-desktop', [
+    { label: 'First Contentful Paint', score: 99, display: '0.2s' },
+    { label: 'Speed Index', score: 99, display: '0.3s' },
+    { label: 'Largest Contentful Paint', score: 99, display: '0.4s' },
+    { label: 'Cumulative Layout Shift', score: 100, display: '0.001' },
+    { label: 'Time to Interactive', score: 99, display: '0.5s' },
+    { label: 'Total Blocking Time', score: 100, display: '10ms' }
+  ]);
+});
+
+function switchSamplePerfTab(strategy) {
+  document.querySelectorAll('.perf-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('tab-' + strategy).classList.add('active');
+  document.querySelectorAll('.perf-panel').forEach(function(p) { p.style.display = 'none'; });
+  document.getElementById('panel-' + strategy).style.display = '';
+}
+</script>
 
 <!-- -- Results Table (condensed: first 5 visible) ----------- -->
-<div class="card">
-  <h2>📝 Detailed Findings (14)</h2>
+<div class="card" id="detailed-results-card">
+  <h2 id="detailed-results-heading">&#x1F4DD; Detailed Results (94)</h2>
+  <!-- Filter bar -->
+  <form onsubmit="return false" style="margin-bottom:16px;">
+    <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+      <div class="filter-group">
+        <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
+        <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="all" aria-pressed="true" onclick="filterResults('all', this)">All</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" aria-pressed="false" onclick="filterResults('failed', this)">Failed</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" aria-pressed="false" onclick="filterResults('warning', this)">Warnings</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" aria-pressed="false" onclick="filterResults('passed', this)">Passed</button>
+      </div>
+      <div class="filter-group">
+        <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
+        <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" aria-pressed="true" onclick="filterModule('all', this)">All</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" aria-pressed="false" onclick="filterModule('availability', this)">Avail</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" aria-pressed="false" onclick="filterModule('links', this)">Links</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" aria-pressed="false" onclick="filterModule('forms', this)">Forms</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="chaos" aria-pressed="false" onclick="filterModule('chaos', this)">Chaos</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="auth" aria-pressed="false" onclick="filterModule('auth', this)">Auth</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" aria-pressed="false" onclick="filterModule('security', this)">Security</button>
+      </div>
+    </div>
+  </form>
   <div id="detailed-results-wrapper" style="overflow-x:auto;max-height:none;">
     <table id="resultsTable">
       <thead>
@@ -93,283 +298,380 @@
           <th>Status</th>
           <th>Severity</th>
           <th>Module</th>
-          <th>Finding</th>
-          <th>Description</th>
+          <th>Test</th>
+          <th>Details</th>
           <th style="width:80px">Time</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Broken Links -->
-        <tr class="result-row" data-status="failed" data-module="links">
+        <!-- 1: Page load / availability -->
+        <tr class="result-row" data-status="passed" data-module="availability" onclick="toggleResultDetail(this)" style="cursor:pointer;">
           <td class="text-muted mono text-sm cell-index">1</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /</div>
+            <div class="text-muted text-sm">GET https://bestlocalbakery.com/</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Homepage loads in 680ms with HTTP 200 status.</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">29ms</td>
+        </tr>
+
+        <!-- 2: Page load /menu -->
+        <tr class="result-row" data-status="passed" data-module="availability" onclick="toggleResultDetail(this)" style="cursor:pointer;">
+          <td class="text-muted mono text-sm cell-index">2</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /menu</div>
+            <div class="text-muted text-sm">GET https://bestlocalbakery.com/menu</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Menu page loads correctly with HTTP 200.</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/menu</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">24ms</td>
+        </tr>
+
+        <!-- 3: Page load /blog/spring-menu -->
+        <tr class="result-row" data-status="passed" data-module="availability" onclick="toggleResultDetail(this)" style="cursor:pointer;">
+          <td class="text-muted mono text-sm cell-index">3</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /blog/spring-menu-update</div>
+            <div class="text-muted text-sm">https://bestlocalbakery.com/blog/spring-menu-update</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Blog page loads correctly.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">54ms</td>
+        </tr>
+
+        <!-- 4: ethical-robots-txt-compliance -->
+        <tr class="result-row" data-status="passed" data-module="availability" onclick="toggleResultDetail(this)" style="cursor:pointer;">
+          <td class="text-muted mono text-sm cell-index">4</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> ethical-robots-txt-compliance</div>
+            <div class="text-muted text-sm">Verified robots.txt allows crawling of key pages</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Robots.txt present and properly configured. All important pages are crawlable.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">12ms</td>
+        </tr>
+
+        <!-- 5: Page load /blog/the-psycho... (long title truncated) -->
+        <tr class="result-row" data-status="passed" data-module="availability" onclick="toggleResultDetail(this)" style="cursor:pointer;">
+          <td class="text-muted mono text-sm cell-index">5</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /blog/the-psychology...</div>
+            <div class="text-muted text-sm">https://bestlocalbakery.com/blog/the-psychology-of-bread-aroma</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Blog article loads correctly with HTTP 200.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">67ms</td>
+        </tr>
+
+        <!-- Hidden rows: additional sample findings -->
+        <tr class="result-row" data-status="failed" data-module="links" onclick="toggleResultDetail(this)" style="cursor:pointer;display:none;">
+          <td class="text-muted mono text-sm cell-index">6</td>
           <td data-label="Status"><span class="badge badge-failed">failed</span></td>
           <td data-label="Severity"><span class="badge badge-high">high</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#a855f7;font-weight:600;">links</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">Broken Link: /menu-old</div>
+          <td data-label="Module" class="text-sm"><span style="color:#a855f7;font-weight:600;">links</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Broken Link: /menu-old</div>
             <div class="text-muted text-sm">HTTP 404 on legacy menu page</div>
           </td>
-          <td data-label="" class="text-sm cell-details">
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
             <div style="margin-bottom:4px;">Page returns 404 Not Found. This link is still referenced from the main navigation.</div>
-            <div style="color:var(--accent);font-size:0.8rem;">💡 Remove the link or restore the /menu-old page</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Remove the link or restore the /menu-old page</div>
             <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/menu-old</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">245ms</td>
         </tr>
 
-        <!-- Redirect Chain -->
-        <tr class="result-row" data-status="failed" data-module="links">
-          <td class="text-muted mono text-sm cell-index">2</td>
-          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
-          <td data-label="Severity"><span class="badge badge-medium">medium</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#a855f7;font-weight:600;">links</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">Redirect Chain Detected</div>
-            <div class="text-muted text-sm">Multiple redirects on /specials path</div>
-          </td>
-          <td data-label="" class="text-sm cell-details">
-            <div style="margin-bottom:4px;">Path /specials redirects to /deals which redirects to /offers (3 hops). This slows down page load by ~150ms.</div>
-            <div style="color:var(--accent);font-size:0.8rem;">💡 Consolidate to direct redirect: /specials → /offers</div>
-            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/specials</div>
-          </td>
-          <td data-label="Time" class="mono text-sm text-muted">312ms</td>
-        </tr>
-
-        <!-- Security: CSP -->
-        <tr class="result-row" data-status="warning" data-module="security">
-          <td class="text-muted mono text-sm cell-index">3</td>
+        <tr class="result-row" data-status="warning" data-module="security" onclick="toggleResultDetail(this)" style="cursor:pointer;display:none;">
+          <td class="text-muted mono text-sm cell-index">7</td>
           <td data-label="Status"><span class="badge badge-warning">warning</span></td>
           <td data-label="Severity"><span class="badge badge-high">high</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#ef4444;font-weight:600;">security</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">Missing Content-Security-Policy Header</div>
+          <td data-label="Module" class="text-sm"><span style="color:#ef4444;font-weight:600;">security</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Missing Content-Security-Policy Header</div>
             <div class="text-muted text-sm">CSP header not found in response</div>
           </td>
-          <td data-label="" class="text-sm cell-details">
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
             <div style="margin-bottom:4px;">The Content-Security-Policy header is missing, leaving the site vulnerable to XSS and injection attacks.</div>
-            <div style="color:var(--accent);font-size:0.8rem;">💡 Add CSP header with restrictive defaults: default-src 'self'; script-src 'self' 'unsafe-inline'</div>
-            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Add CSP header with restrictive defaults: default-src 'self'; script-src 'self' 'unsafe-inline'</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">42ms</td>
         </tr>
 
-        <!-- Security: Cookies -->
-        <tr class="result-row" data-status="failed" data-module="security">
-          <td class="text-muted mono text-sm cell-index">4</td>
+        <tr class="result-row" data-status="failed" data-module="security" onclick="toggleResultDetail(this)" style="cursor:pointer;display:none;">
+          <td class="text-muted mono text-sm cell-index">8</td>
           <td data-label="Status"><span class="badge badge-failed">failed</span></td>
           <td data-label="Severity"><span class="badge badge-high">high</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#ef4444;font-weight:600;">security</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">Session Cookie Missing Secure Flag</div>
+          <td data-label="Module" class="text-sm"><span style="color:#ef4444;font-weight:600;">security</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Session Cookie Missing Secure Flag</div>
             <div class="text-muted text-sm">Cookie transmitted over plain HTTP</div>
           </td>
-          <td data-label="" class="text-sm cell-details">
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
             <div style="margin-bottom:4px;">The session_id cookie is transmitted over insecure HTTP connections. Attackers on the same network could intercept it.</div>
-            <div style="color:var(--accent);font-size:0.8rem;">💡 Add Secure flag to session cookies and enforce HTTPS only</div>
-            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Add Secure flag to session cookies and enforce HTTPS only</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">38ms</td>
         </tr>
 
-        <!-- Forms: Missing Label -->
-        <tr class="result-row" data-status="failed" data-module="forms">
-          <td class="text-muted mono text-sm cell-index">5</td>
+        <tr class="result-row" data-status="failed" data-module="forms" onclick="toggleResultDetail(this)" style="cursor:pointer;display:none;">
+          <td class="text-muted mono text-sm cell-index">9</td>
           <td data-label="Status"><span class="badge badge-failed">failed</span></td>
           <td data-label="Severity"><span class="badge badge-medium">medium</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#06b6d4;font-weight:600;">forms</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">Contact Form: Missing Label on Email Field</div>
+          <td data-label="Module" class="text-sm"><span style="color:#06b6d4;font-weight:600;">forms</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Contact Form: Missing Label on Email Field</div>
             <div class="text-muted text-sm">Email input lacks associated label element</div>
           </td>
-          <td data-label="" class="text-sm cell-details">
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
             <div style="margin-bottom:4px;">The email input field on the contact form has no &lt;label&gt; element. Screen readers cannot identify the field purpose.</div>
-            <div style="color:var(--accent);font-size:0.8rem;">💡 Add &lt;label for="email"&gt;Email Address&lt;/label&gt; and link with id attribute</div>
-            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/contact</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Add &lt;label for="email"&gt;Email Address&lt;/label&gt; and link with id attribute</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">156ms</td>
         </tr>
 
-        <!-- Forms: Missing CSRF -->
-        <tr class="result-row" data-status="failed" data-module="forms" style="display:none;">
-          <td class="text-muted mono text-sm cell-index">6</td>
-          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
-          <td data-label="Severity"><span class="badge badge-high">high</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#06b6d4;font-weight:600;">forms</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">Newsletter Form: Missing CSRF Token</div>
-            <div class="text-muted text-sm">No anti-CSRF protection detected</div>
-          </td>
-          <td data-label="" class="text-sm cell-details">
-            <div style="margin-bottom:4px;">The newsletter subscription form doesn't include a CSRF token, making it vulnerable to cross-site request forgery attacks.</div>
-            <div style="color:var(--accent);font-size:0.8rem;">💡 Add a CSRF token input field to all POST forms</div>
-            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/subscribe</div>
-          </td>
-          <td data-label="Time" class="mono text-sm text-muted">98ms</td>
-        </tr>
-
-        <!-- Availability: 503 -->
-        <tr class="result-row" data-status="failed" data-module="availability" style="display:none;">
-          <td class="text-muted mono text-sm cell-index">7</td>
-          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
-          <td data-label="Severity"><span class="badge badge-critical">critical</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#3b82f6;font-weight:600;">availability</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">Careers Page Returns 503 Service Unavailable</div>
-            <div class="text-muted text-sm">Server error on /careers path</div>
-          </td>
-          <td data-label="" class="text-sm cell-details">
-            <div style="margin-bottom:4px;">The careers page consistently returns HTTP 503 Service Unavailable. This could indicate a database connection issue or misconfigured proxy.</div>
-            <div style="color:var(--accent);font-size:0.8rem;">💡 Check backend service status and database connectivity for /careers endpoint</div>
-            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/careers</div>
-          </td>
-          <td data-label="Time" class="mono text-sm text-muted">2847ms</td>
-        </tr>
-
-        <!-- Availability: Slow Load -->
-        <tr class="result-row" data-status="warning" data-module="availability" style="display:none;">
-          <td class="text-muted mono text-sm cell-index">8</td>
-          <td data-label="Status"><span class="badge badge-warning">warning</span></td>
-          <td data-label="Severity"><span class="badge badge-high">high</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#3b82f6;font-weight:600;">availability</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">About Page Slow Load Time</div>
-            <div class="text-muted text-sm">Response time exceeds threshold</div>
-          </td>
-          <td data-label="" class="text-sm cell-details">
-            <div style="margin-bottom:4px;">The /about page takes 4.2 seconds to load. Best practice is under 3 seconds for optimal user experience.</div>
-            <div style="color:var(--accent);font-size:0.8rem;">💡 Profile backend queries; consider caching, database indexing, or CDN optimization</div>
-            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/about</div>
-          </td>
-          <td data-label="Time" class="mono text-sm text-muted">4247ms</td>
-        </tr>
-
-        <!-- More findings... -->
-        <tr class="result-row" data-status="passed" data-module="links" style="display:none;">
-          <td class="text-muted mono text-sm cell-index">9</td>
-          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
-          <td data-label="Severity"><span class="badge badge-low">low</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#a855f7;font-weight:600;">links</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">All Internal Links Accessible</div>
-            <div class="text-muted text-sm">No broken internal links found</div>
-          </td>
-          <td data-label="" class="text-sm cell-details">
-            <div style="margin-bottom:4px;">All 27 internal links on the site resolved successfully.</div>
-          </td>
-          <td data-label="Time" class="mono text-sm text-muted">1234ms</td>
-        </tr>
-
-        <tr class="result-row" data-status="passed" data-module="security" style="display:none;">
+        <tr class="result-row" data-status="passed" data-module="security" onclick="toggleResultDetail(this)" style="cursor:pointer;display:none;">
           <td class="text-muted mono text-sm cell-index">10</td>
           <td data-label="Status"><span class="badge badge-passed">passed</span></td>
           <td data-label="Severity"><span class="badge badge-low">low</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#ef4444;font-weight:600;">security</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">X-Frame-Options Header Present</div>
-            <div class="text-muted text-sm">Clickjacking protection enabled</div>
-          </td>
-          <td data-label="" class="text-sm cell-details">
-            <div style="margin-bottom:4px;">X-Frame-Options header is properly set to DENY, preventing clickjacking attacks.</div>
-          </td>
-          <td data-label="Time" class="mono text-sm text-muted">28ms</td>
-        </tr>
-
-        <tr class="result-row" data-status="passed" data-module="forms" style="display:none;">
-          <td class="text-muted mono text-sm cell-index">11</td>
-          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
-          <td data-label="Severity"><span class="badge badge-low">low</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#06b6d4;font-weight:600;">forms</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">Feedback Form Properly Validated</div>
-            <div class="text-muted text-sm">Client and server validation present</div>
-          </td>
-          <td data-label="" class="text-sm cell-details">
-            <div style="margin-bottom:4px;">The feedback form includes proper HTML5 validation and server-side checks.</div>
-          </td>
-          <td data-label="Time" class="mono text-sm text-muted">187ms</td>
-        </tr>
-
-        <tr class="result-row" data-status="passed" data-module="availability" style="display:none;">
-          <td class="text-muted mono text-sm cell-index">12</td>
-          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
-          <td data-label="Severity"><span class="badge badge-low">low</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#3b82f6;font-weight:600;">availability</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">Homepage Load Time Optimal</div>
-            <div class="text-muted text-sm">Excellent performance</div>
-          </td>
-          <td data-label="" class="text-sm cell-details">
-            <div style="margin-bottom:4px;">The homepage loads in 680ms, well below the 3-second threshold.</div>
-          </td>
-          <td data-label="Time" class="mono text-sm text-muted">680ms</td>
-        </tr>
-
-        <tr class="result-row" data-status="passed" data-module="security" style="display:none;">
-          <td class="text-muted mono text-sm cell-index">13</td>
-          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
-          <td data-label="Severity"><span class="badge badge-low">low</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#ef4444;font-weight:600;">security</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">HTTPS Enabled Everywhere</div>
+          <td data-label="Module" class="text-sm"><span style="color:#ef4444;font-weight:600;">security</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> HTTPS Enabled Everywhere</div>
             <div class="text-muted text-sm">All pages serve over secure connection</div>
           </td>
-          <td data-label="" class="text-sm cell-details">
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
             <div style="margin-bottom:4px;">All pages are served via HTTPS with a valid certificate from Let's Encrypt.</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">35ms</td>
-        </tr>
-
-        <tr class="result-row" data-status="warning" data-module="links" style="display:none;">
-          <td class="text-muted mono text-sm cell-index">14</td>
-          <td data-label="Status"><span class="badge badge-warning">warning</span></td>
-          <td data-label="Severity"><span class="badge badge-medium">medium</span></td>
-          <td data-label="Module" class="text-sm">
-            <span style="color:#a855f7;font-weight:600;">links</span>
-          </td>
-          <td data-label="Finding">
-            <div style="font-weight:500;">External Link to Deprecated Domain</div>
-            <div class="text-muted text-sm">Link points to old domain</div>
-          </td>
-          <td data-label="" class="text-sm cell-details">
-            <div style="margin-bottom:4px;">Footer contains link to old.bestlocalbakery.com which redirects multiple times.</div>
-            <div style="color:var(--accent);font-size:0.8rem;">💡 Update footer link to point to current domain or remove</div>
-            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/</div>
-          </td>
-          <td data-label="Time" class="mono text-sm text-muted">432ms</td>
         </tr>
       </tbody>
     </table>
   </div>
   <div style="text-align:center;padding:12px 0;">
     <button type="button" class="btn btn-secondary text-sm" onclick="toggleDetailedResults()" id="detailed-toggle-btn" aria-expanded="false" aria-controls="resultsTable">
-      Show All 14 Findings ▼
+      Show All 94 Results &#x25BC;
     </button>
+  </div>
+</div>
+
+<!-- -- AI Visibility Dashboard ----------------------------------- -->
+<div class="card">
+  <h2>&#x1F916; AI Visibility Dashboard</h2>
+
+  <!-- Summary Score -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:2.5rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Overall AI Visibility</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:2.5rem;font-weight:700;">0/32</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Appearances in AI Results</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:1.1rem;font-weight:600;">BEST LOCAL BAKERY</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Bakery &mdash; Seattle</div>
+    </div>
+  </div>
+
+  <!-- Platform Scores -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;margin-bottom:24px;">
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #10a37f;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <span style="font-size:1.1rem;">&#x1F916;</span> ChatGPT
+      </div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#10a37f;"></div>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #1e88e5;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <span style="font-size:1.1rem;">&#x1F50D;</span> Perplexity
+      </div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#1e88e5;"></div>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #d97706;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <span style="font-size:1.1rem;">&#x2728;</span> Claude
+      </div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#d97706;"></div>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #6366f1;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <span style="font-size:1.1rem;">&#x1F48E;</span> Gemini
+      </div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#6366f1;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Visibility Recommendations -->
+  <div style="margin-bottom:24px;border:1px solid var(--border);border-radius:12px;padding:20px;background:linear-gradient(135deg, rgba(99,102,241,0.05), rgba(16,185,129,0.05));">
+    <h3 style="font-size:1rem;font-weight:700;margin:0 0 12px;">&#x1F4A1; Top Actions to Improve AI Visibility</h3>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid #f97316;">
+      <div style="font-weight:600;font-size:0.9rem;">&#x1F4AA; Strengthen Your Online Presence</div>
+      <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Your business appears in only 0% of AI queries. Focus on building authoritative content, earning quality backlinks, and maintaining consistent NAP (Name, Address, Phone) across directories.</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid #f97316;">
+      <div style="font-weight:600;font-size:0.9rem;">&#x1F50D; Improve Visibility on ChatGPT & Claude & Gemini & Perplexity</div>
+      <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Your business wasn't found on ChatGPT, Claude, Gemini, Perplexity. Ensure your Google Business Profile is complete, encourage customer reviews, and add structured data (schema.org) to your website.</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid #f97316;">
+      <div style="font-weight:600;font-size:0.9rem;">&#x1F4DD; Create Sector-Specific Content</div>
+      <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">AI models aren't recommending your business for 32 out of 32 queries. Publish authoritative blog posts, case studies, and FAQs targeting the exact phrases customers use.</div>
+    </div>
+  </div>
+
+  <!-- Custom AI Query -->
+  <div style="margin-bottom:24px;background:var(--surface2);border-radius:12px;padding:20px;">
+    <h3 style="font-size:1rem;font-weight:700;margin:0 0 4px;">&#x1F50D; Run a Custom Query</h3>
+    <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 12px;">Enter any search query to see how AI platforms respond. The query runs against all 4 AI models.</p>
+    <div style="display:flex;gap:8px;align-items:stretch;">
+      <input type="text" id="custom-ai-query" placeholder="e.g. best plumber in Seattle" style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:0.9rem;" disabled>
+      <button type="button" class="btn btn-primary" style="white-space:nowrap;" disabled>Run Query</button>
+    </div>
+    <div style="margin-top:8px;color:var(--text-muted);font-size:0.8rem;font-style:italic;">Custom queries are available on real audit reports.</div>
+  </div>
+
+  <!-- AI Results Table -->
+  <div style="position:relative;">
+    <div id="ai-results-table" style="overflow-x:auto;max-height:none;">
+      <table id="aiResultsTable">
+        <thead>
+          <tr>
+            <th>AI Platform</th>
+            <th>Search Query</th>
+            <th>Recommended</th>
+            <th>Client Appears</th>
+            <th>Position</th>
+            <th>Competitors</th>
+            <th>Visibility Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ai-result-row">
+            <td data-label="Platform"><span style="color:#10a37f;font-weight:600;">&#x1F916; ChatGPT</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">recommended bakery in Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Macrina Bakery, Bakery Nouveau, Columbia City Bakery, Tall Grass Bakery</td>
+            <td data-label="Found"><span class="badge badge-failed">No</span></td>
+            <td data-label="Position">N/A</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Macrina Bakery, Bakery Nouveau, Columbia City Bakery</td>
+            <td data-label="Score">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
+                </div>
+                <span>0%</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="ai-result-row">
+            <td data-label="Platform"><span style="color:#1e88e5;font-weight:600;">&#x1F50D; Perplexity</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">recommended bakery in Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Bakery Nouveau, Macrina Bakery, Essential Baking Company</td>
+            <td data-label="Found"><span class="badge badge-failed">No</span></td>
+            <td data-label="Position">N/A</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Bakery Nouveau, Macrina Bakery</td>
+            <td data-label="Score">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
+                </div>
+                <span>0%</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="ai-result-row">
+            <td data-label="Platform"><span style="color:#d97706;font-weight:600;">&#x2728; Claude</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">best artisan bread near Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Columbia City Bakery, Tall Grass Bakery, Bakery Nouveau</td>
+            <td data-label="Found"><span class="badge badge-failed">No</span></td>
+            <td data-label="Position">N/A</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Columbia City Bakery, Tall Grass Bakery</td>
+            <td data-label="Score">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
+                </div>
+                <span>0%</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="ai-result-row">
+            <td data-label="Platform"><span style="color:#6366f1;font-weight:600;">&#x1F48E; Gemini</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">top rated bakery near Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Essential Baking Company, Macrina Bakery, Bakery Nouveau</td>
+            <td data-label="Found"><span class="badge badge-failed">No</span></td>
+            <td data-label="Position">N/A</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Essential Baking Company, Macrina Bakery</td>
+            <td data-label="Score">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
+                </div>
+                <span>0%</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="ai-result-row" style="display:none;">
+            <td data-label="Platform"><span style="color:#10a37f;font-weight:600;">&#x1F916; ChatGPT</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">best custom cakes in Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Trophy Cupcakes, Bakery Nouveau, Macrina Bakery</td>
+            <td data-label="Found"><span class="badge badge-failed">No</span></td>
+            <td data-label="Position">N/A</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Trophy Cupcakes, Bakery Nouveau</td>
+            <td data-label="Score">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
+                </div>
+                <span>0%</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="ai-show-more-bar" style="text-align:center;padding:12px 0;">
+      <button type="button" class="btn btn-secondary text-sm" onclick="toggleAIResults()" id="ai-toggle-btn">
+        Show All 32 Results &#x25BC;
+      </button>
+    </div>
   </div>
 </div>
 
@@ -377,6 +679,7 @@
 let currentStatus = 'all';
 let currentModule = 'all';
 let _detailedExpanded = false;
+let _aiExpanded = false;
 
 function filterResults(status, btn) {
   currentStatus = status;
@@ -396,12 +699,6 @@ function filterModule(mod, btn) {
 
 function applyFilters() {
   var isFiltering = currentStatus !== 'all' || currentModule !== 'all';
-  var container = document.getElementById('detailed-results-wrapper');
-  if (isFiltering) {
-    container.classList.add('scrollable-table');
-  } else if (!_detailedExpanded) {
-    container.classList.remove('scrollable-table');
-  }
   document.querySelectorAll('.result-row').forEach(function(row, i) {
     var matchStatus = currentStatus === 'all' || row.dataset.status === currentStatus;
     var matchModule = currentModule === 'all' || row.dataset.module === currentModule;
@@ -418,22 +715,42 @@ function applyFilters() {
 function toggleDetailedResults() {
   _detailedExpanded = !_detailedExpanded;
   var btn = document.getElementById('detailed-toggle-btn');
-  var rows = document.querySelectorAll('.result-row');
-
   btn.setAttribute('aria-expanded', _detailedExpanded ? 'true' : 'false');
-  if (_detailedExpanded) {
-    btn.textContent = 'Show First 5 Results ▲';
-  } else {
-    btn.textContent = 'Show All 14 Findings ▼';
-  }
-
+  btn.textContent = _detailedExpanded ? 'Show First 5 Results \u25B2' : 'Show All 94 Results \u25BC';
   applyFilters();
+}
+
+function toggleResultDetail(row) {
+  var cell = row.querySelector('.result-detail-cell');
+  var chevron = row.querySelector('.expand-chevron');
+  if (!cell) return;
+  var isOpen = cell.style.display !== 'none';
+  cell.style.display = isOpen ? 'none' : '';
+  if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function toggleAIResults() {
+  _aiExpanded = !_aiExpanded;
+  var btn = document.getElementById('ai-toggle-btn');
+  btn.textContent = _aiExpanded ? 'Show First 4 Results \u25B2' : 'Show All 32 Results \u25BC';
+  document.querySelectorAll('.ai-result-row').forEach(function(row, i) {
+    row.style.display = _aiExpanded ? '' : (i < 4 ? '' : 'none');
+  });
+}
+
+function scrollToResults(filter) {
+  var el = document.getElementById('detailed-results-card');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (filter && filter !== 'all') {
+    var btn = document.querySelector('.filter-btn[data-filter="' + filter + '"]');
+    if (btn) filterResults(filter, btn);
+  }
 }
 
 function downloadPDF() {
   var style = document.createElement('style');
   style.id = 'pdf-print-style';
-  style.textContent = '@media print { .report-actions, nav, footer, .filter-bar { display: none !important; } body { background: #fff !important; color: #111 !important; } .card, .stat-card { border: 1px solid #ddd !important; background: #fff !important; } .badge { border: 1px solid #999; } @page { margin: 1cm; } }';
+  style.textContent = '@media print { .report-action-pills, nav, footer, .filter-bar { display: none !important; } body { background: #fff !important; color: #111 !important; } .card, .stat-card { border: 1px solid #ddd !important; background: #fff !important; } .badge { border: 1px solid #999; } @page { margin: 1cm; } }';
   document.head.appendChild(style);
   window.print();
   setTimeout(function() { var ps = document.getElementById('pdf-print-style'); if (ps) ps.remove(); }, 1000);
@@ -444,19 +761,10 @@ function copyShareLink() {
   var btn = document.getElementById('share-link-btn');
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(url).then(function() {
-      btn.textContent = '\u2713 Copied!';
-      setTimeout(function() { btn.textContent = '\uD83D\uDD17 Copy Link'; }, 2000);
-    }).catch(function() { fallbackCopy(url, btn); });
-  } else { fallbackCopy(url, btn); }
-}
-
-function fallbackCopy(text, btn) {
-  var ta = document.createElement('textarea');
-  ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px;';
-  document.body.appendChild(ta); ta.select();
-  try { document.execCommand('copy'); btn.textContent = '\u2713 Copied!'; setTimeout(function() { btn.textContent = '\uD83D\uDD17 Copy Link'; }, 2000); }
-  catch(e) { prompt('Copy this link:', text); }
-  document.body.removeChild(ta);
+      btn.innerHTML = '\u2713 Copied!';
+      setTimeout(function() { btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share'; }, 2000);
+    });
+  }
 }
 </script>
 
