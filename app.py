@@ -629,15 +629,11 @@ def api_ai_query():
                     "position": 0,
                 })
         else:
-            results.append({
-                "platform": platform_name,
-                "platform_logo_url": platform_info["logo_url"],
-                "platform_color": platform_info["color"],
-                "query": query,
-                "recommended": "(no API key configured)",
-                "client_appears": False,
-                "position": 0,
-            })
+            # No API key configured: return error instead of fake data
+            return jsonify({
+                "error": "No PERPLEXITY_API_KEY configured. Set this environment variable to enable real AI visibility queries.",
+                "requires_api_key": True
+            }), 503
 
     return jsonify({"query": query, "results": results})
 

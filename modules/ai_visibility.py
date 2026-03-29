@@ -477,33 +477,16 @@ class AIVisibilityScanner(BaseModule):
         return overlap / min(len(words_a), len(words_b)) >= threshold
 
     def _simulate_ai_query(self, platform, query):
-        """Fallback simulation when no API key is available."""
-        seed = hashlib.md5(f"{platform}{query}{self.business_name}".encode()).hexdigest()
-        seed_int = int(seed[:8], 16)
-        appears = (seed_int % 5) < 2
-        position = (seed_int % 7) + 1 if appears else 0
-
-        competitor_seeds = ["Alpha", "Premier", "Elite", "Pro", "Metro", "Summit", "Pacific", "National"]
-        sector_keywords = SECTOR_QUERY_KEYWORDS.get(
-            self.sector, SECTOR_QUERY_KEYWORDS["local business services"],
-        )
-        industry_label = sector_keywords[0].title() if sector_keywords else "Services"
-        competitors = []
-        for i in range(3):
-            idx = (seed_int + i * 7) % len(competitor_seeds)
-            competitors.append(f"{competitor_seeds[idx]} {industry_label}")
-
-        recommended = list(competitors)
-        if appears:
-            recommended.insert(min(position - 1, len(recommended)), self.business_name)
+        """Fallback simulation when no API key is available.
+        Returns empty results with a clear indicator that results are simulated."""
         return {
             "platform": platform,
             "query": query,
-            "recommended": recommended[:5],
-            "client_appears": appears,
-            "position": position,
-            "competitors": [c for c in competitors if c != self.business_name][:3],
-            "response_text": "(simulated)",
+            "recommended": [],
+            "client_appears": False,
+            "position": 0,
+            "competitors": [],
+            "response_text": "(simulated - no API key)",
             "parsed_businesses": [],
         }
 
@@ -532,9 +515,11 @@ class AIVisibilityScanner(BaseModule):
                 elif seed_int % 3 == 2 and len(p_parsed) > 3:
                     p_parsed[2], p_parsed[3] = p_parsed[3], p_parsed[2]
                 result = self._build_platform_result(pname, query, p_parsed, response_text)
+                result["is_simulated"] = False
             else:
                 # No API key or API failed: simulate
                 result = self._simulate_ai_query(pname, query)
+                result["is_simulated"] = True
             results.append((pname, result))
         return results
 
@@ -599,6 +584,10 @@ class AIVisibilityScanner(BaseModule):
 
         overall_score = round((total_appearances / total_queries) * 100) if total_queries else 0
 
+        # Check if we have an API key
+        has_api_key = bool(self._get_api_key())
+        is_simulated = not has_api_key
+
         # Build the AI visibility data structure
         self.ai_results = {
             "business_info": business_info,
@@ -612,6 +601,8 @@ class AIVisibilityScanner(BaseModule):
                 "candidates": self._identification_details.get("candidates", []),
                 "lookup_source": self._identification_details.get("lookup_source", ""),
             },
+            "is_simulated": is_simulated,
+            "has_api_key": has_api_key,
         }
 
         # Flatten all results for the table
@@ -630,7 +621,7 @@ class AIVisibilityScanner(BaseModule):
                     "position": r["position"],
                     "competitors": ", ".join(r["competitors"]),
                     "visibility_score": score,
-                    "is_real": r.get("response_text", "") != "(simulated)",
+                    "is_real": not r.get("is_simulated", False),
                 })
 
         elapsed = time.time() - t0

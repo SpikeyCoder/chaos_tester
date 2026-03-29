@@ -349,6 +349,17 @@ document.addEventListener('DOMContentLoaded', function() {
   {% if report.ai_visibility and report.ai_visibility.overall_score is defined %}
   {% set ai = report.ai_visibility %}
 
+  <!-- Simulated Data Warning Banner -->
+  {% if not ai.has_api_key %}
+  <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:16px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start;">
+    <div style="font-size:1.2rem;flex-shrink:0;">⚠️</div>
+    <div>
+      <div style="font-weight:600;color:#92400e;margin-bottom:4px;">Simulated Data — No API Key Configured</div>
+      <div style="color:#b45309;font-size:0.9rem;">These results are generated placeholders, not real AI platform responses. Set the <code style="background:rgba(0,0,0,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;">PERPLEXITY_API_KEY</code> environment variable to get actual AI visibility data.</div>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Summary Score -->
   <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
     <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
@@ -428,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </span>
             </td>
             <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">{{ row.query }}</td>
-            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.recommended }}</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.recommended }}{% if not row.is_real %}<span style="display:inline-block;margin-left:8px;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-size:0.75rem;font-weight:600;">(simulated)</span>{% endif %}</td>
             <td data-label="Found">
               {% if row.client_appears %}
                 <span class="badge badge-passed">Yes</span>
