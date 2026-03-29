@@ -149,16 +149,62 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="perf-dashboard" class="card" style="margin-bottom:24px">
   <h2 style="margin:0 0 16px">&#x26A1; Performance Metrics</h2>
   <div class="perf-tabs">
-    <button type="button" class="perf-tab active" onclick="switchSamplePerfTab('mobile')" id="tab-mobile">&#x1F4F1; Mobile</button>
-    <button type="button" class="perf-tab" onclick="switchSamplePerfTab('desktop')" id="tab-desktop">&#x1F5A5; Desktop</button>
+    <button type="button" class="perf-tab active" onclick="switchPerfTab('mobile')" id="tab-mobile">&#x1F4F1; Mobile</button>
+    <button type="button" class="perf-tab" onclick="switchPerfTab('desktop')" id="tab-desktop">&#x1F5A5; Desktop</button>
   </div>
   <!-- Mobile panel -->
   <div class="perf-panel" id="panel-mobile">
     <div style="text-align:center;margin-bottom:20px">
-      <div id="sample-perf-gauge-mobile" class="gauge-container gauge-main"></div>
+      <div class="gauge-container gauge-main"
+           data-type="overall"
+           data-value="96"
+           data-display="96"></div>
       <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Overall Score</div>
     </div>
-    <div class="perf-grid" id="sample-perf-metrics-mobile"></div>
+    <div class="perf-grid">
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="first-contentful-paint"
+             data-value="0.3"
+             data-display="0.3 s"></div>
+        <div class="gauge-label">First Contentful Paint</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="speed-index"
+             data-value="0.6"
+             data-display="0.6 s"></div>
+        <div class="gauge-label">Speed Index</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="largest-contentful-paint"
+             data-value="0.8"
+             data-display="0.8 s"></div>
+        <div class="gauge-label">Largest Contentful Paint</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="cumulative-layout-shift"
+             data-value="0.001"
+             data-display="0.001"></div>
+        <div class="gauge-label">Cumulative Layout Shift</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="interactive"
+             data-value="2.4"
+             data-display="2.4 s"></div>
+        <div class="gauge-label">Time to Interactive</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="total-blocking-time"
+             data-value="120"
+             data-display="120 ms"></div>
+        <div class="gauge-label">Total Blocking Time</div>
+      </div>
+    </div>
     <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
       <h3 style="font-size:1rem;font-weight:600;margin:0 0 12px;">&#x1F4A1; Top Recommendations</h3>
       <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid var(--yellow);">
@@ -178,91 +224,235 @@ document.addEventListener('DOMContentLoaded', function() {
   <!-- Desktop panel (hidden by default) -->
   <div class="perf-panel" id="panel-desktop" style="display:none;">
     <div style="text-align:center;margin-bottom:20px">
-      <div id="sample-perf-gauge-desktop" class="gauge-container gauge-main"></div>
+      <div class="gauge-container gauge-main"
+           data-type="overall"
+           data-value="99"
+           data-display="99"></div>
       <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Overall Score</div>
     </div>
-    <div class="perf-grid" id="sample-perf-metrics-desktop"></div>
+    <div class="perf-grid">
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="first-contentful-paint"
+             data-value="0.2"
+             data-display="0.2 s"></div>
+        <div class="gauge-label">First Contentful Paint</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="speed-index"
+             data-value="0.3"
+             data-display="0.3 s"></div>
+        <div class="gauge-label">Speed Index</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="largest-contentful-paint"
+             data-value="0.4"
+             data-display="0.4 s"></div>
+        <div class="gauge-label">Largest Contentful Paint</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="cumulative-layout-shift"
+             data-value="0.001"
+             data-display="0.001"></div>
+        <div class="gauge-label">Cumulative Layout Shift</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="interactive"
+             data-value="0.5"
+             data-display="0.5 s"></div>
+        <div class="gauge-label">Time to Interactive</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="total-blocking-time"
+             data-value="10"
+             data-display="10 ms"></div>
+        <div class="gauge-label">Total Blocking Time</div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-/* Sample performance gauge rendering */
-document.addEventListener('DOMContentLoaded', function() {
-  function renderPerfGauge(containerId, score) {
-    var container = document.getElementById(containerId);
-    if (!container) return;
-    var color = score >= 90 ? '#4ade80' : (score >= 70 ? '#f97316' : '#ef4444');
-    var r = 44, stroke = 7, circ = 2 * Math.PI * r;
-    var offset = circ - (score / 100) * circ;
-    container.innerHTML = '<div class="gauge-ring" style="position:relative;width:140px;height:140px;margin:0 auto;">' +
-      '<svg viewBox="0 0 100 100" width="140" height="140">' +
-        '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
-        '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
-          'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
-          'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
-          'style="transition:stroke-dashoffset 1s ease;"/>' +
-      '</svg>' +
-      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
-        '<span style="font-size:2.2rem;font-weight:700;color:' + color + ';">' + score + '</span>' +
-      '</div>' +
-    '</div>';
-  }
-
-  function renderMetricGauges(containerId, metrics) {
-    var container = document.getElementById(containerId);
-    if (!container) return;
-    metrics.forEach(function(m) {
-      var color = m.score >= 90 ? '#4ade80' : (m.score >= 70 ? '#f97316' : '#ef4444');
-      var r = 36, stroke = 6, circ = 2 * Math.PI * r;
-      var offset = circ - (m.score / 100) * circ;
-      var html = '<div class="gauge-card">' +
-        '<div class="gauge-container gauge-metric" style="position:relative;width:90px;height:90px;margin:0 auto;">' +
-          '<svg viewBox="0 0 100 100" width="90" height="90">' +
-            '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
-            '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
-              'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
-              'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
-              'style="transition:stroke-dashoffset 1s ease;"/>' +
-          '</svg>' +
-          '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
-            '<span style="font-size:1rem;font-weight:700;color:' + color + ';">' + m.display + '</span>' +
-          '</div>' +
-        '</div>' +
-        '<div class="gauge-label">' + m.label + '</div>' +
-      '</div>';
-      container.insertAdjacentHTML('beforeend', html);
-    });
-  }
-
-  /* Mobile */
-  renderPerfGauge('sample-perf-gauge-mobile', 96);
-  renderMetricGauges('sample-perf-metrics-mobile', [
-    { label: 'First Contentful Paint', score: 99, display: '0.3s' },
-    { label: 'Speed Index', score: 97, display: '0.6s' },
-    { label: 'Largest Contentful Paint', score: 96, display: '0.8s' },
-    { label: 'Cumulative Layout Shift', score: 100, display: '0.001' },
-    { label: 'Time to Interactive', score: 90, display: '2.4s' },
-    { label: 'Total Blocking Time', score: 92, display: '120ms' }
-  ]);
-
-  /* Desktop */
-  renderPerfGauge('sample-perf-gauge-desktop', 99);
-  renderMetricGauges('sample-perf-metrics-desktop', [
-    { label: 'First Contentful Paint', score: 99, display: '0.2s' },
-    { label: 'Speed Index', score: 99, display: '0.3s' },
-    { label: 'Largest Contentful Paint', score: 99, display: '0.4s' },
-    { label: 'Cumulative Layout Shift', score: 100, display: '0.001' },
-    { label: 'Time to Interactive', score: 99, display: '0.5s' },
-    { label: 'Total Blocking Time', score: 100, display: '10ms' }
-  ]);
-});
-
-function switchSamplePerfTab(strategy) {
-  document.querySelectorAll('.perf-tab').forEach(function(t) { t.classList.remove('active'); });
-  document.getElementById('tab-' + strategy).classList.add('active');
+function switchPerfTab(strategy) {
   document.querySelectorAll('.perf-panel').forEach(function(p) { p.style.display = 'none'; });
-  document.getElementById('panel-' + strategy).style.display = '';
+  document.querySelectorAll('.perf-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('panel-' + strategy).style.display = 'block';
+  document.getElementById('tab-' + strategy).classList.add('active');
 }
+</script>
+
+<!-- Moylan Arrow Gauge Renderer (same as report.html) -->
+<script>
+(function() {
+  var TH = {
+    'overall':                  {g:90,  y:50,   max:100,  rev:true, gl:'90', yl:'50'},
+    'first-contentful-paint':   {g:1.8, y:3.0,  max:6.0,  rev:false, gl:'1.8s', yl:'3.0s'},
+    'speed-index':              {g:3.4, y:5.8,  max:10.0, rev:false, gl:'3.4s', yl:'5.8s'},
+    'largest-contentful-paint': {g:2.5, y:4.0,  max:8.0,  rev:false, gl:'2.5s', yl:'4.0s'},
+    'cumulative-layout-shift':  {g:0.1, y:0.25, max:0.5,  rev:false, gl:'0.1',  yl:'0.25'},
+    'interactive':              {g:3.8, y:7.3,  max:12.0, rev:false, gl:'3.8s', yl:'7.3s'},
+    'total-blocking-time':      {g:200, y:600,  max:1200, rev:false, gl:'200ms',yl:'600ms'}
+  };
+
+  var NS = 'http://www.w3.org/2000/svg';
+
+  function el(tag, attrs) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function arcPt(cx, cy, r, proportion) {
+    var a = Math.PI * (1 - proportion);
+    return { x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) };
+  }
+
+  function drawGauge(container) {
+    var type  = container.getAttribute('data-type');
+    var value = parseFloat(container.getAttribute('data-value'));
+    var disp  = container.getAttribute('data-display') || '';
+    var big   = container.classList.contains('gauge-main');
+
+    var cfg = TH[type];
+    if (!cfg) return;
+
+    var PAD = big ? 20 : 14;
+    var W = 200 + PAD * 2, H = big ? 150 : 134;
+    var CX = 100 + PAD, CY = big ? 115 : 104;
+    var R  = big ? 80 : 70;
+    var SW = big ? 16 : 12;
+    var ARC = Math.PI * R;
+
+    var gP, yP, rP;
+    if (cfg.rev) {
+      gP = (cfg.max - cfg.g) / cfg.max;
+      yP = (cfg.g - cfg.y) / cfg.max;
+      rP = cfg.y / cfg.max;
+    } else {
+      gP = cfg.g / cfg.max;
+      yP = (cfg.y - cfg.g) / cfg.max;
+      rP = (cfg.max - cfg.y) / cfg.max;
+    }
+    var gL = gP * ARC, yL = yP * ARC, rL = rP * ARC;
+
+    var nPos;
+    if (cfg.rev) {
+      nPos = Math.max(0, Math.min(1, (cfg.max - value) / cfg.max));
+    } else {
+      nPos = Math.max(0, Math.min(1, value / cfg.max));
+    }
+    var needleDeg = -90 + nPos * 180;
+
+    var nCol;
+    if (nPos <= gP + 0.001) nCol = '#0cce6b';
+    else if (nPos <= gP + yP + 0.001) nCol = '#ffa400';
+    else nCol = '#ff4e42';
+
+    var svg = el('svg', {viewBox: '0 0 ' + W + ' ' + H});
+    svg.style.width = '100%';
+    svg.style.maxWidth = big ? '260px' : '195px';
+
+    var arcD = 'M ' + (CX - R) + ',' + CY +
+               ' A ' + R + ',' + R + ' 0 0,1 ' + (CX + R) + ',' + CY;
+
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: 'rgba(255,255,255,0.06)',
+      'stroke-width': SW, 'stroke-linecap': 'butt'
+    }));
+
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#0cce6b',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': gL + ' ' + (ARC * 3)
+    }));
+
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#ffa400',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': '0.001 ' + gL + ' ' + yL + ' ' + (ARC * 3)
+    }));
+
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#ff4e42',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': '0.001 ' + (gL + yL) + ' ' + rL + ' ' + (ARC * 3)
+    }));
+
+    function addTick(prop, label) {
+      var oP = arcPt(CX, CY, R + SW / 2 + 1, prop);
+      var iP = arcPt(CX, CY, R - SW / 2 - 1, prop);
+      svg.appendChild(el('line', {
+        x1: oP.x, y1: oP.y, x2: iP.x, y2: iP.y,
+        stroke: 'rgba(255,255,255,0.4)', 'stroke-width': '1.5'
+      }));
+      var lP = arcPt(CX, CY, R + SW / 2 + (big ? 13 : 11), prop);
+      var t = el('text', {
+        x: lP.x, y: lP.y, 'text-anchor': 'middle',
+        'dominant-baseline': 'middle',
+        fill: 'rgba(255,255,255,0.55)',
+        'font-size': big ? '10' : '8',
+        'font-family': 'system-ui, sans-serif'
+      });
+      t.textContent = label;
+      svg.appendChild(t);
+    }
+
+    addTick(gP, cfg.gl);
+    addTick(gP + yP, cfg.yl);
+
+    var NL = R - 16;
+    var nw = big ? 4.5 : 3.5;
+
+    var g = el('g', {transform: 'rotate(' + needleDeg + ', ' + CX + ', ' + CY + ')'});
+
+    g.appendChild(el('polygon', {
+      points: [
+        (CX - nw) + ',' + CY,
+        (CX + nw) + ',' + CY,
+        (CX + 1.2) + ',' + (CY - NL + 6),
+        CX + ',' + (CY - NL),
+        (CX - 1.2) + ',' + (CY - NL + 6)
+      ].join(' '),
+      fill: nCol, opacity: '0.92'
+    }));
+
+    g.appendChild(el('polygon', {
+      points: [
+        (CX - nw * 0.6) + ',' + CY,
+        (CX + nw * 0.6) + ',' + CY,
+        (CX + nw * 0.4) + ',' + (CY + 10),
+        (CX - nw * 0.4) + ',' + (CY + 10)
+      ].join(' '),
+      fill: '#555', opacity: '0.7'
+    }));
+
+    g.appendChild(el('circle', {
+      cx: CX, cy: CY, r: big ? 7 : 5.5,
+      fill: '#555', stroke: '#777', 'stroke-width': '1.5'
+    }));
+
+    svg.appendChild(g);
+
+    var vt = el('text', {
+      x: CX, y: CY + (big ? 28 : 22),
+      'text-anchor': 'middle', fill: nCol,
+      'font-size': big ? '24' : '16',
+      'font-weight': 'bold',
+      'font-family': 'system-ui, sans-serif'
+    });
+    vt.textContent = disp;
+    svg.appendChild(vt);
+
+    container.appendChild(svg);
+  }
+
+  document.querySelectorAll('.gauge-container').forEach(drawGauge);
+})();
 </script>
 
 <!-- -- Results Table (condensed: first 5 visible) ----------- -->
@@ -767,5 +957,35 @@ function copyShareLink() {
   }
 }
 </script>
+
+<style>
+.filter-btn.active, .module-btn.active {
+  border-color: var(--accent) !important;
+  color: var(--accent);
+}
+.perf-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.perf-tab {
+  padding: 8px 20px; border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--text);
+  cursor: pointer; font-size: 14px; transition: all .2s;
+}
+.perf-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.perf-tab:hover:not(.active) { background: rgba(99,102,241,.15); }
+.perf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) { .perf-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .perf-grid { grid-template-columns: 1fr; } }
+.gauge-card {
+  text-align: center; padding: 16px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: rgba(255,255,255,.03);
+}
+.gauge-container { display: flex; justify-content: center; }
+.gauge-label { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+</style>
 
 {% endblock %}
