@@ -74,9 +74,41 @@ document.getElementById('runForm').addEventListener('submit', function(e) {
   e.preventDefault();
   var form = e.target;
   var btn = form.querySelector('button[type="submit"]');
-  var origText = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = 'Starting...';
+  var origText = btn ? btn.textContent : 'Audit Website';
+
+  /* ── Sync city from promoted quick_city field into hidden form field ── */
+  var quickCity = document.getElementById('quick_city');
+  var locInput = document.getElementById('business_location');
+  if (quickCity && quickCity.value.trim() && locInput && !locInput.value.trim()) {
+    locInput.value = quickCity.value.trim();
+  }
+
+  /* ── Validate: city/location is required ── */
+  if (locInput && !locInput.value.trim()) {
+    if (typeof showCityField === 'function') showCityField(false);
+    return;
+  }
+
+  /* ── Normalize URL: auto-add https:// if missing ── */
+  var urlField = document.getElementById('base_url');
+  if (urlField) {
+    var urlVal = urlField.value.trim();
+    if (urlVal && !/^https?:\/\//i.test(urlVal)) {
+      urlField.value = 'https://' + urlVal;
+    }
+  }
+
+  /* ── Validate: URL is required ── */
+  if (!urlField || !urlField.value.trim()) {
+    urlField.focus();
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:8px;"></span> Running Audit...';
+  }
 
   // Show the full-screen progress overlay immediately
   showLaunchProgress();
@@ -111,7 +143,10 @@ document.getElementById('runForm').addEventListener('submit', function(e) {
   .catch(function(err) {
     hideLaunchProgress();
     alert('Failed to start: ' + err.message);
-    btn.disabled = false;
-    btn.textContent = origText;
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.textContent = origText;
+    }
   });
 });

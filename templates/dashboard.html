@@ -11,7 +11,7 @@
   <h1>Free Website Audit Tool</h1>
   <p class="hero-subtitle">Get comprehensive insights into your website's SEO, performance, security, and privacy in seconds. No signup required.</p>
 
-  <form method="POST" action="/run" id="runForm">
+  <form method="POST" action="/run" id="runForm" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <!-- Defaults for advanced options -->
     <input type="hidden" name="environment" value="production">
@@ -438,26 +438,8 @@ function detectBusiness() {
   });
 }
 
-/* Sync city on form submit + F-09: show progress indicator */
-document.getElementById('runForm').addEventListener('submit', function(e) {
-  var quickCity = document.getElementById('quick_city');
-  var locInput = document.getElementById('business_location');
-  if (quickCity && quickCity.value.trim() && !locInput.value.trim()) {
-    locInput.value = quickCity.value.trim();
-  }
-  if (!locInput.value.trim()) {
-    e.preventDefault();
-    showCityField(false);
-    return;
-  }
-  /* Show loading state on the button */
-  var btn = document.getElementById('auditBtn');
-  if (btn) {
-    btn.disabled = true;
-    btn.style.opacity = '0.7';
-    btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:8px;"></span> Running Audit...';
-  }
-});
+/* NOTE: URL normalization (auto-adding https://) and city validation are
+   handled in the dashboard.js submit handler to avoid conflicts. */
 </script>
 
 <style>
