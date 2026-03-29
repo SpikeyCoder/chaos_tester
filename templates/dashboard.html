@@ -243,51 +243,6 @@
   <a href="#audit" class="btn btn-primary" style="padding:14px 36px;font-size:1.05rem;">Get Free Audit</a>
 </div>
 
-{% if history and history|length > 0 %}
-<!-- ── Run History (only shown if there are previous runs) ──── -->
-<hr class="section-divider">
-<div class="section-block fade-up">
-  <div class="section-header">
-    <h2>Your Recent Audits</h2>
-    <p>View results from your previous website scans</p>
-  </div>
-  <div class="card" style="max-width:900px;margin:0 auto;">
-    <table>
-      <thead>
-        <tr>
-          <th>Run ID</th>
-          <th>Target</th>
-          <th>Env</th>
-          <th>Time</th>
-          <th>Tests</th>
-          <th>Pass Rate</th>
-          <th>Status</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in history %}
-        <tr>
-          <td class="mono text-sm">{{ r.run_id }}</td>
-          <td class="text-sm">{{ r.base_url[:40] }}</td>
-          <td><span class="badge badge-info">{{ r.environment }}</span></td>
-          <td class="text-sm text-muted"><span data-utc="{{ r.started_at }}" data-utc-format="datetime">{{ r.started_at[:19] }}</span></td>
-          <td>{{ r.summary.total }}</td>
-          <td>
-            {% set rate = r.summary.pass_rate %}
-            <span style="color:{% if rate >= 90 %}var(--green){% elif rate >= 70 %}var(--yellow){% else %}var(--red){% endif %}; font-weight:600;">
-              {{ rate }}%
-            </span>
-          </td>
-          <td><span class="badge badge-{{ 'passed' if r.status == 'completed' else r.status }}">{{ r.status }}</span></td>
-          <td><a href="/report/{{ r.run_id }}">View &rarr;</a></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-{% endif %}
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4" defer></script>
 <script>

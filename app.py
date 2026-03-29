@@ -260,8 +260,7 @@ def _run_tests(config: ChaosConfig):
 def index():
     with _lock:
         status = _current_status
-        history = list(reversed(_run_history[-20:]))
-    return render_template("dashboard.html", status=status, history=history)
+    return render_template("dashboard.html", status=status)
 
 
 @app.route("/run", methods=["POST"])
