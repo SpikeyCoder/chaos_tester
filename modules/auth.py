@@ -114,7 +114,7 @@ class AuthTester(BaseModule):
                         )
                     else:
                         self.add_result(
-                            name=f"⚠ Unprotected route: {path}",
+                            name=f"Unprotected route: {path}",
                             description=f"Protected path accessible without auth (HTTP 200)",
                             status=TestStatus.FAILED,
                             severity=Severity.CRITICAL,

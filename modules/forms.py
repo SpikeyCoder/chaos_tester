@@ -34,7 +34,7 @@ class FormInteractionTester(BaseModule):
         "long_string": "A" * 5000,
         "special_chars": "!@#$%^&*(){}|:<>?`~",
         "null_byte": "test\x00value",
-        "unicode": "テスト🧪",
+        "unicode": "テスト",
     }
 
     def run(self, discovered_pages: list = None) -> List[TestResult]:

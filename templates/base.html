@@ -66,7 +66,7 @@ button, input, select, textarea { font: inherit; }
     --border:   rgba(51,65,85,0.5);
     --border-hover: #475569;
     --text:     #e2e8f0;
-    --text-muted: #a8b8c8;
+    --text-muted: #b0b8c8;
     --accent:   #3b82f6;
     --accent-hover: #60a5fa;
     --accent-purple: #8b5cf6;
@@ -275,7 +275,7 @@ tr:hover td { background: rgba(56,189,248,0.04); }
 .badge-passed::before  { content: "✓ "; }
 .badge-failed  { background: rgba(248,113,113,0.15); color: #f87171; }
 .badge-failed::before  { content: "✗ "; }
-.badge-warning { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.badge-warning { background: rgba(251,191,36,0.18); color: #fcd34d; }
 .badge-warning::before { content: "⚠ "; }
 .badge-error   { background: rgba(248,113,113,0.15); color: #f87171; }
 .badge-error::before   { content: "✗ "; }
@@ -1134,7 +1134,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
         <!-- Form state -->
         <div id="bugFormView">
             <h3>
-                <span id="bugIcon" style="font-size:1.3rem;">🐛</span>
+                <span id="bugIcon" style="font-size:1.3rem;">Bug</span>
                 <span id="bugTitle">Report a Bug</span>
             </h3>
             <p class="subtitle">We'll capture page details automatically</p>
@@ -1150,7 +1150,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                     </label>
                     <label>
                         <input type="checkbox" id="bugScreenshot" checked>
-                        📷 Include a screenshot
+                        Include a screenshot
                     </label>
                 </div>
 
@@ -1165,7 +1165,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
         <!-- Success state -->
         <div id="bugSuccessView" style="display:none;">
             <div class="status-msg success">
-                <div style="font-size:2.2rem;margin-bottom:10px;">✅</div>
+                <div style="font-size:2.2rem;margin-bottom:10px;">Done</div>
                 <strong>Report submitted!</strong><br>
                 <span style="font-size:0.85rem;color:var(--text-muted);">Thank you for helping us improve.</span>
             </div>
@@ -1265,7 +1265,7 @@ var bugReport = (function() {
         },
         toggleType: function() {
             var isFeature = document.getElementById('bugIsFeature').checked;
-            document.getElementById('bugIcon').textContent = isFeature ? '💡' : '🐛';
+            document.getElementById('bugIcon').textContent = isFeature ? 'Idea' : 'Bug';
             document.getElementById('bugTitle').textContent = isFeature ? 'Feature Request' : 'Report a Bug';
             document.getElementById('bugDesc').placeholder = isFeature
                 ? "Describe the feature you'd like to see..."

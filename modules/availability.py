@@ -89,13 +89,11 @@ class AvailabilityScanner(BaseModule):
         resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
 
         if err:
-            # Only critical if this is the site root (home page completely down)
-            is_root = urlparse(url).path in ("", "/")
             self.add_result(
                 name=f"Page load: {self._short(url)}",
                 description=f"GET {url}",
                 status=TestStatus.FAILED,
-                severity=Severity.CRITICAL if is_root else Severity.HIGH,
+                severity=Severity.HIGH,
                 url=url,
                 details=err,
                 recommendation="Investigate server connectivity or DNS resolution.",
@@ -129,7 +127,7 @@ class AvailabilityScanner(BaseModule):
             rec = "Remove or fix dead link; add a custom 404 page."
         elif 500 <= status < 600:
             test_status = TestStatus.FAILED
-            sev = Severity.HIGH
+            sev = Severity.CRITICAL
             detail = f"HTTP {status} Server Error"
             rec = "Investigate server logs immediately."
         else:
@@ -177,10 +175,10 @@ class AvailabilityScanner(BaseModule):
         if 200 <= status < 300 and "text/html" in resp.headers.get("content-type", ""):
             body_lower = resp.text[:5000].lower()
             error_patterns = [
-                ("internal server error", Severity.HIGH),
-                ("traceback (most recent call last)", Severity.HIGH),
+                ("internal server error", Severity.CRITICAL),
+                ("traceback (most recent call last)", Severity.CRITICAL),
                 ("exception in", Severity.MEDIUM),
-                ("fatal error", Severity.HIGH),
+                ("fatal error", Severity.CRITICAL),
                 ("syntax error", Severity.MEDIUM),
                 ("undefined variable", Severity.LOW),
             ]
