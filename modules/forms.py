@@ -132,7 +132,7 @@ class FormInteractionTester(BaseModule):
                         name=f"Empty submit crashes: {form_id}",
                         description=f"Submitting empty data caused HTTP 500",
                         status=TestStatus.FAILED,
-                        severity=Severity.CRITICAL,
+                        severity=Severity.HIGH,
                         url=form_url,
                         details=f"POST {form_url} with empty fields returned 500.",
                         recommendation="Add server-side validation; never trust client-side validation alone.",

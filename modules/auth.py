@@ -230,7 +230,7 @@ class AuthTester(BaseModule):
                         name=f"Session tamper crash: {label}",
                         description=f"Server error with tampered session ({label})",
                         status=TestStatus.FAILED,
-                        severity=Severity.CRITICAL,
+                        severity=Severity.HIGH,
                         url=url,
                         details=f"Tampered {self.config.auth_cookie_name}='{value[:30]}' caused HTTP {resp.status_code}.",
                         recommendation="Handle invalid session tokens gracefully -- clear cookie and redirect to login.",

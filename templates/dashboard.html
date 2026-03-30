@@ -9,7 +9,7 @@
     Over 1,000+ websites audited
   </div>
   <h1>Free Website Audit Tool</h1>
-  <p class="hero-subtitle">Get comprehensive insights into your website's SEO, performance, security, and privacy in seconds. No signup required.</p>
+  <p class="hero-subtitle">Find broken pages, security gaps, and slow load times that cost you customers. Just paste your URL -- results in 30 seconds, no signup needed.</p>
 
   <form method="POST" action="/run" id="runForm" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -25,8 +25,8 @@
     <input type="hidden" name="run_availability" value="on" id="h_avail">
     <input type="hidden" name="run_links" value="on" id="h_links">
     <input type="hidden" name="run_forms" value="on" id="h_forms">
-    <input type="hidden" name="run_chaos" value="on" id="h_chaos">
-    <input type="hidden" name="run_auth" value="on" id="h_auth">
+    <input type="hidden" name="run_chaos" value="" id="h_chaos">
+    <input type="hidden" name="run_auth" value="" id="h_auth">
     <input type="hidden" name="run_security" value="on" id="h_security">
     <input type="hidden" name="business_location" id="business_location" value="">
 
@@ -39,6 +39,7 @@
         <button type="submit" class="btn-audit" id="auditBtn" disabled style="opacity:0.5;cursor:not-allowed;">Audit Website</button>
       {% endif %}
     </div>
+    <div id="cta-helper" style="text-align:center;margin-top:8px;font-size:0.82rem;color:var(--text-muted);transition:opacity 0.3s;">Enter a URL above to scan your website</div>
   </form>
 
   <!-- City field: shown immediately while detecting, hidden if auto-detected -->
@@ -57,39 +58,45 @@
     </div>
   </div>
 
-  <!-- Module toggles with descriptions (F-08) -->
+  <!-- Module toggles with descriptions -->
   <details id="module-toggles" style="max-width:680px;margin:16px auto 24px;text-align:left;">
     <summary style="cursor:pointer;font-size:0.9rem;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:8px;padding:10px 0;min-height:44px;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Customize Audit Modules
     </summary>
     <div style="padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-top:8px;">
+      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:10px;font-weight:600;">Basic Scan (recommended)</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">
         <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(59,130,246,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
           <input type="checkbox" checked onchange="document.getElementById('h_avail').value=this.checked?'on':''" style="accent-color:var(--accent);width:18px;height:18px;margin-top:2px;flex-shrink:0;">
-          <div><strong style="color:var(--text);font-size:0.9rem;">Availability</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Checks if your pages load correctly and return proper status codes</div></div>
+          <div><strong style="color:var(--text);font-size:0.9rem;">Page Availability</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Can visitors reach every page on your site?</div></div>
         </label>
         <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(168,85,247,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
           <input type="checkbox" checked onchange="document.getElementById('h_links').value=this.checked?'on':''" style="accent-color:#a855f7;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
-          <div><strong style="color:var(--text);font-size:0.9rem;">Links</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Scans for broken links, images, scripts, and stylesheets across your site</div></div>
-        </label>
-        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(6,182,212,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-          <input type="checkbox" checked onchange="document.getElementById('h_forms').value=this.checked?'on':''" style="accent-color:#06b6d4;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
-          <div><strong style="color:var(--text);font-size:0.9rem;">Forms</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Validates form fields, CSRF protection, and submission handling</div></div>
-        </label>
-        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(249,115,22,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-          <input type="checkbox" checked onchange="document.getElementById('h_chaos').value=this.checked?'on':''" style="accent-color:#f97316;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
-          <div><strong style="color:var(--text);font-size:0.9rem;">Resilience</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Tests how your site handles errors, timeouts, and unexpected conditions</div></div>
-        </label>
-        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(234,179,8,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-          <input type="checkbox" checked onchange="document.getElementById('h_auth').value=this.checked?'on':''" style="accent-color:#eab308;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
-          <div><strong style="color:var(--text);font-size:0.9rem;">Auth</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Checks authentication pages, login security, and session handling</div></div>
+          <div><strong style="color:var(--text);font-size:0.9rem;">Broken Links</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Finds dead links, missing images, and broken scripts</div></div>
         </label>
         <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(239,68,68,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
           <input type="checkbox" checked onchange="document.getElementById('h_security').value=this.checked?'on':''" style="accent-color:#ef4444;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
-          <div><strong style="color:var(--text);font-size:0.9rem;">Security</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Analyzes security headers, SSL configuration, and vulnerability protections</div></div>
+          <div><strong style="color:var(--text);font-size:0.9rem;">Security Scan</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Checks for SSL, security headers, and exposed files</div></div>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(6,182,212,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+          <input type="checkbox" checked onchange="document.getElementById('h_forms').value=this.checked?'on':''" style="accent-color:#06b6d4;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+          <div><strong style="color:var(--text);font-size:0.9rem;">Forms</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Tests that your contact and sign-up forms work correctly</div></div>
         </label>
       </div>
+      <details style="margin-top:12px;">
+        <summary style="cursor:pointer;font-size:0.82rem;font-weight:600;color:var(--text-muted);padding:6px 0;min-height:36px;">Advanced Options</summary>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:8px;">
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(249,115,22,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+            <input type="checkbox" onchange="document.getElementById('h_chaos').value=this.checked?'on':''" style="accent-color:#f97316;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+            <div><strong style="color:var(--text);font-size:0.9rem;">Resilience Testing</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Tests how your site handles errors and unexpected conditions</div></div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(234,179,8,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+            <input type="checkbox" onchange="document.getElementById('h_auth').value=this.checked?'on':''" style="accent-color:#eab308;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+            <div><strong style="color:var(--text);font-size:0.9rem;">Login and Sessions</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Checks login pages and <span title="How your site remembers who is logged in" style="border-bottom:1px dotted var(--text-muted);cursor:help;">session handling</span></div></div>
+          </label>
+        </div>
+      </details>
     </div>
   </details>
 
@@ -98,7 +105,7 @@
     <span class="trust-item"><span class="trust-check">&#10003;</span> No Signup Required</span>
     <span class="trust-item"><span class="trust-check">&#10003;</span> Instant Results</span>
     <a href="/sample-report" class="trust-item" style="color:var(--accent);text-decoration:none;font-weight:600;padding:10px 4px;min-height:44px;display:inline-flex;align-items:center;">
-      <span class="trust-check" style="background:rgba(59,130,246,0.15);color:var(--accent);">&#x1F4CB;</span> See a Sample Report
+      <span class="trust-check" style="background:rgba(59,130,246,0.15);color:var(--accent);">&#10003;</span> See a Sample Report
     </a>
   </div>
 </div>
@@ -128,51 +135,51 @@
 <!-- ── Features Section ─────────────────────────────────────── -->
 <div class="section-block fade-up">
   <div class="section-header">
-    <h2>Everything You Need to Know</h2>
-    <p>Our comprehensive audit tool analyzes every aspect of your website to help you improve performance, security, and user experience.</p>
+    <h2>What We Check</h2>
+    <p>We scan your site for the issues that matter most to your visitors and your bottom line.</p>
   </div>
   <div class="landing-features">
     <div class="landing-feature-card fade-up fade-up-delay-1">
       <div class="feature-icon" style="background:linear-gradient(135deg,#06b6d4,#3b82f6);">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </div>
-      <h3>SEO Analysis</h3>
-      <p>Comprehensive SEO audit including meta tags, keywords, content structure, and search engine optimization best practices.</p>
+      <h3>Search Visibility</h3>
+      <p>See if search engines can find your pages. We check titles, descriptions, links, and the things Google looks for.</p>
     </div>
     <div class="landing-feature-card fade-up fade-up-delay-2">
       <div class="feature-icon" style="background:linear-gradient(135deg,#10b981,#059669);">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
       </div>
       <h3>Security Check</h3>
-      <p>Scan for security vulnerabilities, SSL certificates, headers, and protection against common web threats.</p>
+      <p>Find out if your site is safe for visitors. We look for missing locks (SSL), exposed files, and common attack risks.</p>
     </div>
     <div class="landing-feature-card fade-up fade-up-delay-3">
       <div class="feature-icon" style="background:linear-gradient(135deg,#ec4899,#be185d);">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </div>
-      <h3>Privacy Compliance</h3>
-      <p>Evaluate privacy policies, cookie usage, GDPR compliance, and data protection measures.</p>
+      <h3>Privacy Check</h3>
+      <p>We review your cookie settings and privacy setup so visitors trust your site and you stay on the right side of the rules.</p>
     </div>
     <div class="landing-feature-card fade-up fade-up-delay-1">
       <div class="feature-icon" style="background:linear-gradient(135deg,#f59e0b,#ea580c);">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
       </div>
-      <h3>Performance Metrics</h3>
-      <p>Analyze page load speed, resource optimization, caching, and overall performance scores.</p>
+      <h3>Speed Test</h3>
+      <p>Slow sites lose customers. We measure how fast your pages load and show you what to fix first.</p>
     </div>
     <div class="landing-feature-card fade-up fade-up-delay-2">
       <div class="feature-icon" style="background:linear-gradient(135deg,#f43f5e,#e11d48);">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       </div>
-      <h3>Detailed Reports</h3>
-      <p>Get actionable insights with prioritized recommendations to improve your website's overall health.</p>
+      <h3>Clear Reports</h3>
+      <p>No jargon. You get a short list of what to fix, sorted by impact, with plain-language steps you can follow today.</p>
     </div>
     <div class="landing-feature-card fade-up fade-up-delay-3">
       <div class="feature-icon" style="background:linear-gradient(135deg,#818cf8,#6366f1);">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
       </div>
-      <h3>Accessibility Audit</h3>
-      <p>Check for WCAG compliance, screen reader compatibility, and inclusive design practices.</p>
+      <h3>Accessibility</h3>
+      <p>Make sure everyone can use your site, including people who rely on screen readers or keyboard navigation.</p>
     </div>
   </div>
 </div>
@@ -188,23 +195,23 @@
   <div class="steps-grid">
     <div class="step-card fade-up fade-up-delay-1">
       <div class="step-number">01</div>
-      <h3>Enter Your URL</h3>
-      <p>Simply paste your website URL into our audit tool. No registration or payment required.</p>
+      <h3>Paste Your URL</h3>
+      <p>Type or paste your website address into the box above. That is all you need to start.</p>
     </div>
     <div class="step-card fade-up fade-up-delay-2">
       <div class="step-number">02</div>
-      <h3>Automated Scanning</h3>
-      <p>Our advanced algorithms scan your entire website, analyzing SEO, security, performance, and more.</p>
+      <h3>We Scan Your Site</h3>
+      <p>We check every page for broken links, security issues, and slow load times. It takes about 30 seconds.</p>
     </div>
     <div class="step-card fade-up fade-up-delay-3">
       <div class="step-number">03</div>
-      <h3>Get Your Report</h3>
-      <p>Receive a comprehensive report with actionable insights and prioritized recommendations.</p>
+      <h3>See What to Fix</h3>
+      <p>You get a report that shows your top issues first, with clear steps to fix each one.</p>
     </div>
     <div class="step-card fade-up">
       <div class="step-number">04</div>
-      <h3>Implement Changes</h3>
-      <p>Follow our expert recommendations to improve your website's performance and ranking.</p>
+      <h3>Fix and Retest</h3>
+      <p>Make the changes, then run another scan to see your score improve. It is free every time.</p>
     </div>
   </div>
 </div>
@@ -271,6 +278,8 @@ function enableAuditBtn() {
   btn.disabled = false;
   btn.style.opacity = '1';
   btn.style.cursor = 'pointer';
+  var helper = document.getElementById('cta-helper');
+  if (helper) helper.style.opacity = '0';
 }
 
 function disableAuditBtn() {
@@ -279,6 +288,8 @@ function disableAuditBtn() {
   btn.disabled = true;
   btn.style.opacity = '0.5';
   btn.style.cursor = 'not-allowed';
+  var helper = document.getElementById('cta-helper');
+  if (helper) helper.style.opacity = '1';
 }
 
 function showCityField(detecting) {

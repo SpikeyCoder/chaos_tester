@@ -66,7 +66,7 @@ button, input, select, textarea { font: inherit; }
     --border:   rgba(51,65,85,0.5);
     --border-hover: #475569;
     --text:     #e2e8f0;
-    --text-muted: #94a3b8;
+    --text-muted: #a8b8c8;
     --accent:   #3b82f6;
     --accent-hover: #60a5fa;
     --accent-purple: #8b5cf6;
@@ -279,16 +279,16 @@ tr:hover td { background: rgba(56,189,248,0.04); }
 .badge-warning::before { content: "⚠ "; }
 .badge-error   { background: rgba(248,113,113,0.15); color: #f87171; }
 .badge-error::before   { content: "✗ "; }
-.badge-skipped { background: rgba(148,163,184,0.15); color: #94a3b8; }
-.badge-skipped::before { content: "— "; }
+.badge-skipped { background: rgba(148,163,184,0.15); color: #cbd5e1; }
+.badge-skipped::before { content: "-- "; }
 
-/* -- Severity badges -------------------------------------- */
-.badge-critical { background: rgba(220,38,38,0.18); color: #ef4444; }
-.badge-high     { background: rgba(249,115,22,0.15); color: #f97316; }
-.badge-medium   { background: rgba(234,179,8,0.15);  color: #eab308; }
-.badge-low      { background: rgba(56,189,248,0.15); color: #38bdf8; }
-.badge-info     { background: rgba(148,163,184,0.15); color: #94a3b8; }
-.badge-completed { background: rgba(74,222,128,0.15); color: #4ade80; }
+/* -- Severity badges (WCAG AA contrast: 4.5:1+ on dark bg) */
+.badge-critical { background: rgba(220,38,38,0.18); color: #f87171; }
+.badge-high     { background: rgba(249,115,22,0.15); color: #fb923c; }
+.badge-medium   { background: rgba(234,179,8,0.15);  color: #fbbf24; }
+.badge-low      { background: rgba(56,189,248,0.15); color: #7dd3fc; }
+.badge-info     { background: rgba(148,163,184,0.15); color: #cbd5e1; }
+.badge-completed { background: rgba(74,222,128,0.15); color: #86efac; }
 
 /* -- Stats grid ------------------------------------------- */
 .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }

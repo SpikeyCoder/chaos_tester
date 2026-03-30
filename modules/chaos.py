@@ -241,7 +241,7 @@ class ChaosInjector(BaseModule):
                         name=f"Corrupted cookie crash: {cookie_name}",
                         description=f"Server error when receiving corrupted '{cookie_name}' cookie",
                         status=TestStatus.FAILED,
-                        severity=Severity.CRITICAL,
+                        severity=Severity.HIGH,
                         url=test_page,
                         details=f"Sending corrupted {cookie_name} caused HTTP {resp.status_code}.",
                         recommendation="Add robust cookie parsing with try/except. Never trust cookie values.",

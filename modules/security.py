@@ -118,7 +118,7 @@ class SecurityScanner(BaseModule):
                 self.add_result(
                     name=f"Missing header: {header_name}",
                     description=f"Security header '{header_name}' not present",
-                    status=TestStatus.FAILED,
+                    status=TestStatus.WARNING,
                     severity=spec["severity"],
                     url=url,
                     details=f"Response is missing the '{header_name}' security header.",
@@ -219,7 +219,8 @@ class SecurityScanner(BaseModule):
                     continue
 
                 # Everything else is a problem
-                sev = Severity.CRITICAL if any(s in path for s in [".env", ".git", "config", "backup", "dump", "database"]) else Severity.HIGH
+                # Only truly critical: .env and .git exposure (active security risk)
+                sev = Severity.CRITICAL if any(s in path for s in [".env", ".git"]) else Severity.HIGH
                 self.add_result(
                     name=f"Sensitive file exposed: {path}",
                     description=f"⚠ '{path}' is publicly accessible!",

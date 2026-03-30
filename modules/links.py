@@ -105,11 +105,24 @@ class BrokenLinkScanner(BaseModule):
             )
             status = resp.status_code
         except Exception as e:
+            # mailto: and tel: links are not broken -- they're non-HTTP protocols
+            parsed = urlparse(url)
+            if parsed.scheme in ("mailto", "tel", "javascript"):
+                self.add_result(
+                    name=f"Non-HTTP {res_type}: {self._short_url(url)}",
+                    description=f"Non-HTTP link ({parsed.scheme}:) -- not a broken link",
+                    status=TestStatus.PASSED,
+                    severity=Severity.INFO,
+                    url=url,
+                    details=f"Protocol {parsed.scheme}: is not checked for reachability.",
+                    duration_ms=0,
+                )
+                return
             self.add_result(
                 name=f"Broken {res_type}: {self._short_url(url)}",
                 description=f"Could not reach {res_type}: {url}",
-                status=TestStatus.FAILED,
-                severity=Severity.HIGH if res_type == "link" else Severity.MEDIUM,
+                status=TestStatus.WARNING,
+                severity=Severity.MEDIUM if res_type == "link" else Severity.LOW,
                 url=url,
                 details=f"Connection failed: {e}",
                 recommendation=f"Fix or remove the broken {res_type} reference.",
@@ -132,11 +145,11 @@ class BrokenLinkScanner(BaseModule):
                 pass
 
         if status >= 400:
-            sev = Severity.HIGH if status >= 500 else Severity.MEDIUM
+            sev = Severity.MEDIUM if status >= 500 else Severity.LOW
             self.add_result(
                 name=f"Broken {res_type} ({status}): {self._short_url(url)}",
                 description=f"{res_type.capitalize()} returned HTTP {status}",
-                status=TestStatus.FAILED,
+                status=TestStatus.WARNING,
                 severity=sev,
                 url=url,
                 details=f"HTTP {status} for {res_type}: {url}",

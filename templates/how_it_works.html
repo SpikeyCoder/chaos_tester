@@ -7,46 +7,46 @@
 {% block content %}
 <div class="hero-section fade-up">
     <h2>How It <span class="gradient-text">Works</span></h2>
-    <p class="hero-subtitle">Three simple steps to a complete website audit.</p>
+    <p class="hero-subtitle">Three steps. Under a minute. No tech skills needed.</p>
 </div>
 
 <div class="card fade-up fade-up-delay-1">
-    <h2>Step 1: Enter Your URL</h2>
-    <p class="text-muted" style="margin-bottom:16px;">Paste any website URL into the dashboard. Website Auditor accepts any publicly accessible URL&mdash;staging environments, production sites, or localhost for local development.</p>
-    <p class="text-muted">Configure optional settings like crawl depth (how many levels deep to scan), max pages to crawl, request timeout, and concurrency level for parallel scanning.</p>
+    <h2>Step 1: Paste Your Website Address</h2>
+    <p class="text-muted" style="margin-bottom:16px;">Go to the home page and type your website URL into the box. Any public website works -- your business site, a blog, or an online store.</p>
+    <p class="text-muted">Want more control? Click "Customize Audit Modules" to change settings like <span title="How many levels of links to follow from your home page" style="border-bottom:1px dotted var(--text-muted);cursor:help;">how deep to check</span>, how many pages to scan, and <span title="How fast we send requests to your server" style="border-bottom:1px dotted var(--text-muted);cursor:help;">scan speed</span>.</p>
 </div>
 
 <div class="card fade-up fade-up-delay-2">
-    <h2>Step 2: Select Test Modules</h2>
-    <p class="text-muted" style="margin-bottom:16px;">Choose which audit modules to run. Each module focuses on a specific aspect of your website:</p>
+    <h2>Step 2: Pick What to Check</h2>
+    <p class="text-muted" style="margin-bottom:16px;">By default we run a Basic Scan that covers the things most businesses care about. You can also turn on extra checks:</p>
     <ul style="color: var(--text-muted); list-style: disc; padding-left: 24px; margin-bottom: 16px;">
-        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Page Availability</strong> &mdash; Checks every page for HTTP status codes, redirects, and response times</li>
-        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Broken Links</strong> &mdash; Finds all broken internal and external links across your site</li>
-        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Forms & Interactions</strong> &mdash; Validates forms, buttons, and interactive elements</li>
-        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Error Resilience</strong> &mdash; Tests your site's resilience to errors and edge cases</li>
-        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Auth & Sessions</strong> &mdash; Audits authenticated areas with session cookie support</li>
+        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Page Availability</strong> -- Can visitors reach every page on your site?</li>
+        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Broken Links</strong> -- Are there any dead links that lead nowhere?</li>
+        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Forms</strong> -- Do your contact forms and sign-up forms work correctly?</li>
+        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Security</strong> -- Is your site safe from common attacks?</li>
+        <li style="margin-bottom: 8px;"><strong style="color: var(--text);">Error Handling</strong> -- Does your site recover when something goes wrong?</li>
     </ul>
-    <p class="text-muted">All modules are selected by default. Deselect any you want to skip.</p>
+    <p class="text-muted">All basic checks are on by default. Just click "Audit Website" and we handle the rest.</p>
 </div>
 
 <div class="card fade-up fade-up-delay-3">
-    <h2>Step 3: Review Your Report</h2>
-    <p class="text-muted" style="margin-bottom:16px;">After the audit completes, you get a detailed report organized by module. Each finding includes:</p>
+    <h2>Step 3: Read Your Report</h2>
+    <p class="text-muted" style="margin-bottom:16px;">In about 30 seconds you get a clear report. It shows your top issues first, sorted by impact. For each issue you will see:</p>
     <ul style="color: var(--text-muted); list-style: disc; padding-left: 24px; margin-bottom: 16px;">
-        <li style="margin-bottom: 8px;">The specific page URL where the issue was found</li>
-        <li style="margin-bottom: 8px;">Severity level (pass, warning, or failure)</li>
-        <li style="margin-bottom: 8px;">Description of what was checked and what went wrong</li>
-        <li style="margin-bottom: 8px;">Summary statistics across all crawled pages</li>
+        <li style="margin-bottom: 8px;">Which page has the problem</li>
+        <li style="margin-bottom: 8px;">How serious it is (critical, warning, or just a tip)</li>
+        <li style="margin-bottom: 8px;">What went wrong, in plain language</li>
+        <li style="margin-bottom: 8px;">What to do about it, step by step</li>
     </ul>
-    <p class="text-muted">Reports are accessible via the Latest Report link in the navigation, with a REST API for programmatic access coming soon.</p>
+    <p class="text-muted">You can share the report with your web developer, download it, or come back to it later.</p>
 </div>
 
 <div class="card fade-up">
-    <h2>Advanced: REST API Access — Coming Soon</h2>
-    <p class="text-muted" style="margin-bottom:16px;">A JSON API for integrating audits into CI/CD pipelines, monitoring dashboards, or custom workflows is currently in development. Stay tuned!</p>
+    <h2>Coming Soon: API Access</h2>
+    <p class="text-muted" style="margin-bottom:16px;">We are building a way to run audits automatically from your own tools. Stay tuned for updates.</p>
 </div>
 
 <div class="fade-up" style="text-align:center; margin-top:32px;">
-    <a href="/" class="btn btn-primary" style="font-size:1.1rem; padding: 14px 32px;">&#x1F680; Start Your Free Audit Now</a>
+    <a href="/" class="btn btn-primary" style="font-size:1.1rem; padding: 14px 32px;">Start Your Free Audit Now</a>
 </div>
 {% endblock %}
