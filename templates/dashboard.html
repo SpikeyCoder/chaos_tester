@@ -554,5 +554,141 @@ function detectBusiness() {
   #biz-name-wrong-btn:hover {
     color: var(--text);
   }
+
+  /* Google Places Autocomplete dark theme styling */
+  .pac-container {
+    background-color: #1e1e2e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    margin-top: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    font-family: inherit;
+    z-index: 10000;
+  }
+  .pac-item {
+    padding: 10px 14px;
+    color: #e0e0e0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  .pac-item:first-child {
+    border-top: none;
+  }
+  .pac-item:hover,
+  .pac-item.pac-item-selected {
+    background-color: rgba(59,130,246,0.15);
+  }
+  .pac-item-query {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .pac-matched {
+    color: #60a5fa;
+    font-weight: 700;
+  }
+  .pac-icon, .pac-icon-marker {
+    display: none;
+  }
+  .pac-item span:last-child {
+    color: #9ca3af;
+    font-size: 0.82rem;
+  }
+  /* Hide the Google logo at the bottom of the dropdown */
+  .pac-container::after {
+    display: none !important;
+  }
 </style>
+
+<script>
+/* ── Google Places Autocomplete for city fields ──────────────────── */
+(function() {
+  function initPlacesAutocomplete() {
+    if (typeof google === 'undefined' || !google.maps || !google.maps.places) return;
+
+    var cityInput = document.getElementById('override_biz_city');
+    if (!cityInput) return;
+
+    var autocomplete = new google.maps.places.Autocomplete(cityInput, {
+      types: ['(cities)']
+    });
+
+    /* Prevent form submission on Enter when selecting from dropdown */
+    cityInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        var pacContainer = document.querySelector('.pac-container');
+        if (pacContainer && pacContainer.style.display !== 'none') {
+          e.preventDefault();
+        }
+      }
+    });
+
+    autocomplete.addListener('place_changed', function() {
+      var place = autocomplete.getPlace();
+      if (!place || !place.address_components) return;
+
+      var city = '';
+      var state = '';
+      var country = '';
+
+      for (var i = 0; i < place.address_components.length; i++) {
+        var comp = place.address_components[i];
+        var types = comp.types;
+        if (types.indexOf('locality') !== -1) {
+          city = comp.long_name;
+        } else if (types.indexOf('administrative_area_level_1') !== -1) {
+          state = comp.short_name;
+        } else if (types.indexOf('country') !== -1) {
+          country = comp.short_name;
+        }
+      }
+
+      /* Format as "City, State" for US/CA or "City, Country" for international */
+      var formatted = city;
+      if (state && (country === 'US' || country === 'CA')) {
+        formatted = city + ', ' + state;
+      } else if (country) {
+        formatted = city + ', ' + country;
+      }
+
+      cityInput.value = formatted;
+
+      /* Sync to the hidden business_location field */
+      var locHidden = document.getElementById('business_location');
+      if (locHidden) {
+        locHidden.value = formatted;
+        locHidden._userEdited = true;
+      }
+
+      syncAuditBtnState();
+    });
+  }
+
+  /* Wait for Google Maps API to load, then initialize */
+  function waitForGoogleMaps() {
+    if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+      initPlacesAutocomplete();
+    } else {
+      var attempts = 0;
+      var checkInterval = setInterval(function() {
+        attempts++;
+        if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+          clearInterval(checkInterval);
+          initPlacesAutocomplete();
+        } else if (attempts > 50) {
+          clearInterval(checkInterval);
+        }
+      }, 200);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', waitForGoogleMaps);
+  } else {
+    waitForGoogleMaps();
+  }
+})();
+</script>
 {% endblock %}

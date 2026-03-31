@@ -988,6 +988,22 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 </style>
 {% block extra_head %}{% endblock %}
+<!-- Google Maps JavaScript API with Places library
+     NOTE: Replace YOUR_GOOGLE_PLACES_API_KEY with a valid key,
+     or set the GOOGLE_PLACES_API_KEY environment variable.
+     Enable "Places API" and "Maps JavaScript API" in Google Cloud Console. -->
+<script>
+(function() {
+  var apiKey = '{{ config.get("GOOGLE_PLACES_API_KEY", "YOUR_GOOGLE_PLACES_API_KEY") }}';
+  if (apiKey && apiKey !== 'YOUR_GOOGLE_PLACES_API_KEY') {
+    var s = document.createElement('script');
+    s.src = 'https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&libraries=places';
+    s.async = true;
+    s.defer = true;
+    document.head.appendChild(s);
+  }
+})();
+</script>
 </head>
 <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
