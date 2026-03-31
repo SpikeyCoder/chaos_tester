@@ -60,8 +60,9 @@
              style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
       <div id="override-city-wrapper" style="display:none;margin-top:12px;">
         <label for="override_biz_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business City</label>
-        <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA" autocomplete="off"
-               style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;transition:border-color .2s;">
+        <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA" autocomplete="off" list="city-suggestions"
+               style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;transition:border-color .2s;-webkit-appearance:none;">
+        <datalist id="city-suggestions"></datalist>
         <p style="margin:8px 0 0;font-size:0.8rem;color:var(--text-muted);line-height:1.4;">We use your business name and city to check how your site shows up in local search results.</p>
       </div>
     </div>
@@ -341,14 +342,16 @@ function hideBizConfirmed() {
 }
 
 /* ── Business name override fields ─────────────────────────────── */
-function showBizOverride(showCity) {
+function showBizOverride(showCity, hideConfirmed) {
   var wrapper = document.getElementById('biz-name-override');
   var cityWrap = document.getElementById('override-city-wrapper');
   if (!wrapper) return;
 
-  /* Hide the confirmation row (green name + "Not the right business?" link) */
-  var confirmedRow = document.getElementById('biz-name-confirmed');
-  if (confirmedRow) slideUp(confirmedRow);
+  /* Only hide the confirmation row if explicitly requested (e.g. from "Not the right business?" click) */
+  if (hideConfirmed !== false) {
+    var confirmedRow = document.getElementById('biz-name-confirmed');
+    if (confirmedRow) slideUp(confirmedRow);
+  }
 
   cityWrap.style.display = showCity ? 'block' : 'none';
   slideDown(wrapper);
@@ -458,7 +461,7 @@ document.getElementById('biz-name-wrong-btn').addEventListener('click', function
 
   /* Show override fields: city field only if city was NOT auto-detected */
   var needCityField = !_cityWasAutoDetected;
-  showBizOverride(needCityField);
+  showBizOverride(needCityField, true);
 
   /* Show the detected name as green text above the Business Name input */
   var detectedLabel = document.getElementById('detected-biz-label');
@@ -554,11 +557,17 @@ function detectBusiness() {
         showBizConfirmed(detectedName);
         enableAuditBtn();
       } else {
-        /* Name detected but no city -- show confirmed name + override city field */
+        /* Name detected but no city -- show override with city field, green label on top */
         showBizConfirmed(detectedName);
-        showBizOverride(true);
+        showBizOverride(true, false);
         /* Pre-fill detected name in override so user only needs to add city */
         document.getElementById('override_biz_name').value = detectedName;
+        /* Show green detected label above the override fields */
+        var detectedLabel = document.getElementById('detected-biz-label');
+        if (detectedLabel) {
+          detectedLabel.textContent = 'Detected: ' + detectedName;
+          detectedLabel.style.display = 'block';
+        }
       }
     } else {
       /* No business name detected -- skip confirmation, show override fields directly */
@@ -588,156 +597,98 @@ function detectBusiness() {
     color: var(--text);
   }
 
-  /* Google Places Autocomplete dark theme styling */
-  .pac-container {
-    background-color: #1e1e2e;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
-    margin-top: 4px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    font-family: inherit;
-    z-index: 10000;
-  }
-  .pac-item {
-    padding: 10px 14px;
-    color: #e0e0e0;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    cursor: pointer;
-    font-size: 0.9rem;
-    line-height: 1.4;
-  }
-  .pac-item:first-child {
-    border-top: none;
-  }
-  .pac-item:hover,
-  .pac-item.pac-item-selected {
-    background-color: rgba(59,130,246,0.15);
-  }
-  .pac-item-query {
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-  .pac-matched {
-    color: #60a5fa;
-    font-weight: 700;
-  }
-  .pac-icon, .pac-icon-marker, .pac-icon-search {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  .pac-item span:last-child {
-    color: #9ca3af;
-    font-size: 0.82rem;
-  }
-  /* Hide the Google logo at the bottom of the dropdown */
-  .pac-container::after {
-    display: none !important;
-  }
-  /* Prevent Google Places Autocomplete from applying icon fonts to the city input */
-  #override_biz_city,
-  #override_biz_city.pac-target-input {
+  /* Ensure city input renders as plain text */
+  #override_biz_city {
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    -webkit-text-security: none !important;
-    text-transform: none !important;
-    content: none !important;
+    -webkit-appearance: none !important;
   }
 </style>
 
 <script>
-/* ── Google Places Autocomplete for city fields ──────────────────── */
+/* ── City suggestions using Google AutocompleteService (API-only, no widget) ── */
 (function() {
-  var _placesAutocompleteAttached = false;
+  var _serviceReady = false;
+  var _autocompleteService = null;
+  var _debounceTimer = null;
 
-  function initPlacesAutocomplete() {
-    if (_placesAutocompleteAttached) return;
+  function initService() {
+    if (_serviceReady) return;
     if (typeof google === 'undefined' || !google.maps || !google.maps.places) return;
+    _autocompleteService = new google.maps.places.AutocompleteService();
+    _serviceReady = true;
+    attachListener();
+  }
 
+  function attachListener() {
     var cityInput = document.getElementById('override_biz_city');
-    if (!cityInput) return;
+    if (!cityInput || cityInput._suggestionsAttached) return;
+    cityInput._suggestionsAttached = true;
 
-    /* Only attach autocomplete when the input is visible in the DOM.
-       Google Places Autocomplete cannot position its dropdown on
-       hidden elements (display:none or zero-height parents). */
-    if (cityInput.offsetParent === null) return;
-
-    _placesAutocompleteAttached = true;
-
-    var autocomplete = new google.maps.places.Autocomplete(cityInput, {
-      types: ['(cities)']
+    cityInput.addEventListener('input', function() {
+      var query = cityInput.value.trim();
+      clearTimeout(_debounceTimer);
+      if (query.length < 2) {
+        clearDatalist();
+        return;
+      }
+      _debounceTimer = setTimeout(function() { fetchSuggestions(query); }, 250);
     });
 
-    /* Prevent form submission on Enter when selecting from dropdown */
-    cityInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        var pacContainer = document.querySelector('.pac-container');
-        if (pacContainer && pacContainer.style.display !== 'none') {
-          e.preventDefault();
-        }
-      }
-    });
-
-    autocomplete.addListener('place_changed', function() {
-      var place = autocomplete.getPlace();
-      if (!place || !place.address_components) return;
-
-      var city = '';
-      var state = '';
-      var country = '';
-
-      for (var i = 0; i < place.address_components.length; i++) {
-        var comp = place.address_components[i];
-        var types = comp.types;
-        if (types.indexOf('locality') !== -1) {
-          city = comp.long_name;
-        } else if (types.indexOf('administrative_area_level_1') !== -1) {
-          state = comp.short_name;
-        } else if (types.indexOf('country') !== -1) {
-          country = comp.short_name;
-        }
-      }
-
-      /* Format as "City, State" for US/CA or "City, Country" for international */
-      var formatted = city;
-      if (state && (country === 'US' || country === 'CA')) {
-        formatted = city + ', ' + state;
-      } else if (country) {
-        formatted = city + ', ' + country;
-      }
-
-      cityInput.value = formatted;
-
-      /* Sync to the hidden business_location field */
+    /* Sync selected value to hidden field */
+    cityInput.addEventListener('change', function() {
       var locHidden = document.getElementById('business_location');
       if (locHidden) {
-        locHidden.value = formatted;
+        locHidden.value = cityInput.value;
         locHidden._userEdited = true;
       }
-
       syncAuditBtnState();
     });
   }
 
-  /* Expose a global so showBizOverride can trigger init after the
-     city field becomes visible. */
-  window._tryInitPlacesAutocomplete = initPlacesAutocomplete;
+  function fetchSuggestions(query) {
+    if (!_autocompleteService) return;
+    _autocompleteService.getPlacePredictions(
+      { input: query, types: ['(cities)'] },
+      function(predictions, status) {
+        var datalist = document.getElementById('city-suggestions');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+        if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+          for (var i = 0; i < Math.min(predictions.length, 5); i++) {
+            var opt = document.createElement('option');
+            opt.value = predictions[i].description;
+            datalist.appendChild(opt);
+          }
+        }
+      }
+    );
+  }
 
-  /* Wait for Google Maps API to load, then try to initialize.
-     If the field is still hidden at this point, the call is a no-op
-     and showBizOverride will retry when the field is revealed. */
+  function clearDatalist() {
+    var datalist = document.getElementById('city-suggestions');
+    if (datalist) datalist.innerHTML = '';
+  }
+
+  /* Expose for showBizOverride to call after city field becomes visible */
+  window._tryInitPlacesAutocomplete = function() {
+    if (_serviceReady) {
+      attachListener();
+    } else {
+      initService();
+    }
+  };
+
+  /* Wait for Google Maps API to load */
   function waitForGoogleMaps() {
     if (typeof google !== 'undefined' && google.maps && google.maps.places) {
-      initPlacesAutocomplete();
+      initService();
     } else {
       var attempts = 0;
       var checkInterval = setInterval(function() {
         attempts++;
         if (typeof google !== 'undefined' && google.maps && google.maps.places) {
           clearInterval(checkInterval);
-          initPlacesAutocomplete();
+          initService();
         } else if (attempts > 50) {
           clearInterval(checkInterval);
         }
