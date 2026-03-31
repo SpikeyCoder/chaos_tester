@@ -125,10 +125,11 @@ def _set_security_headers(response):
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://gc.zgo.at; "
+        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://gc.zgo.at https://maps.googleapis.com; "
         "style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data: blob:; "
-        "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app https://website-auditor.goatcounter.com;"
+        "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com; "
+        "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app https://website-auditor.goatcounter.com https://maps.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com;"
     )
     # CORS headers for cross-origin SPA (GitHub Pages → localhost backend)
     origin = request.headers.get("Origin", "")

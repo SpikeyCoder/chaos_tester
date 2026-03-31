@@ -352,6 +352,12 @@ function showBizOverride(showCity) {
   cityWrap.style.display = showCity ? 'block' : 'none';
   slideDown(wrapper);
 
+  /* After the override section becomes visible, try to attach Google
+     Places Autocomplete to the city field (it cannot attach while hidden). */
+  if (showCity && typeof window._tryInitPlacesAutocomplete === 'function') {
+    setTimeout(window._tryInitPlacesAutocomplete, 450);
+  }
+
   /* Wire up listeners once */
   if (!_overrideListenerAdded) {
     _overrideListenerAdded = true;
@@ -610,11 +616,21 @@ function detectBusiness() {
 <script>
 /* ── Google Places Autocomplete for city fields ──────────────────── */
 (function() {
+  var _placesAutocompleteAttached = false;
+
   function initPlacesAutocomplete() {
+    if (_placesAutocompleteAttached) return;
     if (typeof google === 'undefined' || !google.maps || !google.maps.places) return;
 
     var cityInput = document.getElementById('override_biz_city');
     if (!cityInput) return;
+
+    /* Only attach autocomplete when the input is visible in the DOM.
+       Google Places Autocomplete cannot position its dropdown on
+       hidden elements (display:none or zero-height parents). */
+    if (cityInput.offsetParent === null) return;
+
+    _placesAutocompleteAttached = true;
 
     var autocomplete = new google.maps.places.Autocomplete(cityInput, {
       types: ['(cities)']
@@ -671,7 +687,13 @@ function detectBusiness() {
     });
   }
 
-  /* Wait for Google Maps API to load, then initialize */
+  /* Expose a global so showBizOverride can trigger init after the
+     city field becomes visible. */
+  window._tryInitPlacesAutocomplete = initPlacesAutocomplete;
+
+  /* Wait for Google Maps API to load, then try to initialize.
+     If the field is still hidden at this point, the call is a no-op
+     and showBizOverride will retry when the field is revealed. */
   function waitForGoogleMaps() {
     if (typeof google !== 'undefined' && google.maps && google.maps.places) {
       initPlacesAutocomplete();
