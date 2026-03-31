@@ -60,9 +60,11 @@
              style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
       <div id="override-city-wrapper" style="display:none;margin-top:12px;">
         <label for="override_biz_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business City</label>
-        <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA" autocomplete="off" list="city-suggestions"
-               style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;transition:border-color .2s;-webkit-appearance:none;">
-        <datalist id="city-suggestions"></datalist>
+        <div style="position:relative;">
+          <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA" autocomplete="off"
+                 style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;transition:border-color .2s;-webkit-appearance:none;">
+          <div id="city-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#1e1e2e;border:1px solid rgba(255,255,255,0.1);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:10000;max-height:200px;overflow-y:auto;"></div>
+        </div>
         <p style="margin:8px 0 0;font-size:0.8rem;color:var(--text-muted);line-height:1.4;">We use your business name and city to check how your site shows up in local search results.</p>
       </div>
     </div>
@@ -351,6 +353,11 @@ function showBizOverride(showCity, hideConfirmed) {
   if (hideConfirmed !== false) {
     var confirmedRow = document.getElementById('biz-name-confirmed');
     if (confirmedRow) slideUp(confirmedRow);
+  } else {
+    /* Keep the green name visible but hide the "Not the right business?" button
+       since the override fields are already showing */
+    var wrongBtn = document.getElementById('biz-name-wrong-btn');
+    if (wrongBtn) wrongBtn.style.display = 'none';
   }
 
   cityWrap.style.display = showCity ? 'block' : 'none';
@@ -414,6 +421,9 @@ function resetBusinessState() {
     detectedLabel.style.display = 'none';
     detectedLabel.textContent = '';
   }
+  /* Restore the "Not the right business?" button visibility for next detection */
+  var wrongBtn = document.getElementById('biz-name-wrong-btn');
+  if (wrongBtn) wrongBtn.style.display = '';
   hideBizConfirmed();
   hideBizOverride();
 }
@@ -605,7 +615,7 @@ function detectBusiness() {
 </style>
 
 <script>
-/* ── City suggestions using Google AutocompleteService (API-only, no widget) ── */
+/* ── City suggestions using Google AutocompleteService with custom dropdown ── */
 (function() {
   var _serviceReady = false;
   var _autocompleteService = null;
@@ -628,14 +638,16 @@ function detectBusiness() {
       var query = cityInput.value.trim();
       clearTimeout(_debounceTimer);
       if (query.length < 2) {
-        clearDatalist();
+        hideDropdown();
         return;
       }
       _debounceTimer = setTimeout(function() { fetchSuggestions(query); }, 250);
     });
 
-    /* Sync selected value to hidden field */
-    cityInput.addEventListener('change', function() {
+    /* Hide dropdown when input loses focus (with delay for click) */
+    cityInput.addEventListener('blur', function() {
+      setTimeout(hideDropdown, 200);
+      /* Sync to hidden field */
       var locHidden = document.getElementById('business_location');
       if (locHidden) {
         locHidden.value = cityInput.value;
@@ -650,23 +662,62 @@ function detectBusiness() {
     _autocompleteService.getPlacePredictions(
       { input: query, types: ['(cities)'] },
       function(predictions, status) {
-        var datalist = document.getElementById('city-suggestions');
-        if (!datalist) return;
-        datalist.innerHTML = '';
-        if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+        var dropdown = document.getElementById('city-dropdown');
+        if (!dropdown) return;
+        dropdown.innerHTML = '';
+        if (status === google.maps.places.PlacesServiceStatus.OK && predictions && predictions.length > 0) {
           for (var i = 0; i < Math.min(predictions.length, 5); i++) {
-            var opt = document.createElement('option');
-            opt.value = predictions[i].description;
-            datalist.appendChild(opt);
+            var item = document.createElement('div');
+            item.textContent = predictions[i].description;
+            item.style.cssText = 'padding:10px 14px;color:#e0e0e0;cursor:pointer;font-size:0.9rem;line-height:1.4;border-bottom:1px solid rgba(255,255,255,0.06);';
+            item.setAttribute('data-value', predictions[i].description);
+            item.addEventListener('mousedown', function(e) {
+              e.preventDefault(); /* prevent blur from firing first */
+              var cityInput = document.getElementById('override_biz_city');
+              cityInput.value = this.getAttribute('data-value');
+              var locHidden = document.getElementById('business_location');
+              if (locHidden) {
+                locHidden.value = cityInput.value;
+                locHidden._userEdited = true;
+              }
+              hideDropdown();
+              syncAuditBtnState();
+            });
+            item.addEventListener('mouseover', function() {
+              this.style.backgroundColor = 'rgba(59,130,246,0.15)';
+            });
+            item.addEventListener('mouseout', function() {
+              this.style.backgroundColor = 'transparent';
+            });
+            /* Touch support */
+            item.addEventListener('touchstart', function(e) {
+              e.preventDefault();
+              var cityInput = document.getElementById('override_biz_city');
+              cityInput.value = this.getAttribute('data-value');
+              var locHidden = document.getElementById('business_location');
+              if (locHidden) {
+                locHidden.value = cityInput.value;
+                locHidden._userEdited = true;
+              }
+              hideDropdown();
+              syncAuditBtnState();
+            });
+            dropdown.appendChild(item);
           }
+          dropdown.style.display = 'block';
+        } else {
+          hideDropdown();
         }
       }
     );
   }
 
-  function clearDatalist() {
-    var datalist = document.getElementById('city-suggestions');
-    if (datalist) datalist.innerHTML = '';
+  function hideDropdown() {
+    var dropdown = document.getElementById('city-dropdown');
+    if (dropdown) {
+      dropdown.style.display = 'none';
+      dropdown.innerHTML = '';
+    }
   }
 
   /* Expose for showBizOverride to call after city field becomes visible */
