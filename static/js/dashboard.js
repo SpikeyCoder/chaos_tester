@@ -76,9 +76,21 @@ document.getElementById('runForm').addEventListener('submit', function(e) {
   var btn = form.querySelector('button[type="submit"]');
   var origText = btn ? btn.textContent : 'Audit Website';
 
-  /* ── Sync city from promoted quick_city field into hidden form field ── */
-  var quickCity = document.getElementById('quick_city');
+  /* ── Sync override fields into hidden form fields ── */
+  var bizNameInput = document.getElementById('override_biz_name');
+  var bizHidden = document.getElementById('business_name');
+  if (bizNameInput && bizNameInput.value.trim() && bizHidden) {
+    bizHidden.value = bizNameInput.value.trim();
+  }
+
+  var overrideCityInput = document.getElementById('override_biz_city');
   var locInput = document.getElementById('business_location');
+  if (overrideCityInput && overrideCityInput.value.trim() && locInput) {
+    locInput.value = overrideCityInput.value.trim();
+  }
+
+  /* Sync city from promoted quick_city field into hidden form field */
+  var quickCity = document.getElementById('quick_city');
   if (quickCity && quickCity.value.trim() && locInput && !locInput.value.trim()) {
     locInput.value = quickCity.value.trim();
   }

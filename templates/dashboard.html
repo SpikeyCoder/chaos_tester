@@ -29,6 +29,7 @@
     <input type="hidden" name="run_auth" value="" id="h_auth">
     <input type="hidden" name="run_security" value="on" id="h_security">
     <input type="hidden" name="business_location" id="business_location" value="">
+    <input type="hidden" name="business_name" id="business_name" value="">
 
     <div class="hero-search">
       <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -41,6 +42,28 @@
     </div>
     <div id="cta-helper" style="text-align:center;margin-top:8px;font-size:0.82rem;color:var(--text-muted);transition:opacity 0.3s;">Enter a URL above to scan your website</div>
   </form>
+
+  <!-- Business name confirmation row: shown when business name is auto-detected -->
+  <div id="biz-name-confirmed" aria-live="polite" style="display:none;overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;max-width:680px;margin-left:auto;margin-right:auto;">
+    <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <span id="biz-name-display" style="font-weight:700;font-size:1.05rem;color:#4ade80;"></span>
+      <button type="button" id="biz-name-wrong-btn" style="background:none;border:none;color:var(--text-muted);font-size:0.82rem;cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:2px;white-space:nowrap;">Not the right business?</button>
+    </div>
+  </div>
+
+  <!-- Business name override fields: shown when user clicks "Not the right business?" or detection fails -->
+  <div id="biz-name-override" aria-live="polite" style="display:none;overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;max-width:680px;margin-left:auto;margin-right:auto;">
+    <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;text-align:left;">
+      <label for="override_biz_name" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business Name</label>
+      <input type="text" id="override_biz_name" placeholder="e.g. Acme Web Design"
+             style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
+      <div id="override-city-wrapper" style="display:none;margin-top:12px;">
+        <label for="override_biz_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business City</label>
+        <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA"
+               style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
+      </div>
+    </div>
+  </div>
 
   <!-- City field: shown immediately while detecting, hidden if auto-detected -->
   <div id="quick-city-wrapper" aria-live="polite" aria-atomic="true" style="display:none;overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;max-width:680px;margin-left:auto;margin-right:auto;">
@@ -265,12 +288,18 @@
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4" defer></script>
 <script>
-/* ── Audit button + city detection ─────────────────────────────── */
+/* ── Business name detection + city detection ────────────────────── */
 var _detectTimer = null;
 var _blurTimer = null;
 var _lastDetectedUrl = '';
 var _cityListenerAdded = false;
+var _overrideListenerAdded = false;
 var _isMobile = /Mobi|Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || ('ontouchstart' in window);
+
+/* State tracking for business detection */
+var _detectedBizName = '';
+var _detectedCity = '';
+var _cityWasAutoDetected = false;
 
 function enableAuditBtn() {
   var btn = document.getElementById('auditBtn');
@@ -292,6 +321,26 @@ function disableAuditBtn() {
   if (helper) helper.style.opacity = '1';
 }
 
+/* ── Slide-panel helpers ─────────────────────────────────────────── */
+function slideDown(el) {
+  el.style.display = 'block';
+  void el.offsetHeight;
+  el.style.maxHeight = '300px';
+  el.style.opacity = '1';
+  el.style.marginTop = '16px';
+}
+
+function slideUp(el, cb) {
+  el.style.maxHeight = '0';
+  el.style.opacity = '0';
+  el.style.marginTop = '0';
+  setTimeout(function() {
+    el.style.display = 'none';
+    if (cb) cb();
+  }, 400);
+}
+
+/* ── City field helpers (unchanged behavior, used as fallback) ──── */
 function showCityField(detecting) {
   var wrapper = document.getElementById('quick-city-wrapper');
   var spinner = document.getElementById('city-spinner');
@@ -299,11 +348,7 @@ function showCityField(detecting) {
   var hint = document.getElementById('city-hint');
   if (!wrapper) return;
 
-  wrapper.style.display = 'block';
-  void wrapper.offsetHeight;
-  wrapper.style.maxHeight = '200px';
-  wrapper.style.opacity = '1';
-  wrapper.style.marginTop = '16px';
+  slideDown(wrapper);
 
   if (detecting) {
     spinner.style.display = 'inline-block';
@@ -312,10 +357,9 @@ function showCityField(detecting) {
   } else {
     spinner.style.display = 'none';
     label.textContent = 'Please enter your business city for AI visibility results.';
-    hint.textContent = "We couldn\u2019t auto-detect your city \u2014 enter it here so AI queries target the right location.";
+    hint.textContent = "We could not auto-detect your city -- enter it here so AI queries target the right location.";
   }
 
-  /* Wire up input listener once */
   if (!_cityListenerAdded) {
     _cityListenerAdded = true;
     var quickCity = document.getElementById('quick_city');
@@ -323,11 +367,7 @@ function showCityField(detecting) {
     quickCity.addEventListener('input', function() {
       locInput.value = quickCity.value;
       locInput._userEdited = true;
-      if (quickCity.value.trim().length > 0) {
-        enableAuditBtn();
-      } else {
-        disableAuditBtn();
-      }
+      syncAuditBtnState();
     });
   }
 }
@@ -335,13 +375,146 @@ function showCityField(detecting) {
 function hideCityField() {
   var wrapper = document.getElementById('quick-city-wrapper');
   if (!wrapper) return;
-  wrapper.style.maxHeight = '0';
-  wrapper.style.opacity = '0';
-  wrapper.style.marginTop = '0';
-  setTimeout(function() { wrapper.style.display = 'none'; }, 400);
+  slideUp(wrapper);
 }
 
-/* Auto-detect on blur — debounced to avoid false triggers from mobile virtual keyboard */
+/* ── Business name confirmation row ────────────────────────────── */
+function showBizConfirmed(name) {
+  var row = document.getElementById('biz-name-confirmed');
+  var display = document.getElementById('biz-name-display');
+  if (!row || !display) return;
+  display.textContent = name;
+  slideDown(row);
+}
+
+function hideBizConfirmed() {
+  var row = document.getElementById('biz-name-confirmed');
+  if (!row) return;
+  slideUp(row);
+}
+
+/* ── Business name override fields ─────────────────────────────── */
+function showBizOverride(showCity) {
+  var wrapper = document.getElementById('biz-name-override');
+  var cityWrap = document.getElementById('override-city-wrapper');
+  if (!wrapper) return;
+
+  cityWrap.style.display = showCity ? 'block' : 'none';
+  slideDown(wrapper);
+
+  /* Wire up listeners once */
+  if (!_overrideListenerAdded) {
+    _overrideListenerAdded = true;
+    var nameInput = document.getElementById('override_biz_name');
+    var cityInput = document.getElementById('override_biz_city');
+    var bizHidden = document.getElementById('business_name');
+    var locHidden = document.getElementById('business_location');
+
+    nameInput.addEventListener('input', function() {
+      bizHidden.value = nameInput.value;
+      syncAuditBtnState();
+    });
+    cityInput.addEventListener('input', function() {
+      locHidden.value = cityInput.value;
+      locHidden._userEdited = true;
+      syncAuditBtnState();
+    });
+  }
+
+  /* On desktop, focus the business name field */
+  if (!_isMobile) {
+    setTimeout(function() {
+      var urlField = document.getElementById('base_url');
+      if (document.activeElement !== urlField) {
+        document.getElementById('override_biz_name').focus();
+      }
+    }, 100);
+  }
+}
+
+function hideBizOverride() {
+  var wrapper = document.getElementById('biz-name-override');
+  if (!wrapper) return;
+  slideUp(wrapper);
+}
+
+/* ── Reset all business-related state ──────────────────────────── */
+function resetBusinessState() {
+  _detectedBizName = '';
+  _detectedCity = '';
+  _cityWasAutoDetected = false;
+  document.getElementById('business_name').value = '';
+  var locInput = document.getElementById('business_location');
+  locInput.value = '';
+  locInput._userEdited = false;
+  document.getElementById('override_biz_name').value = '';
+  document.getElementById('override_biz_city').value = '';
+  var quickCity = document.getElementById('quick_city');
+  if (quickCity) quickCity.value = '';
+  hideBizConfirmed();
+  hideBizOverride();
+  hideCityField();
+}
+
+/* ── Enable/disable audit button based on current state ────────── */
+function syncAuditBtnState() {
+  var bizHidden = document.getElementById('business_name');
+  var locHidden = document.getElementById('business_location');
+  var hasBiz = bizHidden && bizHidden.value.trim();
+  var hasLoc = locHidden && locHidden.value.trim();
+
+  /* If we have both business name and location, enable */
+  if (hasBiz && hasLoc) {
+    enableAuditBtn();
+    return;
+  }
+
+  /* If confirmed row is visible (business name set, city auto-detected), enable */
+  var confirmedRow = document.getElementById('biz-name-confirmed');
+  if (confirmedRow && confirmedRow.style.display !== 'none' && confirmedRow.style.opacity !== '0' && hasBiz && hasLoc) {
+    enableAuditBtn();
+    return;
+  }
+
+  /* If override is showing, require name + city from visible fields */
+  var overrideWrap = document.getElementById('biz-name-override');
+  if (overrideWrap && overrideWrap.style.display !== 'none' && overrideWrap.style.opacity !== '0') {
+    var overrideName = document.getElementById('override_biz_name').value.trim();
+    var cityWrap = document.getElementById('override-city-wrapper');
+    var needsCity = cityWrap && cityWrap.style.display !== 'none';
+    var overrideCity = document.getElementById('override_biz_city').value.trim();
+    if (overrideName && (!needsCity || overrideCity)) {
+      enableAuditBtn();
+      return;
+    }
+  }
+
+  /* If quick_city field is showing, check if it has a value */
+  var quickCityWrap = document.getElementById('quick-city-wrapper');
+  if (quickCityWrap && quickCityWrap.style.display !== 'none' && quickCityWrap.style.opacity !== '0') {
+    var quickCity = document.getElementById('quick_city');
+    if (quickCity && quickCity.value.trim()) {
+      enableAuditBtn();
+      return;
+    }
+  }
+
+  disableAuditBtn();
+}
+
+/* ── "Not the right business?" click handler ──────────────────── */
+document.getElementById('biz-name-wrong-btn').addEventListener('click', function() {
+  /* Clear confirmed name */
+  hideBizConfirmed();
+  document.getElementById('business_name').value = '';
+
+  /* Show override fields: city field only if city was NOT auto-detected */
+  var needCityField = !_cityWasAutoDetected;
+  showBizOverride(needCityField);
+  disableAuditBtn();
+});
+
+/* ── Auto-detect on blur -- debounced for mobile ─────────────── */
 document.getElementById('base_url').addEventListener('blur', function() {
   var urlField = this;
   var url = urlField.value.trim();
@@ -349,7 +522,6 @@ document.getElementById('base_url').addEventListener('blur', function() {
   if (url && url !== _lastDetectedUrl) {
     var delay = _isMobile ? 400 : 150;
     _blurTimer = setTimeout(function() {
-      /* If the URL field regained focus (e.g. keyboard reappeared), skip detection */
       if (document.activeElement === urlField) return;
       clearTimeout(_detectTimer);
       detectBusiness();
@@ -360,18 +532,19 @@ document.getElementById('base_url').addEventListener('blur', function() {
 /* Auto-detect when user changes the URL field (debounced 600ms) */
 document.getElementById('base_url').addEventListener('input', function() {
   clearTimeout(_detectTimer);
-  clearTimeout(_blurTimer);  /* Cancel any pending blur-triggered detection */
+  clearTimeout(_blurTimer);
   _lastDetectedUrl = '';
+  resetBusinessState();
   disableAuditBtn();
   _detectTimer = setTimeout(function() { detectBusiness(); }, 600);
 });
 
-/* Cancel blur detection if user returns to URL field (e.g. mobile keyboard reappears) */
+/* Cancel blur detection if user returns to URL field */
 document.getElementById('base_url').addEventListener('focus', function() {
   clearTimeout(_blurTimer);
 });
 
-/* Also detect on page load if a URL is already filled */
+/* Detect on page load if URL is already filled */
 (function() {
   var url = document.getElementById('base_url').value.trim();
   if (url) {
@@ -385,8 +558,7 @@ function detectBusiness() {
   _lastDetectedUrl = url;
 
   disableAuditBtn();
-  /* Show city field immediately with spinner */
-  showCityField(true);
+  resetBusinessState();
 
   fetch('/api/detect-business', {
     method: 'POST',
@@ -398,54 +570,44 @@ function detectBusiness() {
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
-    var locInput = document.getElementById('business_location');
-    var quickCity = document.getElementById('quick_city');
-    if (data.location && !locInput._userEdited) {
-      /* City auto-detected — fill it in, keep field visible so user can verify */
-      locInput.value = data.location;
-      if (!quickCity.value.trim()) quickCity.value = data.location;
-      var spinner = document.getElementById('city-spinner');
-      var label = document.getElementById('city-label-text');
-      var hint = document.getElementById('city-hint');
-      if (spinner) spinner.style.display = 'none';
-      if (label) label.textContent = 'Business city detected — verify or edit before auditing';
-      if (hint) hint.textContent = 'We detected "' + data.location + '". Change it if this isn\u2019t right.';
-      enableAuditBtn();
-    } else if (locInput.value.trim() || quickCity.value.trim()) {
-      /* User already typed a city — enable button, keep field visible */
-      if (quickCity.value.trim()) locInput.value = quickCity.value;
-      var spinner2 = document.getElementById('city-spinner');
-      if (spinner2) spinner2.style.display = 'none';
-      enableAuditBtn();
+    var bizHidden = document.getElementById('business_name');
+    var locHidden = document.getElementById('business_location');
+    var detectedName = (data.business_name || '').trim();
+    var detectedLoc = (data.location || '').trim();
+
+    _detectedBizName = detectedName;
+    _detectedCity = detectedLoc;
+    _cityWasAutoDetected = !!detectedLoc;
+
+    if (detectedName) {
+      /* Business name was detected -- show confirmation row */
+      bizHidden.value = detectedName;
+
+      if (detectedLoc) {
+        /* Both name and city detected -- just show confirmed name, enable button */
+        locHidden.value = detectedLoc;
+        showBizConfirmed(detectedName);
+        enableAuditBtn();
+      } else {
+        /* Name detected but no city -- show confirmed name + city field */
+        showBizConfirmed(detectedName);
+        showCityField(false);
+      }
     } else {
-      /* Detection failed, no city — update label, keep field visible */
-      showCityField(false);
-      /* Only auto-focus city on desktop; on mobile, don't steal focus */
-      if (!_isMobile) {
-        setTimeout(function() {
-          var urlField = document.getElementById('base_url');
-          if (document.activeElement !== urlField) quickCity.focus();
-        }, 100);
+      /* No business name detected -- skip confirmation, show override fields directly */
+      if (detectedLoc) {
+        locHidden.value = detectedLoc;
+        _cityWasAutoDetected = true;
+        showBizOverride(false); /* no city field needed */
+      } else {
+        showBizOverride(true); /* show both name and city fields */
       }
     }
   })
   .catch(function(err) {
     console.error('Detect failed:', err);
-    var locInput = document.getElementById('business_location');
-    var quickCity = document.getElementById('quick_city');
-    if (locInput.value.trim() || quickCity.value.trim()) {
-      if (quickCity.value.trim()) locInput.value = quickCity.value;
-      hideCityField();
-      enableAuditBtn();
-    } else {
-      showCityField(false);
-      if (!_isMobile) {
-        setTimeout(function() {
-          var urlField = document.getElementById('base_url');
-          if (document.activeElement !== urlField) quickCity.focus();
-        }, 100);
-      }
-    }
+    /* Show override fields so user can enter both manually */
+    showBizOverride(true);
   });
 }
 
@@ -462,6 +624,9 @@ function detectBusiness() {
   .city-needs-attention {
     border-color: var(--accent, #38bdf8) !important;
     animation: cityPulse 1.5s ease-in-out 3;
+  }
+  #biz-name-wrong-btn:hover {
+    color: var(--text);
   }
 </style>
 {% endblock %}
