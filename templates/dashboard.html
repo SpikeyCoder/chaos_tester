@@ -65,22 +65,6 @@
     </div>
   </div>
 
-  <!-- City field: shown immediately while detecting, hidden if auto-detected -->
-  <div id="quick-city-wrapper" aria-live="polite" aria-atomic="true" style="display:none;overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;max-width:680px;margin-left:auto;margin-right:auto;">
-    <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;text-align:left;">
-      <label for="quick_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">
-        <span id="city-label-text">Detecting your business city...</span>
-        <span id="city-spinner" style="display:inline-block;animation:spin 1s linear infinite;margin-left:6px;">&#9696;</span>
-      </label>
-      <input type="text" id="quick_city" name="quick_city"
-             placeholder="e.g. Seattle, WA"
-             style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
-      <div id="city-hint" style="color:var(--text-muted);font-size:0.78rem;margin-top:4px;">
-        You can type your city now or wait for auto-detection.
-      </div>
-    </div>
-  </div>
-
   <!-- Module toggles with descriptions -->
   <details id="module-toggles" style="max-width:680px;margin:16px auto 24px;text-align:left;">
     <summary style="cursor:pointer;font-size:0.9rem;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:8px;padding:10px 0;min-height:44px;">
@@ -292,7 +276,6 @@
 var _detectTimer = null;
 var _blurTimer = null;
 var _lastDetectedUrl = '';
-var _cityListenerAdded = false;
 var _overrideListenerAdded = false;
 var _isMobile = /Mobi|Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || ('ontouchstart' in window);
 
@@ -338,44 +321,6 @@ function slideUp(el, cb) {
     el.style.display = 'none';
     if (cb) cb();
   }, 400);
-}
-
-/* ── City field helpers (unchanged behavior, used as fallback) ──── */
-function showCityField(detecting) {
-  var wrapper = document.getElementById('quick-city-wrapper');
-  var spinner = document.getElementById('city-spinner');
-  var label = document.getElementById('city-label-text');
-  var hint = document.getElementById('city-hint');
-  if (!wrapper) return;
-
-  slideDown(wrapper);
-
-  if (detecting) {
-    spinner.style.display = 'inline-block';
-    label.textContent = 'Detecting your business city...';
-    hint.textContent = 'You can type your city now or wait for auto-detection.';
-  } else {
-    spinner.style.display = 'none';
-    label.textContent = 'Please enter your business city for AI visibility results.';
-    hint.textContent = "We could not auto-detect your city -- enter it here so AI queries target the right location.";
-  }
-
-  if (!_cityListenerAdded) {
-    _cityListenerAdded = true;
-    var quickCity = document.getElementById('quick_city');
-    var locInput = document.getElementById('business_location');
-    quickCity.addEventListener('input', function() {
-      locInput.value = quickCity.value;
-      locInput._userEdited = true;
-      syncAuditBtnState();
-    });
-  }
-}
-
-function hideCityField() {
-  var wrapper = document.getElementById('quick-city-wrapper');
-  if (!wrapper) return;
-  slideUp(wrapper);
 }
 
 /* ── Business name confirmation row ────────────────────────────── */
@@ -449,11 +394,8 @@ function resetBusinessState() {
   locInput._userEdited = false;
   document.getElementById('override_biz_name').value = '';
   document.getElementById('override_biz_city').value = '';
-  var quickCity = document.getElementById('quick_city');
-  if (quickCity) quickCity.value = '';
   hideBizConfirmed();
   hideBizOverride();
-  hideCityField();
 }
 
 /* ── Enable/disable audit button based on current state ────────── */
@@ -484,16 +426,6 @@ function syncAuditBtnState() {
     var needsCity = cityWrap && cityWrap.style.display !== 'none';
     var overrideCity = document.getElementById('override_biz_city').value.trim();
     if (overrideName && (!needsCity || overrideCity)) {
-      enableAuditBtn();
-      return;
-    }
-  }
-
-  /* If quick_city field is showing, check if it has a value */
-  var quickCityWrap = document.getElementById('quick-city-wrapper');
-  if (quickCityWrap && quickCityWrap.style.display !== 'none' && quickCityWrap.style.opacity !== '0') {
-    var quickCity = document.getElementById('quick_city');
-    if (quickCity && quickCity.value.trim()) {
       enableAuditBtn();
       return;
     }
@@ -589,9 +521,11 @@ function detectBusiness() {
         showBizConfirmed(detectedName);
         enableAuditBtn();
       } else {
-        /* Name detected but no city -- show confirmed name + city field */
+        /* Name detected but no city -- show confirmed name + override city field */
         showBizConfirmed(detectedName);
-        showCityField(false);
+        showBizOverride(true);
+        /* Pre-fill detected name in override so user only needs to add city */
+        document.getElementById('override_biz_name').value = detectedName;
       }
     } else {
       /* No business name detected -- skip confirmation, show override fields directly */
@@ -617,14 +551,6 @@ function detectBusiness() {
 
 <style>
   @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes cityPulse {
-    0%, 100% { border-color: var(--accent, #38bdf8); box-shadow: 0 0 0 0 rgba(56,189,248,0.4); }
-    50% { border-color: var(--accent, #38bdf8); box-shadow: 0 0 0 4px rgba(56,189,248,0.15); }
-  }
-  .city-needs-attention {
-    border-color: var(--accent, #38bdf8) !important;
-    animation: cityPulse 1.5s ease-in-out 3;
-  }
   #biz-name-wrong-btn:hover {
     color: var(--text);
   }
