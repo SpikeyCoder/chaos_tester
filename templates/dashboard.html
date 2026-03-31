@@ -54,13 +54,14 @@
   <!-- Business name override fields: shown when user clicks "Not the right business?" or detection fails -->
   <div id="biz-name-override" aria-live="polite" style="display:none;overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;max-width:680px;margin-left:auto;margin-right:auto;">
     <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;text-align:left;">
+      <div id="detected-biz-label" style="display:none;font-size:0.82rem;color:#4ade80;margin-bottom:8px;line-height:1.4;"></div>
       <label for="override_biz_name" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business Name</label>
       <input type="text" id="override_biz_name" placeholder="e.g. Acme Web Design"
              style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
       <div id="override-city-wrapper" style="display:none;margin-top:12px;">
         <label for="override_biz_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business City</label>
-        <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA"
-               style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
+        <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA" autocomplete="off"
+               style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;transition:border-color .2s;">
         <p style="margin:8px 0 0;font-size:0.8rem;color:var(--text-muted);line-height:1.4;">We use your business name and city to check how your site shows up in local search results.</p>
       </div>
     </div>
@@ -405,6 +406,11 @@ function resetBusinessState() {
   locInput._userEdited = false;
   document.getElementById('override_biz_name').value = '';
   document.getElementById('override_biz_city').value = '';
+  var detectedLabel = document.getElementById('detected-biz-label');
+  if (detectedLabel) {
+    detectedLabel.style.display = 'none';
+    detectedLabel.textContent = '';
+  }
   hideBizConfirmed();
   hideBizOverride();
 }
@@ -447,13 +453,29 @@ function syncAuditBtnState() {
 
 /* ── "Not the right business?" click handler ──────────────────── */
 document.getElementById('biz-name-wrong-btn').addEventListener('click', function() {
-  /* Clear confirmed name */
+  /* Hide the confirmation row */
   hideBizConfirmed();
-  document.getElementById('business_name').value = '';
 
   /* Show override fields: city field only if city was NOT auto-detected */
   var needCityField = !_cityWasAutoDetected;
   showBizOverride(needCityField);
+
+  /* Show the detected name as green text above the Business Name input */
+  var detectedLabel = document.getElementById('detected-biz-label');
+  if (detectedLabel && _detectedBizName) {
+    detectedLabel.textContent = 'Detected: ' + _detectedBizName;
+    detectedLabel.style.display = 'block';
+  }
+
+  /* Pre-fill the Business Name input with the detected name so user can edit */
+  var overrideNameInput = document.getElementById('override_biz_name');
+  if (overrideNameInput && _detectedBizName) {
+    overrideNameInput.value = _detectedBizName;
+    document.getElementById('business_name').value = _detectedBizName;
+  } else {
+    document.getElementById('business_name').value = '';
+  }
+
   disableAuditBtn();
 });
 
@@ -600,8 +622,12 @@ function detectBusiness() {
     color: #60a5fa;
     font-weight: 700;
   }
-  .pac-icon, .pac-icon-marker {
-    display: none;
+  .pac-icon, .pac-icon-marker, .pac-icon-search {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   .pac-item span:last-child {
     color: #9ca3af;
@@ -610,6 +636,14 @@ function detectBusiness() {
   /* Hide the Google logo at the bottom of the dropdown */
   .pac-container::after {
     display: none !important;
+  }
+  /* Prevent Google Places Autocomplete from applying icon fonts to the city input */
+  #override_biz_city,
+  #override_biz_city.pac-target-input {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    -webkit-text-security: none !important;
+    text-transform: none !important;
+    content: none !important;
   }
 </style>
 
