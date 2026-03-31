@@ -61,6 +61,7 @@
         <label for="override_biz_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business City</label>
         <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA"
                style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
+        <p style="margin:8px 0 0;font-size:0.8rem;color:var(--text-muted);line-height:1.4;">We use your business name and city to check how your site shows up in local search results.</p>
       </div>
     </div>
   </div>
@@ -343,6 +344,10 @@ function showBizOverride(showCity) {
   var wrapper = document.getElementById('biz-name-override');
   var cityWrap = document.getElementById('override-city-wrapper');
   if (!wrapper) return;
+
+  /* Hide the confirmation row (green name + "Not the right business?" link) */
+  var confirmedRow = document.getElementById('biz-name-confirmed');
+  if (confirmedRow) slideUp(confirmedRow);
 
   cityWrap.style.display = showCity ? 'block' : 'none';
   slideDown(wrapper);
