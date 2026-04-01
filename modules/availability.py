@@ -30,12 +30,19 @@ class AvailabilityScanner(BaseModule):
     VERY_SLOW_THRESHOLD_MS = 8000
 
     def run(self, discovered_pages: list = None) -> List[TestResult]:
-        """Crawl and test every discovered page."""
+        """Crawl and test every discovered page concurrently."""
+        from concurrent.futures import ThreadPoolExecutor, as_completed
         pages = discovered_pages or self._crawl()
-        logger.info(f"[availability] Testing {len(pages)} pages")
+        logger.info(f"[availability] Testing {len(pages)} pages concurrently")
 
-        for url in pages:
-            self._test_page(url)
+        workers = min(self.config.concurrency, len(pages), 10)
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {executor.submit(self._test_page, url): url for url in pages}
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.warning("Availability test failed for %s: %s", futures[future], exc)
 
         return self.results
 

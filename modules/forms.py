@@ -38,11 +38,18 @@ class FormInteractionTester(BaseModule):
     }
 
     def run(self, discovered_pages: list = None) -> List[TestResult]:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
         pages = discovered_pages or [self.config.base_url]
-        logger.info(f"[forms] Scanning forms on {len(pages)} pages")
+        logger.info(f"[forms] Scanning forms on {len(pages)} pages concurrently")
 
-        for page_url in pages:
-            self._scan_page(page_url)
+        workers = min(self.config.concurrency, len(pages), 8)
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {executor.submit(self._scan_page, url): url for url in pages}
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.warning("Forms scan failed for %s: %s", futures[future], exc)
 
         return self.results
 

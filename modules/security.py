@@ -90,15 +90,26 @@ class SecurityScanner(BaseModule):
     ]
 
     def run(self, discovered_pages: list = None) -> List[TestResult]:
-        logger.info("[security] Running security checks")
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        logger.info("[security] Running security checks concurrently")
 
-        self._test_security_headers()
-        self._test_info_leakage()
-        self._test_sensitive_files()
-        self._test_cors()
-        self._test_https_enforcement()
-        self._test_directory_listing()
-        self._test_error_disclosure()
+        checks = [
+            self._test_security_headers,
+            self._test_info_leakage,
+            self._test_sensitive_files,
+            self._test_cors,
+            self._test_https_enforcement,
+            self._test_directory_listing,
+            self._test_error_disclosure,
+        ]
+
+        with ThreadPoolExecutor(max_workers=len(checks)) as executor:
+            futures = {executor.submit(fn): fn.__name__ for fn in checks}
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.warning("Security check %s failed: %s", futures[future], exc)
 
         return self.results
 

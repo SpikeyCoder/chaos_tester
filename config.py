@@ -45,8 +45,8 @@ class ChaosConfig:
     allow_production: bool = False          # explicit opt-in required
 
     # -- Crawl / Discovery ---------------------------------------------
-    max_pages: int = 100                    # max pages to crawl
-    crawl_depth: int = 3                    # link-follow depth
+    max_pages: int = 30                     # max pages to crawl (reduced for speed)
+    crawl_depth: int = 2                    # link-follow depth (reduced for speed)
     respect_robots: bool = True
     excluded_paths: list = field(default_factory=lambda: [
         "/admin", "/api/internal", "/healthcheck",
@@ -54,7 +54,7 @@ class ChaosConfig:
     seed_urls: list = field(default_factory=list)  # additional start URLs
 
     # -- Timeouts ------------------------------------------------------
-    request_timeout: int = 15               # seconds per request
+    request_timeout: int = 8                # seconds per request (reduced for speed)
     page_load_timeout: int = 30             # seconds for full page load
     global_timeout: int = 600               # max total run time (10 min)
 
