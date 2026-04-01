@@ -35,6 +35,6 @@ jobs:
             --source . \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-env-vars "SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }},PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }},GOOGLE_PLACES_API_KEY=${{ secrets.GOOGLE_PLACES_API_KEY }}" \
+            --set-env-vars "SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }},PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }},GOOGLE_PLACES_API_KEY=${{ secrets.GOOGLE_PLACES_API_KEY }},GOOGLE_PSI_API_KEY=${{ secrets.GOOGLE_PSI_API_KEY }}" \
             --quiet
 # Sun Mar 15 16:46:59 PDT 2026
