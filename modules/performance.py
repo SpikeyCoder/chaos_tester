@@ -41,10 +41,16 @@ def _fetch_strategy(url, strategy, timeout=30):
     if API_KEY:
         params["key"] = API_KEY
 
+    strategy_start = time.time()
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            logger.info("PSI %s attempt %d/%d for %s", strategy, attempt, MAX_RETRIES, url)
+            attempt_start = time.time()
+            logger.info("PSI %s attempt %d/%d for %s (strategy_elapsed=%.1fs)",
+                        strategy, attempt, MAX_RETRIES, url, time.time() - strategy_start)
             resp = requests.get(PSI_API, params=params, timeout=timeout)
+            logger.info("PSI %s response %d in %.1fs (attempt %d, strategy_total=%.1fs)",
+                        strategy, resp.status_code, time.time() - attempt_start,
+                        attempt, time.time() - strategy_start)
 
             if resp.status_code == 429:
                 wait = BACKOFF_BASE * (2 ** (attempt - 1))
