@@ -37,7 +37,7 @@
       {% if status == 'running' %}
         <a href="/progress" class="btn-audit">View Progress</a>
       {% else %}
-        <button type="submit" class="btn-audit" id="auditBtn" disabled style="opacity:0.5;cursor:not-allowed;">Audit Website</button>
+        <button type="submit" class="btn-audit" id="auditBtn" disabled style="opacity:0.5;cursor:not-allowed;min-width:160px;">Audit Website</button>
       {% endif %}
     </div>
     <div id="cta-helper" style="text-align:center;margin-top:8px;font-size:0.82rem;color:var(--text-muted);transition:opacity 0.3s;">Enter a URL above to scan your website</div>
@@ -530,6 +530,21 @@ document.getElementById('base_url').addEventListener('focus', function() {
   }
 })();
 
+function showAuditSpinner() {
+  var btn = document.getElementById('auditBtn');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.style.cursor = 'not-allowed';
+  btn.innerHTML = '<span class="btn-spinner"></span>';
+}
+
+function hideAuditSpinner() {
+  var btn = document.getElementById('auditBtn');
+  if (!btn) return;
+  btn.innerHTML = 'Audit Website';
+}
+
 function detectBusiness() {
   var url = document.getElementById('base_url').value.trim();
   if (!url || url === _lastDetectedUrl) return;
@@ -537,6 +552,7 @@ function detectBusiness() {
 
   disableAuditBtn();
   resetBusinessState();
+  showAuditSpinner();
 
   fetch('/api/detect-business', {
     method: 'POST',
@@ -548,6 +564,7 @@ function detectBusiness() {
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
+    hideAuditSpinner();
     var bizHidden = document.getElementById('business_name');
     var locHidden = document.getElementById('business_location');
     var detectedName = (data.business_name || '').trim();
@@ -592,6 +609,7 @@ function detectBusiness() {
   })
   .catch(function(err) {
     console.error('Detect failed:', err);
+    hideAuditSpinner();
     /* Show override fields so user can enter both manually */
     showBizOverride(true);
   });
@@ -603,6 +621,16 @@ function detectBusiness() {
 
 <style>
   @keyframes spin { to { transform: rotate(360deg); } }
+  .btn-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255, 255, 255, 0.25);
+    border-top-color: var(--accent, #3b82f6);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+  }
   #biz-name-wrong-btn:hover {
     color: var(--text);
   }
