@@ -36,7 +36,7 @@ MAX_RETRIES = 2
 BACKOFF_BASE = 3
 
 
-def _fetch_strategy(url, strategy, timeout=60):
+def _fetch_strategy(url, strategy, timeout=30):
     params = {"url": url, "strategy": strategy, "category": "performance"}
     if API_KEY:
         params["key"] = API_KEY
@@ -186,7 +186,7 @@ def _set_cache(url, data):
             del _cache[k]
 
 
-def fetch_performance_metrics(url, timeout=60):
+def fetch_performance_metrics(url, timeout=30):
     """Fetch Lighthouse metrics for both mobile and desktop concurrently.
     Returns cached results if the same URL was fetched within the last 3 minutes."""
     # Check cache first

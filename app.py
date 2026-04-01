@@ -69,6 +69,7 @@ logger = logging.getLogger("chaos_tester")
 _current_run = None          # TestRun | None
 _current_status = "idle"     # idle | running | completed | failed
 _progress = []               # list of {module, pct, msg, ts}
+_highest_pct = 0             # monotonic high-water mark for progress percentage
 _run_history = []             # list of saved TestRun dicts
 _run_index = {}              # run_id -> report dict for O(1) lookup
 _lock = threading.Lock()
@@ -161,8 +162,10 @@ def _clamp_int(raw: str, default: int, lo: int, hi: int) -> int:
 # -- SSE Progress Stream ------------------------------------------
 
 def _progress_callback(module: str, pct: int, msg: str):
-    global _progress
-    entry = {"module": module, "pct": pct, "msg": msg, "ts": datetime.utcnow().isoformat()}
+    global _progress, _highest_pct
+    effective_pct = max(pct, _highest_pct)
+    _highest_pct = effective_pct
+    entry = {"module": module, "pct": effective_pct, "msg": msg, "ts": datetime.utcnow().isoformat()}
     with _lock:
         _progress.append(entry)
 
@@ -334,8 +337,10 @@ def start_run():
     # Set status to "running" BEFORE starting thread to prevent race condition
     # where the SSE stream sees "idle" before the thread has a chance to run.
     with _lock:
+        global _highest_pct
         _current_status = "running"
         _progress.clear()
+        _highest_pct = 0
 
     thread = threading.Thread(target=_run_tests, args=(config,), daemon=True)
     thread.start()
