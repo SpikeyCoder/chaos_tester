@@ -4,8 +4,8 @@ for both mobile and desktop strategies and returns structured
 Lighthouse metrics (FCP, SI, LCP, CLS, TTI, TBT).
 
 Supports optional API key via GOOGLE_PSI_API_KEY env var for
-higher rate limits. Includes retry with exponential backoff
-for 429 (rate-limit) responses.
+higher rate limits. Includes smart retry logic with staggered
+starts, immediate retry on 500, and tiered timeouts.
 """
 import logging
 import os
@@ -33,27 +33,33 @@ METRICS_MAP = {
 }
 
 MAX_RETRIES = 2
-BACKOFF_BASE = 3
+FIRST_ATTEMPT_TIMEOUT = 20
+RETRY_TIMEOUT = 30
 
 
-def _fetch_strategy(url, strategy, timeout=30):
+def _fetch_strategy(url, strategy):
     params = {"url": url, "strategy": strategy, "category": "performance"}
     if API_KEY:
         params["key"] = API_KEY
 
     strategy_start = time.time()
     for attempt in range(1, MAX_RETRIES + 1):
+        # First attempt gets shorter timeout, retry gets longer
+        timeout = FIRST_ATTEMPT_TIMEOUT if attempt == 1 else RETRY_TIMEOUT
+
         try:
             attempt_start = time.time()
-            logger.info("PSI %s attempt %d/%d for %s (strategy_elapsed=%.1fs)",
-                        strategy, attempt, MAX_RETRIES, url, time.time() - strategy_start)
+            logger.info("PSI %s attempt %d/%d for %s (timeout=%ds, strategy_elapsed=%.1fs)",
+                        strategy, attempt, MAX_RETRIES, url, timeout,
+                        time.time() - strategy_start)
             resp = requests.get(PSI_API, params=params, timeout=timeout)
             logger.info("PSI %s response %d in %.1fs (attempt %d, strategy_total=%.1fs)",
                         strategy, resp.status_code, time.time() - attempt_start,
                         attempt, time.time() - strategy_start)
 
             if resp.status_code == 429:
-                wait = BACKOFF_BASE * (2 ** (attempt - 1))
+                # Rate limited: sleep before retry (only case where we sleep)
+                wait = 3 * (2 ** (attempt - 1))
                 logger.warning(
                     "PSI %s rate-limited (429) for %s - retrying in %ds (attempt %d/%d)",
                     strategy, url, wait, attempt, MAX_RETRIES,
@@ -65,15 +71,31 @@ def _fetch_strategy(url, strategy, timeout=30):
                     logger.error("PSI %s exhausted retries (429) for %s", strategy, url)
                     return {}
 
+            if resp.status_code >= 500:
+                # Server error: retry immediately (no sleep)
+                logger.warning(
+                    "PSI %s server error (%d) for %s - retrying immediately (attempt %d/%d)",
+                    strategy, resp.status_code, url, attempt, MAX_RETRIES,
+                )
+                if attempt < MAX_RETRIES:
+                    continue
+                else:
+                    logger.error("PSI %s exhausted retries (500) for %s", strategy, url)
+                    return {}
+
             resp.raise_for_status()
             data = resp.json()
             break
 
+        except requests.exceptions.Timeout:
+            logger.warning("PSI %s timed out after %ds for %s (attempt %d, strategy_total=%.1fs)",
+                           strategy, timeout, url, attempt, time.time() - strategy_start)
+            # Retry immediately (no sleep) on timeout
+            if attempt < MAX_RETRIES:
+                continue
+            return {}
         except requests.exceptions.HTTPError as exc:
             logger.warning("PSI %s HTTP error for %s: %s", strategy, url, exc)
-            return {}
-        except requests.exceptions.Timeout:
-            logger.warning("PSI %s timed out for %s (attempt %d)", strategy, url, attempt)
             if attempt < MAX_RETRIES:
                 continue
             return {}
@@ -192,30 +214,40 @@ def _set_cache(url, data):
             del _cache[k]
 
 
-def fetch_performance_metrics(url, timeout=30):
-    """Fetch Lighthouse metrics for both mobile and desktop concurrently.
+def fetch_performance_metrics(url):
+    """Fetch Lighthouse metrics for both mobile and desktop with staggered starts.
+    Desktop fires first, mobile starts 2 seconds later to avoid overwhelming
+    Google's PSI infrastructure from the same IP/key.
     Returns cached results if the same URL was fetched within the last 3 minutes."""
     # Check cache first
     cached = _get_cached(url)
     if cached is not None:
         return cached
 
-    from concurrent.futures import ThreadPoolExecutor
-    logger.info("Fetching PageSpeed Insights for %s (key=%s)",
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    logger.info("Fetching PageSpeed Insights for %s (key=%s, staggered=2s)",
                 url, "set" if API_KEY else "not set")
+
     result = {}
+
+    def _fetch_desktop():
+        return _fetch_strategy(url, "desktop")
+
+    def _fetch_mobile():
+        time.sleep(2)  # Stagger: let desktop start first
+        return _fetch_strategy(url, "mobile")
+
     with ThreadPoolExecutor(max_workers=2) as executor:
-        futures = {
-            executor.submit(_fetch_strategy, url, s, timeout): s
-            for s in ("mobile", "desktop")
-        }
-        for future in futures:
-            strategy = futures[future]
+        desktop_future = executor.submit(_fetch_desktop)
+        mobile_future = executor.submit(_fetch_mobile)
+
+        for future, strategy in [(desktop_future, "desktop"), (mobile_future, "mobile")]:
             try:
                 result[strategy] = future.result()
             except Exception as exc:
                 logger.warning("PSI %s failed: %s", strategy, exc)
                 result[strategy] = {}
+
     if not any(result.get(s, {}).get("score") is not None for s in result):
         logger.warning("PSI returned no usable data for %s -- both strategies empty", url)
     else:
