@@ -135,7 +135,18 @@ class ChaosTestRunner:
         try:
             discovered_pages = []
 
-            # -- Phase 1: Availability + Discovery (must run first) --
+            # -- Start slow API calls immediately (they don't need discovered pages) --
+            early_tasks = []
+            early_tasks.append(("performance", self._run_performance))
+            if self.config.run_ai_visibility:
+                early_tasks.append(("ai_visibility", self._run_ai_visibility))
+
+            early_executor = ThreadPoolExecutor(max_workers=len(early_tasks))
+            early_futures = {}
+            for name, fn in early_tasks:
+                early_futures[early_executor.submit(fn)] = name
+
+            # -- Phase 1: Availability + Discovery (runs while PSI/AI are in flight) --
             if self.config.run_availability:
                 self._emit("availability", 5, "Scanning pages and checking availability...")
                 scanner = AvailabilityScanner(self.config)
@@ -147,39 +158,44 @@ class ChaosTestRunner:
                 })
                 self._emit("availability", 20, f"Done -- {len(discovered_pages)} pages OK, {len(results)} checks.")
 
-            # -- Phase 2: All remaining modules concurrently ----------
-            tasks = []
+            # -- Phase 2: Page-dependent modules concurrently ----------
+            page_tasks = []
 
             if self.config.run_links:
-                tasks.append(("links", lambda dp=discovered_pages: self._run_links(dp)))
+                page_tasks.append(("links", lambda dp=discovered_pages: self._run_links(dp)))
             if self.config.run_forms:
-                tasks.append(("forms", lambda dp=discovered_pages: self._run_forms(dp)))
+                page_tasks.append(("forms", lambda dp=discovered_pages: self._run_forms(dp)))
             if self.config.run_chaos:
-                tasks.append(("chaos", lambda dp=discovered_pages: self._run_chaos(dp)))
+                page_tasks.append(("chaos", lambda dp=discovered_pages: self._run_chaos(dp)))
             if self.config.run_auth:
-                tasks.append(("auth", lambda dp=discovered_pages: self._run_auth(dp)))
+                page_tasks.append(("auth", lambda dp=discovered_pages: self._run_auth(dp)))
             if self.config.run_security:
-                tasks.append(("security", lambda dp=discovered_pages: self._run_security(dp)))
+                page_tasks.append(("security", lambda dp=discovered_pages: self._run_security(dp)))
 
-            # Performance and AI visibility are always concurrent
-            tasks.append(("performance", self._run_performance))
-            if self.config.run_ai_visibility:
-                tasks.append(("ai_visibility", self._run_ai_visibility))
+            if page_tasks:
+                self._emit("runner", 25, f"Running {len(page_tasks)} modules concurrently...")
+                with ThreadPoolExecutor(max_workers=len(page_tasks)) as executor:
+                    page_futures = {}
+                    for name, fn in page_tasks:
+                        page_futures[executor.submit(fn)] = name
 
-            if tasks:
-                self._emit("runner", 25, f"Running {len(tasks)} modules concurrently...")
-                with ThreadPoolExecutor(max_workers=len(tasks)) as executor:
-                    futures = {}
-                    for name, fn in tasks:
-                        futures[executor.submit(fn)] = name
-
-                    for future in as_completed(futures):
-                        name = futures[future]
+                    for future in as_completed(page_futures):
+                        name = page_futures[future]
                         try:
                             future.result()
                         except Exception as exc:
                             logger.warning("Module %s failed: %s", name, exc)
                             self._emit(name, 99, f"Module error: {exc}")
+
+            # -- Wait for early tasks (PSI + AI) to finish --
+            for future in as_completed(early_futures):
+                name = early_futures[future]
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.warning("Module %s failed: %s", name, exc)
+                    self._emit(name, 99, f"Module error: {exc}")
+            early_executor.shutdown(wait=False)
 
             self.test_run.status = "completed"
 

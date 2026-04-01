@@ -11,11 +11,17 @@ import logging
 import os
 import re
 import time
+import threading
 import requests
 
 logger = logging.getLogger(__name__)
 PSI_API = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
 API_KEY = os.environ.get("GOOGLE_PSI_API_KEY", "")
+
+# In-memory cache: url -> {timestamp, data}
+_cache = {}
+_cache_lock = threading.Lock()
+CACHE_TTL_SECONDS = 180  # 3 minutes
 
 METRICS_MAP = {
     "first-contentful-paint":    ("First Contentful Paint",    "s"),
@@ -26,8 +32,8 @@ METRICS_MAP = {
     "total-blocking-time":       ("Total Blocking Time",        "ms"),
 }
 
-MAX_RETRIES = 3
-BACKOFF_BASE = 5
+MAX_RETRIES = 2
+BACKOFF_BASE = 3
 
 
 def _fetch_strategy(url, strategy, timeout=60):
@@ -160,8 +166,34 @@ def _fetch_strategy(url, strategy, timeout=60):
     return {"score": perf_score, "metrics": metrics, "recommendations": recommendations[:5]}
 
 
-def fetch_performance_metrics(url, timeout=90):
-    """Fetch Lighthouse metrics for both mobile and desktop concurrently."""
+def _get_cached(url):
+    """Return cached PSI result if fresh, else None."""
+    with _cache_lock:
+        entry = _cache.get(url)
+        if entry and (time.time() - entry["timestamp"]) < CACHE_TTL_SECONDS:
+            logger.info("PSI cache hit for %s (age=%.0fs)", url, time.time() - entry["timestamp"])
+            return entry["data"]
+    return None
+
+
+def _set_cache(url, data):
+    """Store PSI result in cache."""
+    with _cache_lock:
+        _cache[url] = {"timestamp": time.time(), "data": data}
+        # Evict stale entries (keep cache small)
+        stale_keys = [k for k, v in _cache.items() if (time.time() - v["timestamp"]) > CACHE_TTL_SECONDS * 2]
+        for k in stale_keys:
+            del _cache[k]
+
+
+def fetch_performance_metrics(url, timeout=60):
+    """Fetch Lighthouse metrics for both mobile and desktop concurrently.
+    Returns cached results if the same URL was fetched within the last 3 minutes."""
+    # Check cache first
+    cached = _get_cached(url)
+    if cached is not None:
+        return cached
+
     from concurrent.futures import ThreadPoolExecutor
     logger.info("Fetching PageSpeed Insights for %s (key=%s)",
                 url, "set" if API_KEY else "not set")
@@ -179,5 +211,7 @@ def fetch_performance_metrics(url, timeout=90):
                 logger.warning("PSI %s failed: %s", strategy, exc)
                 result[strategy] = {}
     if not any(result.get(s, {}).get("score") is not None for s in result):
-        logger.warning("PSI returned no usable data for %s \u2013 both strategies empty", url)
+        logger.warning("PSI returned no usable data for %s -- both strategies empty", url)
+    else:
+        _set_cache(url, result)
     return result
