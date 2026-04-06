@@ -2,6 +2,15 @@
 {% block title %}Report {{ report.run_id }} -- Website Auditor{% endblock %}
 {% block robots %}noindex, nofollow{% endblock %}
 {% block content %}
+<!-- Breadcrumb Navigation -->
+<nav aria-label="Breadcrumb" style="margin-bottom:16px;font-size:0.85rem;color:var(--text-muted);">
+  <a href="/" style="color:var(--accent);">Home</a>
+  <span style="margin:0 6px;">›</span>
+  <a href="/latest" style="color:var(--accent);">Dashboard</a>
+  <span style="margin:0 6px;">›</span>
+  <span>Report for <code>{{ report.base_url[:50] }}</code></span>
+</nav>
+
 <!-- -- Report Top Bar -------------------------------------- -->
 <div class="report-top-bar fade-up">
   <div style="display:flex;align-items:center;gap:16px;">
@@ -240,8 +249,8 @@ document.addEventListener('DOMContentLoaded', function() {
   <h2 style="margin:0 0 16px">Performance Metrics</h2>
   {% if has_perf_data %}
   <div class="perf-tabs">
-    <button type="button" class="perf-tab active" onclick="switchPerfTab('mobile')" id="tab-mobile">Mobile</button>
-    <button type="button" class="perf-tab" onclick="switchPerfTab('desktop')" id="tab-desktop">Desktop</button>
+    <button type="button" class="perf-tab active" onclick="switchPerfTab('mobile')" id="tab-mobile" aria-label="View mobile performance metrics" aria-selected="true">📱 Mobile</button>
+    <button type="button" class="perf-tab" onclick="switchPerfTab('desktop')" id="tab-desktop" aria-label="View desktop performance metrics" aria-selected="false">🖥 Desktop</button>
   </div>
   {% for strategy in ["mobile","desktop"] %}
   {% set sdata = perf.get(strategy, {}) %}
@@ -293,10 +302,22 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   {% endfor %}
   {% else %}
-  <p style="color:var(--text-muted);text-align:center;padding:24px 0">
-    Performance metrics were not collected for this audit. Run a new audit to see Lighthouse performance scores, individual metric gauges, and optimization recommendations.
-  </p>
+  <div style="background:var(--surface);border:1px dashed var(--border);border-radius:8px;padding:32px 24px;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:12px;">⚡</div>
+    <p style="color:var(--text);font-weight:600;margin-bottom:8px;">No performance data available for this scan</p>
+    <p style="color:var(--text-muted);font-size:0.9rem;line-height:1.5;">Try re-running your audit to collect Lighthouse performance scores, individual metric gauges, and optimization recommendations.</p>
+  </div>
   {% endif %}
+</div>
+
+<!-- -- Module Legend ----------------------------------------- -->
+<div style="background:var(--surface);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:16px;font-size:0.85rem;">
+  <div><span style="display:inline-block;width:12px;height:12px;background:#3b82f6;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Availability</div>
+  <div><span style="display:inline-block;width:12px;height:12px;background:#a855f7;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Broken Links</div>
+  <div><span style="display:inline-block;width:12px;height:12px;background:#06b6d4;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Form Usability</div>
+  <div><span style="display:inline-block;width:12px;height:12px;background:#f97316;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Chaos / Stress</div>
+  <div><span style="display:inline-block;width:12px;height:12px;background:#eab308;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Auth & Sessions</div>
+  <div><span style="display:inline-block;width:12px;height:12px;background:#ef4444;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Security</div>
 </div>
 
 <!-- -- Results Table (Business View: issues first) ----------- -->
@@ -307,24 +328,30 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
       <div class="filter-group">
         <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
-        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="all" aria-pressed="false" onclick="filterResults('all', this)">All</button>
-        <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="issues" aria-pressed="true" onclick="filterResults('issues', this)">Issues Only</button>
-        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" aria-pressed="false" onclick="filterResults('failed', this)">Failed</button>
-        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" aria-pressed="false" onclick="filterResults('warning', this)">Warnings</button>
-        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" aria-pressed="false" onclick="filterResults('passed', this)">Passed</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="all" aria-pressed="false" aria-label="Show all test results" onclick="filterResults('all', this)">All</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="issues" aria-pressed="true" aria-label="Show issues only" onclick="filterResults('issues', this)">Issues Only</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" aria-pressed="false" aria-label="Show only failed tests" onclick="filterResults('failed', this)">Failed</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" aria-pressed="false" aria-label="Show only warning tests" onclick="filterResults('warning', this)">Warnings</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" aria-pressed="false" aria-label="Show only passed tests" onclick="filterResults('passed', this)">Passed</button>
       </div>
       <div class="filter-group">
         <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
-        <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" aria-pressed="true" onclick="filterModule('all', this)">All</button>
-        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" aria-pressed="false" onclick="filterModule('availability', this)">Avail</button>
-        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" aria-pressed="false" onclick="filterModule('links', this)">Links</button>
-        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" aria-pressed="false" onclick="filterModule('forms', this)">Forms</button>
-        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="chaos" aria-pressed="false" onclick="filterModule('chaos', this)">Chaos</button>
-        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="auth" aria-pressed="false" onclick="filterModule('auth', this)">Auth</button>
-        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" aria-pressed="false" onclick="filterModule('security', this)">Security</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" aria-pressed="true" onclick="filterModule('all', this)" title="All test modules">All</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" aria-pressed="false" onclick="filterModule('availability', this)" title="Page Availability - Whether all pages load correctly">Avail</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" aria-pressed="false" onclick="filterModule('links', this)" title="Broken Links - Detect 404s and redirect issues">Links</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" aria-pressed="false" onclick="filterModule('forms', this)" title="Form Usability - Check input labels and validation">Forms</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="chaos" aria-pressed="false" onclick="filterModule('chaos', this)" title="Page Speed - Performance under stress">Chaos</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="auth" aria-pressed="false" onclick="filterModule('auth', this)" title="Auth & Sessions - Login and session handling">Auth</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" aria-pressed="false" onclick="filterModule('security', this)" title="Security - Check headers and SSL">Security</button>
       </div>
     </div>
   </form>
+  <div style="background:var(--surface);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:0.85rem;color:var(--text-muted);">
+    <strong style="color:var(--text);">Score Legend:</strong>
+    <span style="display:inline-block;margin-left:12px;"><span style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>Excellent (>80%)</span>
+    <span style="display:inline-block;margin-left:12px;"><span style="display:inline-block;width:10px;height:10px;background:var(--yellow);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>Good (50-80%)</span>
+    <span style="display:inline-block;margin-left:12px;"><span style="display:inline-block;width:10px;height:10px;background:var(--red);border-radius:50%;margin-right:4px;vertical-align:middle;"></span>Needs Work (<50%)</span>
+  </div>
   <div id="detailed-results-wrapper" style="overflow-x:auto;max-height:none;">
     <table id="resultsTable">
       <thead>
@@ -348,7 +375,9 @@ document.addEventListener('DOMContentLoaded', function() {
           <td data-label="Severity"><span class="badge badge-{{ r.severity }}">{{ r.severity }}</span></td>
           <td data-label="Module" class="text-sm">
             {% set mc = {'availability':'#3b82f6','links':'#a855f7','forms':'#06b6d4','chaos':'#f97316','auth':'#eab308','security':'#ef4444'} %}
-            <span style="color:{{ mc.get(r.module, '#8b8fa3') }};font-weight:600;">{{ r.module }}</span>
+            {% set labels = {'availability':'Page Availability','links':'Broken Links','forms':'Form Usability','chaos':'Stress Testing','auth':'Auth & Sessions','security':'Security Headers'} %}
+            <div><span style="color:{{ mc.get(r.module, '#8b8fa3') }};font-weight:600;">{{ r.module }}</span></div>
+            <div style="color:var(--text-muted);font-size:0.75rem;margin-top:2px;">{{ labels.get(r.module, r.module) }}</div>
           </td>
           <td data-label="Test">
             <div style="font-weight:500;display:flex;align-items:center;gap:6px;">
@@ -1034,9 +1063,14 @@ function applyFilters() {
 <script>
 function switchPerfTab(strategy) {
   document.querySelectorAll('.perf-panel').forEach(function(p) { p.style.display = 'none'; });
-  document.querySelectorAll('.perf-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.perf-tab').forEach(function(t) {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+  });
   document.getElementById('panel-' + strategy).style.display = 'block';
-  document.getElementById('tab-' + strategy).classList.add('active');
+  var tab = document.getElementById('tab-' + strategy);
+  tab.classList.add('active');
+  tab.setAttribute('aria-selected', 'true');
 }
 </script>
 
@@ -1722,5 +1756,42 @@ document.addEventListener('DOMContentLoaded', function() {
   /* Auto-apply Issues Only filter on page load */
   if (typeof applyFilters === 'function') applyFilters();
 });
+
+/* Back-to-top button */
+(function() {
+  var btn = document.createElement('button');
+  btn.id = 'back-to-top';
+  btn.type = 'button';
+  btn.setAttribute('aria-label', 'Scroll back to top of page');
+  btn.textContent = '↑';
+  btn.style.cssText = 'position:fixed;bottom:32px;right:32px;width:40px;height:40px;background:var(--accent);color:var(--bg);border:none;border-radius:50%;font-size:1.2rem;font-weight:bold;cursor:pointer;opacity:0;visibility:hidden;transition:opacity .3s, visibility .3s;z-index:99;display:flex;align-items:center;justify-content:center;';
+
+  function toggleVisibility() {
+    if (window.scrollY > 300) {
+      btn.style.opacity = '1';
+      btn.style.visibility = 'visible';
+    } else {
+      btn.style.opacity = '0';
+      btn.style.visibility = 'hidden';
+    }
+  }
+
+  btn.addEventListener('click', function() {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+
+  btn.addEventListener('mouseenter', function() {
+    if (btn.style.visibility === 'visible') {
+      btn.style.background = 'var(--accent-hover)';
+    }
+  });
+
+  btn.addEventListener('mouseleave', function() {
+    btn.style.background = 'var(--accent)';
+  });
+
+  window.addEventListener('scroll', toggleVisibility);
+  document.body.appendChild(btn);
+})();
 </script>
 {% endblock %}
