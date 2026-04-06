@@ -985,6 +985,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     .stat-card .number { font-size: 1.1rem; }
     .stat-card .label { font-size: 0.7rem; }
     .perf-grid { grid-template-columns: 1fr !important; }
+
+    /* Filter buttons stack on small screens */
+    .filter-group { flex-direction: column; gap: 8px; width: 100%; }
+    .filter-group .btn { width: 100%; }
 }
 </style>
 {% block extra_head %}{% endblock %}
@@ -1009,7 +1013,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="container inner">
-            <h1><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><img src="/static/logo.svg" alt="" class="site-logo" aria-hidden="true" fetchpriority="high"> Website Auditor</a></h1>
+            <h1><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><img src="/static/logo.svg" alt="Website Auditor" class="site-logo" aria-hidden="true" fetchpriority="high"> Website Auditor</a></h1>
             <button type="button" class="hamburger" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" onclick="document.getElementById('mainNav').classList.toggle('open');this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');">
                 <span></span><span></span><span></span>
             </button>
@@ -1323,6 +1327,10 @@ var bugReport = (function() {
 
                 document.getElementById('bugFormView').style.display = 'none';
                 document.getElementById('bugSuccessView').style.display = '';
+                var msg = document.createElement('div');
+                msg.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--success);color:var(--bg);padding:14px 20px;border-radius:8px;font-size:0.9rem;z-index:1000;animation:slideUp .3s ease-out;';
+                msg.textContent = 'Report submitted successfully!';
+                document.body.appendChild(msg);
                 setTimeout(function() { bugReport.close(); }, 2000);
             } catch (err) {
                 errDiv.textContent = err.message || 'Failed to submit. Please try again.';

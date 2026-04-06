@@ -321,6 +321,10 @@ def start_run():
         concurrency=_clamp_int(_get("concurrency"), 5, 1, 20),
     )
 
+    # Production mode validation: reject if environment=production and allow_production checkbox not checked
+    if config.environment == "production" and not config.allow_production:
+        return jsonify({"error": "Production mode requires opt-in. Check the 'I understand and want to test production' checkbox."}), 400
+
     # AI Visibility options
     config.business_location = _get("business_location", "").strip()
     config.perplexity_api_key = os.getenv("PERPLEXITY_API_KEY", "")
@@ -329,7 +333,6 @@ def start_run():
         config.seed_urls = [s.strip() for s in seeds.split("\n") if s.strip()]
 
     try:
-        import sys; print(f"[DEBUG /run] env={config.environment}, allow_prod={config.allow_production}, is_json={is_json}", file=sys.stderr)
         config.validate()
     except (RuntimeError, ValueError) as e:
         return jsonify({"error": str(e)}), 400
@@ -479,6 +482,7 @@ def latest_report():
         if _run_history:
             run_id = _run_history[-1]["run_id"]
             return redirect(url_for("view_report", run_id=run_id))
+    flash("No reports yet — run your first audit!", "warning")
     return redirect(url_for("index"))
 
 
@@ -788,6 +792,11 @@ def method_not_allowed(e):
     if request.method == "GET":
         return render_template("404.html"), 404
     return jsonify({"error": "Method not allowed"}), 405
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    logger.exception("Internal server error")
+    return render_template("500.html"), 500
 
 
 # Protected Paths (return 404 instead of 405)
