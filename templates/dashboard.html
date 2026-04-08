@@ -33,7 +33,7 @@
 
     <div class="hero-search">
       <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="url" id="base_url" name="base_url" placeholder="Enter your website URL (e.g., https://yourbusiness.com)" required value="" autocomplete="url">
+      <input type="url" id="base_url" name="base_url" placeholder="Enter your website URL (e.g., https://yourbusiness.com)" required value="" autocomplete="url" aria-label="Website URL to audit">
       {% if status == 'running' %}
         <a href="/progress" class="btn-audit" aria-label="View audit progress">View Progress</a>
       {% else %}
@@ -76,12 +76,12 @@
     <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;text-align:left;">
       <div id="detected-biz-label" style="display:none;font-size:0.82rem;color:#4ade80;margin-bottom:8px;line-height:1.4;"></div>
       <label for="override_biz_name" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business Name</label>
-      <input type="text" id="override_biz_name" placeholder="e.g. Acme Web Design"
+      <input type="text" id="override_biz_name" placeholder="e.g. Acme Web Design" aria-label="Business name"
              style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
       <div id="override-city-wrapper" style="display:none;margin-top:12px;">
         <label for="override_biz_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business City</label>
         <div style="position:relative;">
-          <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA" autocomplete="off"
+          <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA" autocomplete="off" aria-label="Business city"
                  style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;transition:border-color .2s;-webkit-appearance:none;">
           <div id="city-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#1e1e2e;border:1px solid rgba(255,255,255,0.1);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:10000;max-height:200px;overflow-y:auto;"></div>
         </div>
@@ -100,19 +100,19 @@
       <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:10px;font-weight:600;">Basic Scan (recommended)</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">
         <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(59,130,246,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-          <input type="checkbox" checked onchange="document.getElementById('h_avail').value=this.checked?'on':''" style="accent-color:var(--accent);width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+          <input type="checkbox" checked onchange="document.getElementById('h_avail').value=this.checked?'on':''" style="accent-color:var(--accent);width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Page Availability">
           <div><strong style="color:var(--text);font-size:0.9rem;">Page Availability</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Can visitors reach every page on your site?</div></div>
         </label>
         <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(168,85,247,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-          <input type="checkbox" checked onchange="document.getElementById('h_links').value=this.checked?'on':''" style="accent-color:#a855f7;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+          <input type="checkbox" checked onchange="document.getElementById('h_links').value=this.checked?'on':''" style="accent-color:#a855f7;width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Broken Links">
           <div><strong style="color:var(--text);font-size:0.9rem;">Broken Links</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Finds dead links, missing images, and broken scripts</div></div>
         </label>
         <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(239,68,68,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-          <input type="checkbox" checked onchange="document.getElementById('h_security').value=this.checked?'on':''" style="accent-color:#ef4444;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+          <input type="checkbox" checked onchange="document.getElementById('h_security').value=this.checked?'on':''" style="accent-color:#ef4444;width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Security Scan">
           <div><strong style="color:var(--text);font-size:0.9rem;">Security Scan</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Checks for SSL, security headers, and exposed files</div></div>
         </label>
         <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(6,182,212,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-          <input type="checkbox" checked onchange="document.getElementById('h_forms').value=this.checked?'on':''" style="accent-color:#06b6d4;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+          <input type="checkbox" checked onchange="document.getElementById('h_forms').value=this.checked?'on':''" style="accent-color:#06b6d4;width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Forms">
           <div><strong style="color:var(--text);font-size:0.9rem;">Forms</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Tests that your contact and sign-up forms work correctly</div></div>
         </label>
       </div>
@@ -120,11 +120,11 @@
         <summary style="cursor:pointer;font-size:0.82rem;font-weight:600;color:var(--text-muted);padding:6px 0;min-height:36px;">Advanced Options</summary>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:8px;">
           <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(249,115,22,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-            <input type="checkbox" onchange="document.getElementById('h_chaos').value=this.checked?'on':''" style="accent-color:#f97316;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+            <input type="checkbox" onchange="document.getElementById('h_chaos').value=this.checked?'on':''" style="accent-color:#f97316;width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Resilience Testing">
             <div><strong style="color:var(--text);font-size:0.9rem;">Resilience Testing</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Tests how your site handles errors and unexpected conditions</div></div>
           </label>
           <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(234,179,8,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-            <input type="checkbox" onchange="document.getElementById('h_auth').value=this.checked?'on':''" style="accent-color:#eab308;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+            <input type="checkbox" onchange="document.getElementById('h_auth').value=this.checked?'on':''" style="accent-color:#eab308;width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Login and Sessions">
             <div><strong style="color:var(--text);font-size:0.9rem;">Login and Sessions</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Checks login pages and <span title="How your site remembers who is logged in" style="border-bottom:1px dotted var(--text-muted);cursor:help;">session handling</span></div></div>
           </label>
         </div>
