@@ -89,7 +89,7 @@ class ChaosConfig:
     report_format: str = "html"             # html | json
 
     # -- Misc ----------------------------------------------------------
-    concurrency: int = 5
+    concurrency: int = 20
     user_agent: str = "ChaosMonkeyTester/1.0 (internal-qa)"
     verbose: bool = False
 

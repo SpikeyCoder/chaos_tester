@@ -35,7 +35,7 @@ class AvailabilityScanner(BaseModule):
         pages = discovered_pages or self._crawl()
         logger.info(f"[availability] Testing {len(pages)} pages concurrently")
 
-        workers = min(self.config.concurrency, len(pages), 10)
+        workers = min(self.config.concurrency, len(pages)) if pages else 1
         with ThreadPoolExecutor(max_workers=workers) as executor:
             futures = {executor.submit(self._test_page, url): url for url in pages}
             for future in as_completed(futures):
@@ -49,43 +49,63 @@ class AvailabilityScanner(BaseModule):
     # -- Crawler -------------------------------------------------------
 
     def _crawl(self) -> List[str]:
-        """BFS crawl from base_url, returning a list of internal URLs."""
+        """BFS crawl from base_url in parallel using 20 workers."""
+        import threading
+        from concurrent.futures import ThreadPoolExecutor, as_completed
         visited: Set[str] = set()
+        visited_lock = threading.Lock()
         queue = deque()
 
         seeds = [self.config.base_url] + list(self.config.seed_urls)
         for s in seeds:
-            queue.append((s, 0))
+            s = urldefrag(s)[0]
+            if self._is_same_domain(s) and not any(ex in s for ex in self.config.excluded_paths):
+                if s not in visited:
+                    visited.add(s)
+                    queue.append((s, 0))
 
-        while queue and len(visited) < self.config.max_pages:
-            url, depth = queue.popleft()
-            url = urldefrag(url)[0]
-
-            if url in visited:
-                continue
-            if not self._is_same_domain(url):
-                continue
-            if any(ex in url for ex in self.config.excluded_paths):
-                continue
-
-            visited.add(url)
-
-            if depth >= self.config.crawl_depth:
-                continue
-
-            # Fetch and extract links
+        def _fetch_links(url: str, depth: int):
+            """Fetch a page and return newly discovered links."""
+            new_links = []
             try:
                 resp = self._get(url)
                 if "text/html" not in resp.headers.get("content-type", ""):
-                    continue
+                    return new_links
                 soup = BeautifulSoup(resp.text, "html.parser")
                 for a in soup.find_all("a", href=True):
                     href = urljoin(url, a["href"])
                     href = urldefrag(href)[0]
-                    if self._is_same_domain(href) and href not in visited:
-                        queue.append((href, depth + 1))
+                    if self._is_same_domain(href) and not any(ex in href for ex in self.config.excluded_paths):
+                        new_links.append((href, depth + 1))
             except Exception as e:
                 logger.debug(f"[crawl] Error fetching {url}: {e}")
+            return new_links
+
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            while queue and len(visited) < self.config.max_pages:
+                # Grab up to 20 URLs from the queue for this parallel batch
+                batch = []
+                while queue and len(batch) < 20:
+                    url, depth = queue.popleft()
+                    if depth < self.config.crawl_depth:
+                        batch.append((url, depth))
+
+                if not batch:
+                    break  # remaining URLs are at max depth, no more link discovery needed
+
+                futures = {executor.submit(_fetch_links, url, depth): (url, depth)
+                           for url, depth in batch}
+
+                for future in as_completed(futures):
+                    try:
+                        new_links = future.result()
+                        with visited_lock:
+                            for href, new_depth in new_links:
+                                if href not in visited and len(visited) < self.config.max_pages:
+                                    visited.add(href)
+                                    queue.append((href, new_depth))
+                    except Exception as e:
+                        logger.debug(f"[crawl] Batch fetch error: {e}")
 
         logger.info(f"[availability] Discovered {len(visited)} pages")
         return sorted(visited)
