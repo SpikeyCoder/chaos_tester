@@ -26,13 +26,20 @@ class BrokenLinkScanner(BaseModule):
         pages = discovered_pages or [self.config.base_url]
         logger.info(f"[links] Scanning links on {len(pages)} pages")
 
-        # Collect all unique resources across pages
+        # Collect all unique resources across pages in parallel
+        import threading
         resource_map: dict = {}  # url -> set of source pages
-        for page_url in pages:
+        resource_map_lock = threading.Lock()
+
+        def _collect(page_url: str):
             resources = self._extract_resources(page_url)
-            for res_url, res_type in resources:
-                resource_map.setdefault(res_url, {"type": res_type, "sources": set()})
-                resource_map[res_url]["sources"].add(page_url)
+            with resource_map_lock:
+                for res_url, res_type in resources:
+                    resource_map.setdefault(res_url, {"type": res_type, "sources": set()})
+                    resource_map[res_url]["sources"].add(page_url)
+
+        with ThreadPoolExecutor(max_workers=self.config.concurrency) as executor:
+            list(executor.map(_collect, pages))
 
         logger.info(f"[links] Found {len(resource_map)} unique resources to verify")
 
