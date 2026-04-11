@@ -248,6 +248,106 @@
   </div>
 </div>
 
+<!-- ── API Access Upsell Banner ──────────────────────────────── -->
+<style>
+  .api-upsell-section {
+    padding: 40px 0;
+  }
+  .api-upsell-card {
+    background: linear-gradient(
+      to right,
+      rgba(99, 102, 241, 0.10) 0%,
+      rgba(168, 85, 247, 0.10) 50%,
+      rgba(236, 72, 153, 0.10) 100%
+    );
+    border: 1px solid rgba(99, 102, 241, 0.20);
+    border-radius: 16px;
+    padding: 32px;
+  }
+  .api-upsell-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  .api-upsell-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .api-upsell-icon {
+    padding: 12px;
+    background: rgba(99, 102, 241, 0.20);
+    border-radius: 8px;
+    display: inline-flex;
+  }
+  .api-upsell-icon svg {
+    width: 32px;
+    height: 32px;
+    color: #818cf8;
+  }
+  .api-upsell-title {
+    margin: 0 0 4px;
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .api-upsell-subtitle {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 16px;
+  }
+  .api-upsell-btn {
+    display: inline-flex;
+    align-items: center;
+    background: #6366f1;
+    color: #ffffff;
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.15s ease;
+  }
+  .api-upsell-btn:hover {
+    background: #4f46e5;
+  }
+  .api-upsell-btn svg {
+    width: 16px;
+    height: 16px;
+    margin-left: 8px;
+  }
+</style>
+<section class="api-upsell-section fade-up">
+  <div class="api-upsell-card">
+    <div class="api-upsell-row">
+      <div class="api-upsell-left">
+        <div class="api-upsell-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="api-upsell-title">Need API access?</h3>
+          <p class="api-upsell-subtitle">Run 5 automated tests per day for just $10/month</p>
+        </div>
+      </div>
+      <a href="https://api.website-auditor.io/admin_portal/" target="_blank" rel="noopener" class="api-upsell-btn">
+        Start Free Trial
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
 <hr class="section-divider">
 
 <!-- ── FAQ Section ───────────────────────────────────────────── -->
