@@ -411,14 +411,18 @@ def view_report(run_id):
     entitlement = wa_auth.get_current_entitlement(request)
 
     # Build an absolute https return_to URL for the upsell banner. We can't
-    # trust request.url here because the app runs behind a TLS-terminating
-    # proxy without ProxyFix, so request.url may report http://. The
-    # Node-side admin portal only accepts https://(www.)?website-auditor.io.
-    forwarded_proto = request.headers.get("X-Forwarded-Proto", "").lower()
-    scheme = "https" if forwarded_proto == "https" or request.is_secure else request.scheme
-    if request.host.endswith("website-auditor.io"):
-        scheme = "https"
-    return_to_url = f"{scheme}://{request.host}{request.full_path.rstrip('?')}"
+    # trust request.url here because the app runs behind a Cloud Run proxy
+    # that rewrites Host to the *.run.app backend hostname. The Node-side
+    # admin portal only accepts https://(www.)?website-auditor.io, so we
+    # prefer X-Forwarded-Host and fall back to a hardcoded public host.
+    forwarded_host = request.headers.get("X-Forwarded-Host", "").split(",")[0].strip()
+    if forwarded_host and forwarded_host.endswith("website-auditor.io"):
+        public_host = forwarded_host
+    elif request.host.endswith("website-auditor.io"):
+        public_host = request.host
+    else:
+        public_host = "website-auditor.io"
+    return_to_url = f"https://{public_host}{request.full_path.rstrip('?')}"
 
     return render_template(
         "report.html",
