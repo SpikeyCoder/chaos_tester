@@ -32,6 +32,7 @@ from .config import ChaosConfig
 from .runner import ChaosTestRunner
 from .models import TestRun
 from . import supabase_client as supa
+from . import wa_auth
 
 # -- Setup ---------------------------------------------------------
 
@@ -405,7 +406,28 @@ def view_report(run_id):
     domain = supa.normalize_domain(report.get("base_url", ""))
     domain_history = supa.get_domain_history(domain, limit=10)
 
-    return render_template("report.html", report=report, domain_history=domain_history, domain=domain)
+    # Gate the AI Visibility custom-search widget behind an active
+    # paid/trial subscription on api.website-auditor.io. None ⇒ show banner.
+    entitlement = wa_auth.get_current_entitlement(request)
+
+    # Build an absolute https return_to URL for the upsell banner. We can't
+    # trust request.url here because the app runs behind a TLS-terminating
+    # proxy without ProxyFix, so request.url may report http://. The
+    # Node-side admin portal only accepts https://(www.)?website-auditor.io.
+    forwarded_proto = request.headers.get("X-Forwarded-Proto", "").lower()
+    scheme = "https" if forwarded_proto == "https" or request.is_secure else request.scheme
+    if request.host.endswith("website-auditor.io"):
+        scheme = "https"
+    return_to_url = f"{scheme}://{request.host}{request.full_path.rstrip('?')}"
+
+    return render_template(
+        "report.html",
+        report=report,
+        domain_history=domain_history,
+        domain=domain,
+        ai_query_entitled=entitlement is not None,
+        return_to_url=return_to_url,
+    )
 
 
 @app.route("/report/<run_id>/json")
@@ -524,6 +546,16 @@ def api_ai_query():
     """Run a custom AI visibility query against all platforms."""
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
         abort(403, "Missing X-Requested-With header.")
+
+    # Gate: require an active paid or trialing subscription at
+    # api.website-auditor.io. Verified via the wa_auth cookie set by
+    # the admin portal after successful Google / magic-link auth.
+    if not wa_auth.is_entitled(request):
+        return jsonify({
+            "error": "subscription_required",
+            "message": "An active API subscription or free trial is required to run custom AI visibility queries.",
+            "upgrade_url": "https://api.website-auditor.io/admin_portal/",
+        }), 403
 
     data = request.get_json(silent=True) or {}
     query = (data.get("query") or "").strip()

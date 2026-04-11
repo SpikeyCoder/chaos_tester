@@ -166,6 +166,49 @@ def load_report(report_id: str) -> dict | None:
         return None
 
 
+def get_active_subscription(user_id: str) -> dict | None:
+    """
+    Return the user's currently-entitled subscription row, or None.
+
+    A user is considered entitled when they have a row in the
+    ``subscriptions`` table with ``status`` in ``('active', 'trialing')``.
+    Uses the service-role key because the main site queries on behalf of
+    a user identified only by the ``wa_auth`` cookie (no per-user Supabase
+    session is established here).
+
+    Returns the row dict on hit, or None on miss/error.
+    """
+    if not user_id:
+        return None
+    if not _is_configured():
+        logger.warning("SUPABASE_SERVICE_KEY not set — cannot check subscription")
+        return None
+    try:
+        resp = requests.get(
+            f"{_REST_URL}/subscriptions",
+            headers=_write_headers(),
+            params={
+                "user_id": f"eq.{user_id}",
+                "status": "in.(active,trialing)",
+                "select": "status,current_period_end,trial_end",
+                "limit": "1",
+            },
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            rows = resp.json()
+            return rows[0] if rows else None
+        logger.error(
+            "Supabase subscription lookup failed (%d): %s",
+            resp.status_code,
+            resp.text[:200],
+        )
+        return None
+    except Exception:
+        logger.exception("Failed to look up subscription for user %s", user_id)
+        return None
+
+
 def get_domain_history(domain: str, limit: int = 10) -> list[dict]:
     """
     Get recent audit history for a domain.
