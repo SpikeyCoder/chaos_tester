@@ -893,6 +893,12 @@ def sitemap_xml():
         {"loc": "https://website-auditor.io/how-it-works", "priority": "0.8", "changefreq": "monthly", "lastmod": "2026-03-14"},
         {"loc": "https://website-auditor.io/sample-report", "priority": "0.7", "changefreq": "monthly", "lastmod": "2026-03-14"},
         {"loc": "https://website-auditor.io/latest", "priority": "0.6", "changefreq": "daily", "lastmod": today},
+        {"loc": "https://website-auditor.io/api", "priority": "0.7", "changefreq": "monthly", "lastmod": today},
+        {"loc": "https://website-auditor.io/about", "priority": "0.5", "changefreq": "monthly", "lastmod": today},
+        {"loc": "https://website-auditor.io/contact", "priority": "0.5", "changefreq": "monthly", "lastmod": today},
+        {"loc": "https://website-auditor.io/privacy", "priority": "0.4", "changefreq": "yearly", "lastmod": today},
+        {"loc": "https://website-auditor.io/terms", "priority": "0.4", "changefreq": "yearly", "lastmod": today},
+        {"loc": "https://website-auditor.io/changelog", "priority": "0.5", "changefreq": "monthly", "lastmod": today},
     ]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
@@ -920,6 +926,41 @@ def how_it_works_page():
 @app.route("/sample-report")
 def sample_report_page():
     return render_template("sample_report.html")
+
+
+@app.route("/api")
+def api_docs_page():
+    return render_template("api_docs.html")
+
+
+@app.route("/about")
+def about_page():
+    return render_template("about.html")
+
+
+@app.route("/contact")
+def contact_page():
+    return render_template("contact.html")
+
+
+@app.route("/privacy")
+def privacy_page():
+    return render_template("privacy.html")
+
+
+@app.route("/terms")
+def terms_page():
+    return render_template("terms.html")
+
+
+@app.route("/status")
+def status_page():
+    return render_template("status.html")
+
+
+@app.route("/changelog")
+def changelog_page():
+    return render_template("changelog.html")
 
 
 if __name__ == "__main__":

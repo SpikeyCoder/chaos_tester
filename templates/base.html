@@ -52,6 +52,9 @@
     <link rel="preload" href="/static/favicon.svg" as="image" type="image/svg+xml">
     <link rel="dns-prefetch" href="//gc.zgo.at">
     <link rel="preconnect" href="//gc.zgo.at" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
 /* ── CRITICAL CSS (above the fold) ────────────────────────── */
@@ -75,7 +78,21 @@ button, input, select, textarea { font: inherit; }
     --success:  #4ade80;
     --warning:  #fbbf24;
     --danger:   #f87171;
-    --mono:     'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --font-display: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    --bg-elevated: #1e293b;
+    --bg-sunken: #0a0f1a;
+    --border-subtle: rgba(51,65,85,0.3);
+    --border-medium: rgba(71,85,105,0.5);
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+    --space-3xl: 64px;
+    --mono:     'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
     --glass-blur: blur(12px);
     --radius-lg: 16px;
     --radius-md: 12px;
@@ -83,7 +100,7 @@ button, input, select, textarea { font: inherit; }
 }
 html { font-size: 16px; scroll-behavior: smooth; }
 body {
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: var(--font-body);
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
@@ -120,15 +137,15 @@ header.scrolled {
     background: rgba(2,6,23,0.95);
     box-shadow: 0 4px 24px rgba(0,0,0,0.3);
 }
-header h1 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
-header h1 .site-logo { width: 28px; height: 28px; vertical-align: middle; }
+.site-title { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+.site-title .site-logo { width: 28px; height: 28px; vertical-align: middle; }
 nav { display: flex; gap: 24px; align-items: center; }
 nav a { color: var(--text-muted); font-size: 1rem; font-weight: 500; transition: color .2s; padding: 10px 4px; min-height: 44px; display: inline-flex; align-items: center; }
 nav a:hover, nav a.active { color: #fff; }
 
 /* -- Cards (glassmorphism) -------------------------------- */
 .card {
-    background: var(--surface);
+    background: rgba(30,41,59,0.6);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
@@ -140,6 +157,19 @@ nav a:hover, nav a.active { color: #fff; }
 .card:hover {
     border-color: var(--border-hover);
     box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.card-sunken {
+    background: var(--bg-sunken);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+}
+.card-elevated {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 .card h2 { font-size: 1.15rem; margin-bottom: 16px; }
 
@@ -503,19 +533,44 @@ tr:hover td { background: rgba(56,189,248,0.04); }
 
 /* -- Footer ----------------------------------------------- */
 footer {
-    background: rgba(2,6,23,0.6);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: var(--bg-alt);
     border-top: 1px solid var(--border);
-    padding: 32px 0;
-    margin-top: 48px;
-    text-align: center;
-    content-visibility: auto;
-    contain-intrinsic-size: auto 80px;
+    padding: 64px 0 0;
+    margin-top: 64px;
 }
 footer p { color: var(--text-muted); font-size: 0.85rem; }
-footer a { color: var(--accent); padding: 10px 4px; min-height: 44px; display: inline-flex; align-items: center; }
-footer nav { justify-content: center; margin-top: 8px; }
+footer a {
+    color: var(--text-muted); font-size: 0.88rem;
+    display: block; padding: 4px 0; transition: color .2s;
+}
+footer a:hover { color: #fff; }
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 48px;
+    padding-bottom: 48px;
+}
+.footer-col { display: flex; flex-direction: column; gap: 4px; }
+.footer-col-title {
+    font-size: 0.8rem; font-weight: 600; color: #fff;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 12px;
+}
+.footer-bottom {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    text-align: center;
+}
+@media (max-width: 768px) {
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+    }
+    .footer-brand { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) {
+    .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+}
 
 /* -- Skip link -------------------------------------------- */
 .skip-link {
@@ -703,23 +758,37 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
 }
 .landing-feature-card {
-    background: var(--surface);
+    background: rgba(30,41,59,0.4);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 28px;
-    transition: border-color .3s, box-shadow .3s, transform .3s;
+    padding: 32px;
+    transition: border-color .3s, box-shadow .3s, transform .3s, background .3s;
+    position: relative;
+    overflow: hidden;
+}
+.landing-feature-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.02), transparent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .3s;
 }
 .landing-feature-card:hover {
     border-color: var(--border-hover);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    transform: translateY(-4px);
+    background: rgba(30,41,59,0.6);
 }
+.landing-feature-card:hover::after { opacity: 1; }
 .landing-feature-card .feature-icon {
     width: 48px; height: 48px; border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
     margin-bottom: 16px;
+    font-size: 1.2rem;
 }
 .landing-feature-card h3 {
     font-size: 1.05rem; font-weight: 700; color: #fff;
@@ -803,13 +872,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 /* -- Nav CTA button --------------------------------------- */
 .nav-cta {
-    padding: 12px 24px; min-height: 44px; background: var(--accent); color: #fff !important;
+    padding: 12px 24px; min-height: 44px;
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    color: #fff !important;
     border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;
-    transition: background .2s, box-shadow .2s;
+    transition: background .2s, box-shadow .2s, transform .2s;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 .nav-cta:hover {
-    background: var(--accent-hover); color: #fff !important;
-    box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+    background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+    color: #fff !important;
+    box-shadow: 0 4px 20px rgba(37,99,235,0.4);
+    transform: translateY(-1px);
 }
 
 /* -- Section divider -------------------------------------- */
@@ -1013,15 +1087,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="container inner">
-            <h1><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><img src="/static/logo.svg" alt="Website Auditor" class="site-logo" aria-hidden="true" fetchpriority="high"> Website Auditor</a></h1>
+            <div class="site-title"><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><img src="/static/logo.svg" alt="Website Auditor" class="site-logo" aria-hidden="true" fetchpriority="high"> Website Auditor</a></div>
             <button type="button" class="hamburger" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" onclick="document.getElementById('mainNav').classList.toggle('open');this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');">
                 <span></span><span></span><span></span>
             </button>
             <nav id="mainNav" aria-label="Main navigation">
                 <a href="/#how-it-works" onclick="if(window.location.pathname==='/'){event.preventDefault();document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'});}">How It Works</a>
+                <a href="/sample-report">Sample Report</a>
                 <a href="/#faq" onclick="if(window.location.pathname==='/'){event.preventDefault();document.getElementById('faq').scrollIntoView({behavior:'smooth'});}">FAQ</a>
-                <a href="https://api.website-auditor.io/admin_portal" target="_blank" rel="noopener noreferrer">API</a>
-                <a href="/#audit" class="nav-cta">Start Audit</a>
+                <a href="/api">API</a>
+                <a href="/#audit" class="nav-cta">Run Free Audit</a>
             </nav>
         </div>
     </header>
@@ -1042,11 +1117,40 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
     <footer>
         <div class="container">
-            <p>&copy; 2026 Armstrong HoldCo LLC &mdash; Website Auditor &mdash; Free website audit tool for SEO, security, and performance.</p>
-            <nav aria-label="Footer navigation">
-                <a href="/#how-it-works">How It Works</a>
-                <a href="https://github.com/SpikeyCoder/chaos_tester" rel="noopener" target="_blank">GitHub</a>
-            </nav>
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                        <img src="/static/logo.svg" alt="" width="24" height="24" aria-hidden="true">
+                        <span style="font-weight:700;font-size:1.05rem;color:#fff;">Website Auditor</span>
+                    </div>
+                    <p style="color:var(--text-muted);font-size:0.88rem;line-height:1.6;max-width:280px;">Free, instant website audits for SEO, security, and performance. Built for small business owners who want a healthier web presence.</p>
+                    <a href="/#audit" class="btn btn-primary" style="margin-top:16px;padding:10px 24px;font-size:0.9rem;">Run Free Audit →</a>
+                </div>
+                <div class="footer-col">
+                    <div class="footer-col-title">Product</div>
+                    <a href="/#how-it-works">How It Works</a>
+                    <a href="/features">Features</a>
+                    <a href="/sample-report">Sample Report</a>
+                    <a href="/api">API Docs</a>
+                    <a href="https://github.com/SpikeyCoder/chaos_tester" rel="noopener" target="_blank">GitHub</a>
+                </div>
+                <div class="footer-col">
+                    <div class="footer-col-title">Company</div>
+                    <a href="/about">About</a>
+                    <a href="/contact">Contact</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms of Service</a>
+                </div>
+                <div class="footer-col">
+                    <div class="footer-col-title">Resources</div>
+                    <a href="/#faq">FAQ</a>
+                    <a href="/status">Status</a>
+                    <a href="/changelog">Changelog</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Armstrong HoldCo LLC. All rights reserved.</p>
+            </div>
         </div>
     </footer>
 

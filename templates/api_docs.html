@@ -1,0 +1,994 @@
+{% extends "base.html" %}
+
+{% block title %}API Documentation - Website Auditor{% endblock %}
+
+{% block meta_description %}Website Auditor API documentation. REST API for running automated website audits with full control over audit parameters and real-time progress tracking.{% endblock %}
+
+{% block og_title %}Website Auditor API - Automated Audit REST API{% endblock %}
+
+{% block og_description %}Complete API documentation for Website Auditor. Run audits programmatically, check status, retrieve reports, and stream real-time progress.{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── API Documentation Styles ────────────────────────────── */
+.api-hero {
+    text-align: center;
+    padding: 48px 0 32px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.api-hero h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: #fff;
+}
+
+.api-hero p {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 650px;
+    margin: 0 auto;
+}
+
+/* ── Info Banner / Subscription CTA ────────────────────── */
+.api-banner {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.api-banner-text {
+    flex: 1;
+}
+
+.api-banner-text p {
+    color: #fff;
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.api-banner .btn-cta {
+    flex-shrink: 0;
+    padding: 12px 28px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all .2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.api-banner .btn-cta:hover {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.5);
+}
+
+@media (max-width: 768px) {
+    .api-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* ── Endpoint Cards ───────────────────────────────────── */
+.api-endpoints {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 48px;
+}
+
+.endpoint-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 0;
+    overflow: hidden;
+    transition: border-color .3s, box-shadow .3s;
+}
+
+.endpoint-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.endpoint-header {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background .2s;
+}
+
+.endpoint-card.collapsed .endpoint-header:hover {
+    background: rgba(255,255,255,0.02);
+}
+
+.endpoint-method {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 70px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.endpoint-method.get {
+    background: rgba(59,130,246,0.25);
+    border: 1px solid rgba(59,130,246,0.5);
+    color: #60a5fa;
+}
+
+.endpoint-method.post {
+    background: rgba(74,222,128,0.25);
+    border: 1px solid rgba(74,222,128,0.5);
+    color: #4ade80;
+}
+
+.endpoint-path {
+    flex: 1;
+}
+
+.endpoint-path .path {
+    font-family: var(--mono);
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 600;
+}
+
+.endpoint-path .desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.endpoint-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(59,130,246,0.1);
+    border-radius: 6px;
+    color: var(--accent);
+    font-weight: bold;
+    transition: transform .3s, background .2s;
+}
+
+.endpoint-card.expanded .endpoint-toggle {
+    transform: rotate(180deg);
+}
+
+.endpoint-card.expanded .endpoint-toggle {
+    background: rgba(59,130,246,0.15);
+}
+
+.endpoint-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .3s ease-out;
+}
+
+.endpoint-card.expanded .endpoint-body {
+    max-height: 2000px;
+}
+
+.endpoint-content {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+}
+
+@media (max-width: 900px) {
+    .endpoint-content {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
+
+.endpoint-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.endpoint-section h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+}
+
+.endpoint-section p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    line-height: 1.6;
+}
+
+.code-block {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--text);
+    overflow-x: auto;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.code-block .key {
+    color: #93c5fd;
+}
+
+.code-block .string {
+    color: #4ade80;
+}
+
+.code-block .number {
+    color: #f97316;
+}
+
+.code-block .boolean {
+    color: #fbbf24;
+}
+
+.code-block .null {
+    color: #9ca3af;
+}
+
+.param-table {
+    width: 100%;
+    font-size: 0.9rem;
+    border-collapse: collapse;
+}
+
+.param-table th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--bg-alt);
+    color: var(--text-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.param-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.param-table tr:hover {
+    background: rgba(59,130,246,0.02);
+}
+
+.param-name {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.param-type {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: var(--bg-alt);
+    padding: 2px 6px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.param-required {
+    color: #ef4444;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.param-optional {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+/* ── Auth & Info Section ───────────────────────────────── */
+.api-section {
+    margin-bottom: 48px;
+}
+
+.api-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #fff;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.api-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 24px 0 12px;
+}
+
+.api-section p {
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+
+.auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 16px;
+}
+
+.auth-card h3 {
+    margin-top: 0;
+}
+
+.info-list {
+    list-style: none;
+    padding: 0;
+}
+
+.info-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.info-list li:last-child {
+    border-bottom: none;
+}
+
+.info-list strong {
+    color: #fff;
+}
+
+/* ── Rate Limit Box ────────────────────────────────────── */
+.rate-limit-box {
+    background: var(--surface);
+    border-left: 4px solid var(--warning);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--warning);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+}
+
+.rate-limit-box h3 {
+    margin-top: 0;
+    color: var(--warning);
+}
+
+.rate-limit-box p {
+    color: var(--text-muted);
+    margin: 8px 0;
+    font-size: 0.95rem;
+}
+
+/* ── Status Codes ──────────────────────────────────────── */
+.status-code-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.status-code-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.status-code-item .code {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.status-code-item .code.success { color: var(--success); }
+.status-code-item .code.created { color: var(--success); }
+.status-code-item .code.accepted { color: var(--accent); }
+.status-code-item .code.error { color: var(--danger); }
+
+.status-code-item .desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .api-hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .endpoint-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .endpoint-path {
+        flex-basis: 100%;
+    }
+
+    .endpoint-path .path {
+        font-size: 0.85rem;
+        word-break: break-all;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="api-hero">
+    <h1>API Documentation</h1>
+    <p>Build your own website auditing solution with our REST API. Control every aspect of the audit with granular parameters and stream real-time progress.</p>
+</div>
+
+<!-- Subscription Banner -->
+<div class="api-banner">
+    <div class="api-banner-text">
+        <p>Subscribe for <strong>$10/month</strong> to get an API key with <strong>5 automated audits per day</strong>. Start with a <strong>free trial</strong>.</p>
+    </div>
+    <a href="https://api.website-auditor.io" class="btn-cta">Start Free Trial</a>
+</div>
+
+<!-- Authentication Section -->
+<div class="api-section">
+    <h2>Authentication</h2>
+    <p>All API requests require an API key sent via the <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">Authorization</code> header as a Bearer token.</p>
+
+    <div class="auth-card">
+        <h3>Getting Your API Key</h3>
+        <ol class="info-list" style="list-style:decimal;padding-left:20px;">
+            <li style="border-bottom:1px solid var(--border);">Sign up or log in to <a href="https://api.website-auditor.io" target="_blank" style="color:var(--accent);">api.website-auditor.io</a></li>
+            <li style="border-bottom:1px solid var(--border);">Navigate to the API Keys section in your dashboard</li>
+            <li style="border-bottom:1px solid var(--border);">Create a new API key (you can have multiple keys)</li>
+            <li style="border-bottom:1px solid var(--border);">Use this key in all API requests</li>
+        </ol>
+    </div>
+
+    <div class="auth-card">
+        <h3>Example Request</h3>
+        <div class="code-block">curl -X POST https://api.website-auditor.io/run \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "X-Requested-With: XMLHttpRequest" \
+  -d '{"base_url":"https://example.com"}'</div>
+    </div>
+
+    <div class="rate-limit-box">
+        <h3>Rate Limits</h3>
+        <p><strong>Free Trial:</strong> 1 audit per day (24-hour rolling window)</p>
+        <p><strong>$10/month Plan:</strong> 5 audits per day (24-hour rolling window)</p>
+        <p>Each audit counts as one request. The window resets every 24 hours from your first request.</p>
+    </div>
+</div>
+
+<!-- Endpoints -->
+<div class="api-section">
+    <h2>Endpoints</h2>
+
+    <div class="api-endpoints">
+        <!-- POST /run -->
+        <div class="endpoint-card expanded">
+            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="endpoint-method post">POST</div>
+                <div class="endpoint-path">
+                    <div class="path">/run</div>
+                    <div class="desc">Launch a new audit</div>
+                </div>
+                <div class="endpoint-toggle">⌄</div>
+            </div>
+            <div class="endpoint-body">
+                <div class="endpoint-content">
+                    <div class="endpoint-section">
+                        <h4>Request</h4>
+                        <p>Send a JSON payload with audit parameters.</p>
+                        <p><strong>Headers:</strong></p>
+                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;
+Content-Type: application/json
+X-Requested-With: XMLHttpRequest</div>
+                        <p><strong>Body Parameters:</strong></p>
+                        <table class="param-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">base_url</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Website URL to audit <span class="param-required">required</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">environment</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>One of: staging, test, production (default: production)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">max_pages</span></td>
+                                    <td><span class="param-type">integer</span></td>
+                                    <td>Max pages to crawl (1-1000, default: 100)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">crawl_depth</span></td>
+                                    <td><span class="param-type">integer</span></td>
+                                    <td>Link depth to follow (1-10, default: 3)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">request_timeout</span></td>
+                                    <td><span class="param-type">integer</span></td>
+                                    <td>Request timeout in seconds (1-120, default: 30)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">concurrency</span></td>
+                                    <td><span class="param-type">integer</span></td>
+                                    <td>Parallel requests (1-20, default: 5)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">run_availability</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td>Check HTTP status & availability (default: true)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">run_links</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td>Check for broken links (default: true)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">run_forms</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td>Test form submission (default: true)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">run_chaos</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td>Run chaos engineering tests (default: false)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">run_auth</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td>Test authentication flows (default: false)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">run_security</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td>Run security scans (default: true)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="endpoint-section">
+                        <h4>Response</h4>
+                        <p><strong>Status: 202 Accepted</strong></p>
+                        <p>The audit is queued and will begin processing.</p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"status"</span>: <span class="string">"started"</span>,
+  <span class="key">"run_id"</span>: <span class="string">"run_abc123xyz"</span>,
+  <span class="key">"started_at"</span>: <span class="string">"2026-04-15T14:30:00Z"</span>,
+  <span class="key">"base_url"</span>: <span class="string">"https://example.com"</span>
+<span class="key">}</span></div>
+                        <p style="margin-top:16px;"><strong>Example Request:</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"base_url"</span>: <span class="string">"https://example.com"</span>,
+  <span class="key">"max_pages"</span>: <span class="number">50</span>,
+  <span class="key">"crawl_depth"</span>: <span class="number">2</span>,
+  <span class="key">"run_security"</span>: <span class="boolean">true</span>,
+  <span class="key">"run_chaos"</span>: <span class="boolean">false</span>
+<span class="key">}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GET /api/status -->
+        <div class="endpoint-card collapsed">
+            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="endpoint-method get">GET</div>
+                <div class="endpoint-path">
+                    <div class="path">/api/status</div>
+                    <div class="desc">Check current run status</div>
+                </div>
+                <div class="endpoint-toggle">⌄</div>
+            </div>
+            <div class="endpoint-body">
+                <div class="endpoint-content">
+                    <div class="endpoint-section">
+                        <h4>Request</h4>
+                        <p>Get the status of the current or most recent audit run.</p>
+                        <p><strong>Headers:</strong></p>
+                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;</div>
+                        <p><strong>Query Parameters:</strong> None</p>
+                    </div>
+                    <div class="endpoint-section">
+                        <h4>Response</h4>
+                        <p><strong>Status: 200 OK</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"status"</span>: <span class="string">"running"</span>,
+  <span class="key">"current_run_id"</span>: <span class="string">"run_abc123xyz"</span>,
+  <span class="key">"progress"</span>: <span class="key">{</span>
+    <span class="key">"pages_crawled"</span>: <span class="number">12</span>,
+    <span class="key">"total_pages"</span>: <span class="number">50</span>,
+    <span class="key">"pct_complete"</span>: <span class="number">24</span>,
+    <span class="key">"current_module"</span>: <span class="string">"links"</span>
+  <span class="key">}</span>,
+  <span class="key">"started_at"</span>: <span class="string">"2026-04-15T14:30:00Z"</span>
+<span class="key">}</span></div>
+                        <p><strong>Possible Status Values:</strong></p>
+                        <div class="info-list">
+                            <li><strong>idle:</strong> No audit running</li>
+                            <li><strong>running:</strong> Audit in progress</li>
+                            <li><strong>completed:</strong> Audit finished successfully</li>
+                            <li><strong>failed:</strong> Audit encountered an error</li>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GET /api/runs -->
+        <div class="endpoint-card collapsed">
+            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="endpoint-method get">GET</div>
+                <div class="endpoint-path">
+                    <div class="path">/api/runs</div>
+                    <div class="desc">List recent audit runs</div>
+                </div>
+                <div class="endpoint-toggle">⌄</div>
+            </div>
+            <div class="endpoint-body">
+                <div class="endpoint-content">
+                    <div class="endpoint-section">
+                        <h4>Request</h4>
+                        <p>Retrieve a list of recent audit runs for your account.</p>
+                        <p><strong>Headers:</strong></p>
+                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;</div>
+                        <p><strong>Query Parameters:</strong></p>
+                        <table class="param-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">limit</span></td>
+                                    <td><span class="param-type">integer</span></td>
+                                    <td>Results to return (default: 20, max: 100)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">offset</span></td>
+                                    <td><span class="param-type">integer</span></td>
+                                    <td>Results to skip for pagination (default: 0)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="endpoint-section">
+                        <h4>Response</h4>
+                        <p><strong>Status: 200 OK</strong></p>
+                        <div class="code-block"><span class="key">[</span>
+  <span class="key">{</span>
+    <span class="key">"run_id"</span>: <span class="string">"run_abc123xyz"</span>,
+    <span class="key">"base_url"</span>: <span class="string">"https://example.com"</span>,
+    <span class="key">"environment"</span>: <span class="string">"production"</span>,
+    <span class="key">"started_at"</span>: <span class="string">"2026-04-15T14:30:00Z"</span>,
+    <span class="key">"completed_at"</span>: <span class="string">"2026-04-15T14:45:00Z"</span>,
+    <span class="key">"status"</span>: <span class="string">"completed"</span>,
+    <span class="key">"summary"</span>: <span class="key">{</span>
+      <span class="key">"issues"</span>: <span class="number">7</span>,
+      <span class="key">"warnings"</span>: <span class="number">3</span>
+    <span class="key">}</span>
+  <span class="key">}</span>
+<span class="key">]</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GET /report/{run_id}/json -->
+        <div class="endpoint-card collapsed">
+            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="endpoint-method get">GET</div>
+                <div class="endpoint-path">
+                    <div class="path">/report/{run_id}/json</div>
+                    <div class="desc">Get full report as JSON</div>
+                </div>
+                <div class="endpoint-toggle">⌄</div>
+            </div>
+            <div class="endpoint-body">
+                <div class="endpoint-content">
+                    <div class="endpoint-section">
+                        <h4>Request</h4>
+                        <p>Retrieve the complete audit report for a specific run in JSON format.</p>
+                        <p><strong>Headers:</strong></p>
+                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;</div>
+                        <p><strong>Path Parameters:</strong></p>
+                        <table class="param-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">run_id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>The run ID from POST /run response</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="endpoint-section">
+                        <h4>Response</h4>
+                        <p><strong>Status: 200 OK</strong></p>
+                        <p>Returns the full audit report object with all results, metrics, and details.</p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"run_id"</span>: <span class="string">"run_abc123xyz"</span>,
+  <span class="key">"base_url"</span>: <span class="string">"https://example.com"</span>,
+  <span class="key">"pages"</span>: [...],
+  <span class="key">"issues"</span>: [...],
+  <span class="key">"security_findings"</span>: [...],
+  <span class="key">"performance_metrics"</span>: {...},
+  <span class="key">"completed_at"</span>: <span class="string">"2026-04-15T14:45:00Z"</span>
+<span class="key">}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GET /report/{run_id}/download/json -->
+        <div class="endpoint-card collapsed">
+            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="endpoint-method get">GET</div>
+                <div class="endpoint-path">
+                    <div class="path">/report/{run_id}/download/json</div>
+                    <div class="desc">Download report as JSON file</div>
+                </div>
+                <div class="endpoint-toggle">⌄</div>
+            </div>
+            <div class="endpoint-body">
+                <div class="endpoint-content">
+                    <div class="endpoint-section">
+                        <h4>Request</h4>
+                        <p>Download the audit report as a JSON file attachment.</p>
+                        <p><strong>Headers:</strong></p>
+                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;</div>
+                        <p><strong>Path Parameters:</strong></p>
+                        <table class="param-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">run_id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>The run ID from POST /run response</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="endpoint-section">
+                        <h4>Response</h4>
+                        <p><strong>Status: 200 OK</strong></p>
+                        <p><strong>Content-Type:</strong> application/json</p>
+                        <p><strong>Content-Disposition:</strong> attachment; filename="audit-{run_id}.json"</p>
+                        <p>Returns the full report as a downloadable JSON file.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GET /report/{run_id}/download/csv -->
+        <div class="endpoint-card collapsed">
+            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="endpoint-method get">GET</div>
+                <div class="endpoint-path">
+                    <div class="path">/report/{run_id}/download/csv</div>
+                    <div class="desc">Download report as CSV file</div>
+                </div>
+                <div class="endpoint-toggle">⌄</div>
+            </div>
+            <div class="endpoint-body">
+                <div class="endpoint-content">
+                    <div class="endpoint-section">
+                        <h4>Request</h4>
+                        <p>Download the audit results as a CSV file for spreadsheet analysis.</p>
+                        <p><strong>Headers:</strong></p>
+                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;</div>
+                        <p><strong>Path Parameters:</strong></p>
+                        <table class="param-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">run_id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>The run ID from POST /run response</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="endpoint-section">
+                        <h4>Response</h4>
+                        <p><strong>Status: 200 OK</strong></p>
+                        <p><strong>Content-Type:</strong> text/csv</p>
+                        <p><strong>Content-Disposition:</strong> attachment; filename="audit-{run_id}.csv"</p>
+                        <p>Returns the audit results as a CSV with columns for page, issue type, severity, and description.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GET /stream -->
+        <div class="endpoint-card collapsed">
+            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="endpoint-method get">GET</div>
+                <div class="endpoint-path">
+                    <div class="path">/stream</div>
+                    <div class="desc">Real-time progress via Server-Sent Events (SSE)</div>
+                </div>
+                <div class="endpoint-toggle">⌄</div>
+            </div>
+            <div class="endpoint-body">
+                <div class="endpoint-content">
+                    <div class="endpoint-section">
+                        <h4>Request</h4>
+                        <p>Open a Server-Sent Events (SSE) stream to receive real-time progress updates for the current audit.</p>
+                        <p><strong>Headers:</strong></p>
+                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;
+Accept: text/event-stream</div>
+                    </div>
+                    <div class="endpoint-section">
+                        <h4>Response</h4>
+                        <p><strong>Status: 200 OK</strong></p>
+                        <p><strong>Content-Type:</strong> text/event-stream</p>
+                        <p>Streams events with this structure:</p>
+                        <div class="code-block">data: <span class="key">{</span>
+  <span class="key">"module"</span>: <span class="string">"links"</span>,
+  <span class="key">"pct"</span>: <span class="number">45</span>,
+  <span class="key">"msg"</span>: <span class="string">"Checking links..."</span>,
+  <span class="key">"ts"</span>: <span class="string">"2026-04-15T14:32:10Z"</span>
+<span class="key">}</span></div>
+                        <p style="margin-top:16px;"><strong>JavaScript Example:</strong></p>
+                        <div class="code-block">const es = new EventSource(
+  '/stream',
+  { headers: { Authorization: 'Bearer YOUR_KEY' } }
+);
+es.onmessage = (e) => {
+  const progress = JSON.parse(e.data);
+  console.log(progress.msg, progress.pct + '%');
+};</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HTTP Status Codes -->
+<div class="api-section">
+    <h2>HTTP Status Codes</h2>
+    <p>The API uses standard HTTP status codes to indicate the result of your request.</p>
+    <div class="status-code-list">
+        <div class="status-code-item">
+            <div class="code success">200 OK</div>
+            <div class="desc">Request succeeded and data is returned</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code created">201 Created</div>
+            <div class="desc">Resource was successfully created</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code accepted">202 Accepted</div>
+            <div class="desc">Request accepted for processing (audit queued)</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code error">400 Bad Request</div>
+            <div class="desc">Invalid request parameters</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code error">401 Unauthorized</div>
+            <div class="desc">Missing or invalid API key</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code error">403 Forbidden</div>
+            <div class="desc">Quota exceeded or rate limited</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code error">404 Not Found</div>
+            <div class="desc">Resource not found (e.g., invalid run_id)</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code error">429 Too Many Requests</div>
+            <div class="desc">Rate limit exceeded (see Rate Limits section)</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code error">500 Internal Server Error</div>
+            <div class="desc">Server-side error; retry with exponential backoff</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code error">503 Service Unavailable</div>
+            <div class="desc">Service temporarily unavailable; retry after delay</div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="api-section">
+    <h2>Best Practices</h2>
+
+    <h3>Error Handling</h3>
+    <p>All error responses include a JSON body with details:</p>
+    <div class="code-block"><span class="key">{</span>
+  <span class="key">"error"</span>: <span class="string">"invalid_request"</span>,
+  <span class="key">"message"</span>: <span class="string">"base_url is required"</span>,
+  <span class="key">"code"</span>: <span class="number">400</span>
+<span class="key">}</span></div>
+
+    <h3>Polling vs Streaming</h3>
+    <p>For progress updates, prefer Server-Sent Events (SSE) via <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">/stream</code> rather than repeatedly polling <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">/api/status</code>. SSE is more efficient and provides real-time updates without extra API calls.</p>
+
+    <h3>Retry Strategy</h3>
+    <p>Use exponential backoff for retries on 5xx errors. Start with 1 second and double the delay with each retry (1s, 2s, 4s, 8s, etc). Maximum 5 retries recommended.</p>
+
+    <h3>Request Timeouts</h3>
+    <p>Set your HTTP client timeout to at least 60 seconds, as audit processing may take time depending on site size and concurrency settings.</p>
+
+    <h3>Webhooks (Coming Soon)</h3>
+    <p>We're building webhook support to notify your system when audits complete. This will eliminate the need for polling entirely. Stay tuned!</p>
+</div>
+
+{% endblock %}

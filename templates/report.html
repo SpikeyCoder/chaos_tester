@@ -2,6 +2,55 @@
 {% block title %}Report {{ report.run_id }} -- Website Auditor{% endblock %}
 {% block robots %}noindex, nofollow{% endblock %}
 {% block content %}
+<style>
+.report-toc {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    background: rgba(30,41,59,0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    position: sticky;
+    top: 72px;
+    z-index: 40;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.toc-link {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: all .2s;
+    text-decoration: none;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+}
+.toc-link:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+}
+.toc-link.active {
+    color: #fff;
+    background: rgba(59,130,246,0.2);
+    font-weight: 600;
+}
+@media (max-width: 768px) {
+    .report-toc {
+        margin-left: -12px;
+        margin-right: -12px;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+}
+</style>
 <!-- Breadcrumb Navigation -->
 <nav aria-label="Breadcrumb" style="margin-bottom:16px;font-size:0.85rem;color:var(--text-muted);">
   <a href="/" style="color:var(--accent);">Home</a>
@@ -39,6 +88,15 @@
   </div>
 </div>
 
+<!-- In-page TOC Navigation -->
+<nav class="report-toc fade-up" aria-label="Report sections" id="report-toc">
+  <a href="#sect-summary" class="toc-link active" data-section="sect-summary">Overview</a>
+  <a href="#sect-performance" class="toc-link" data-section="sect-performance">Performance</a>
+  <a href="#sect-results" class="toc-link" data-section="sect-results">Results</a>
+  <a href="#sect-ai" class="toc-link" data-section="sect-ai">AI Visibility</a>
+  <a href="#sect-history" class="toc-link" data-section="sect-history">History</a>
+</nav>
+
 <!-- -- Executive Summary ----------------------------------- -->
 {% set s = report.summary %}
 {% set rate = s.pass_rate %}
@@ -46,7 +104,7 @@
 {% set critical_issues = s.failed + s.errors %}
 {% set checks_passed = s.passed %}
 {% set overall_score = rate|round|int %}
-<div class="exec-summary fade-up" role="region" aria-label="Executive summary">
+<div class="exec-summary fade-up" role="region" aria-label="Executive summary" id="sect-summary">
   <div class="exec-summary-header">
     <div>
       <h2>Executive Summary</h2>
@@ -245,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- -- Performance Dashboard -------------------------------- -->
 {% set perf = report.get("performance_metrics", {}) if report.get("performance_metrics") else {} %}
 {% set has_perf_data = perf and (perf.get("mobile", {}).get("score") is not none or perf.get("desktop", {}).get("score") is not none) %}
-<div id="perf-dashboard" class="card" style="margin-bottom:24px">
+<div id="sect-performance" class="card" style="margin-bottom:24px">
   <h2 style="margin:0 0 16px">Performance Metrics</h2>
   {% if has_perf_data %}
   <div class="perf-tabs">
@@ -345,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- -- Results Table (Business View: issues first) ----------- -->
-<div class="card" id="detailed-results-card">
+<div class="card" id="sect-results">
   <h2 id="detailed-results-heading">Detailed Results ({{ report.results|length }})</h2>
   <!-- Filter bar (inside Detailed Results) -->
   <form onsubmit="return false" style="margin-bottom:16px;">
@@ -431,7 +489,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- -- AI Visibility Dashboard ----------------------------------- -->
-<div class="card">
+<div class="card" id="sect-ai">
   <h2>AI Visibility Dashboard</h2>
   {% if report.ai_visibility and report.ai_visibility.overall_score is defined %}
   {% set ai = report.ai_visibility %}
@@ -595,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- -- Domain Audit History ----------------------------------------- -->
 {% if domain_history and domain_history|length > 1 %}
-<div class="card fade-up" style="margin-top:24px;">
+<div class="card fade-up" style="margin-top:24px;" id="sect-history">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
     <div style="width:40px;height:40px;border-radius:10px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1857,6 +1915,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
   window.addEventListener('scroll', toggleVisibility);
   document.body.appendChild(btn);
+})();
+
+/* -- TOC scroll spy -- */
+(function() {
+  var tocLinks = document.querySelectorAll('.toc-link');
+  var sections = [];
+  tocLinks.forEach(function(link) {
+    var id = link.getAttribute('data-section');
+    var el = document.getElementById(id);
+    if (el) sections.push({ id: id, el: el, link: link });
+  });
+  if (!sections.length) return;
+
+  function onScroll() {
+    var scrollY = window.scrollY + 120;
+    var active = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= scrollY) active = sections[i];
+    }
+    tocLinks.forEach(function(l) { l.classList.remove('active'); });
+    if (active) active.link.classList.add('active');
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 })();
 </script>
 {% endblock %}

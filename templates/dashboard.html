@@ -137,8 +137,51 @@
     <span class="trust-item"><span class="trust-check">&#10003;</span> No Signup Required</span>
     <span class="trust-item"><span class="trust-check">&#10003;</span> Instant Results</span>
   </div>
-  <div style="margin-top:8px;text-align:center;">
-    <a href="/sample-report" style="color:var(--accent);text-decoration:underline;font-weight:600;font-size:0.95rem;">See a Sample Report</a>
+
+  <!-- Mock audit preview -->
+  <div class="fade-up" style="margin-top:32px;max-width:680px;margin-left:auto;margin-right:auto;">
+    <div style="background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:16px;padding:24px;text-align:left;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;right:0;width:200px;height:200px;background:radial-gradient(circle,rgba(59,130,246,0.08),transparent);pointer-events:none;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="font-weight:700;font-size:1rem;color:#fff;">Sample Audit Preview</div>
+        <span style="background:rgba(74,222,128,0.15);color:#4ade80;padding:4px 12px;border-radius:9999px;font-size:0.78rem;font-weight:600;">Score: 87/100</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+        <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:1.2rem;font-weight:700;color:#4ade80;">✓ 42</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Passed</div>
+        </div>
+        <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:1.2rem;font-weight:700;color:#f87171;">✗ 3</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Failed</div>
+        </div>
+        <div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:1.2rem;font-weight:700;color:#fbbf24;">⚠ 5</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Warnings</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(248,113,113,0.06);border-radius:8px;border-left:3px solid #f87171;">
+          <span style="color:#f87171;font-weight:600;font-size:0.82rem;">Critical</span>
+          <span style="color:var(--text);font-size:0.85rem;">Missing SSL certificate on 2 subdomains</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(251,191,36,0.06);border-radius:8px;border-left:3px solid #fbbf24;">
+          <span style="color:#fbbf24;font-weight:600;font-size:0.82rem;">Warning</span>
+          <span style="color:var(--text);font-size:0.85rem;">3 images missing alt text</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(74,222,128,0.06);border-radius:8px;border-left:3px solid #4ade80;">
+          <span style="color:#4ade80;font-weight:600;font-size:0.82rem;">Passed</span>
+          <span style="color:var(--text);font-size:0.85rem;">All forms have CSRF protection</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;text-align:center;">
+    <a href="/sample-report" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent-hover,#60a5fa);font-weight:600;font-size:0.95rem;padding:8px 16px;border:1px solid rgba(59,130,246,0.3);border-radius:8px;transition:all .2s;background:rgba(59,130,246,0.06);" onmouseover="this.style.background='rgba(59,130,246,0.12)';this.style.borderColor='rgba(59,130,246,0.5)'" onmouseout="this.style.background='rgba(59,130,246,0.06)';this.style.borderColor='rgba(59,130,246,0.3)'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      View Sample Report
+    </a>
   </div>
 </div>
 
@@ -162,6 +205,41 @@
   </div>
 </div>
 
+<!-- ── Social Proof ────────────────────────────────────────── -->
+<div class="fade-up" style="padding:32px 0 16px;text-align:center;">
+  <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">Trusted by businesses across industries</p>
+  <div style="display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap;opacity:0.5;">
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">E-commerce</div>
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">SaaS</div>
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">Healthcare</div>
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">Real Estate</div>
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">Restaurants</div>
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">Legal</div>
+  </div>
+  <div style="margin-top:24px;display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;">
+    <div style="background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:12px;padding:20px 24px;max-width:400px;text-align:left;">
+      <div style="color:var(--text);font-size:0.92rem;line-height:1.6;font-style:italic;">"We found 3 broken links and a missing SSL redirect that had been hurting our Google rankings for months. Fixed them in an afternoon."</div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.85rem;">JM</div>
+        <div>
+          <div style="font-weight:600;font-size:0.85rem;color:var(--text);">Jake Morrison</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);">Owner, Morrison Dental</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:12px;padding:20px 24px;max-width:400px;text-align:left;">
+      <div style="color:var(--text);font-size:0.92rem;line-height:1.6;font-style:italic;">"I use this before every client website launch. The security scan alone has saved me from embarrassing mistakes twice."</div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.85rem;">SP</div>
+        <div>
+          <div style="font-weight:600;font-size:0.85rem;color:var(--text);">Sarah Patel</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);">Freelance Web Developer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <hr class="section-divider">
 
 <!-- ── Features Section ─────────────────────────────────────── -->
@@ -170,50 +248,50 @@
     <h2>What We Check</h2>
     <p>We scan your site for the issues that matter most to your visitors and your bottom line.</p>
   </div>
-  <div class="landing-features">
-    <div class="landing-feature-card fade-up fade-up-delay-1">
-      <div class="feature-icon" style="background:linear-gradient(135deg,#06b6d4,#3b82f6);">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <div class="landing-features">
+      <div class="landing-feature-card fade-up fade-up-delay-1" style="border-left:4px solid #3b82f6;">
+        <div class="feature-icon" style="background:rgba(59,130,246,0.12);color:#60a5fa;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </div>
+        <h3>Search Visibility</h3>
+        <p>See if search engines can find your pages. We check titles, descriptions, links, and the things Google looks for.</p>
       </div>
-      <h3>Search Visibility</h3>
-      <p>See if search engines can find your pages. We check titles, descriptions, links, and the things Google looks for.</p>
-    </div>
-    <div class="landing-feature-card fade-up fade-up-delay-2">
-      <div class="feature-icon" style="background:linear-gradient(135deg,#10b981,#059669);">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+      <div class="landing-feature-card fade-up fade-up-delay-2" style="border-left:4px solid #10b981;">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.12);color:#34d399;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        </div>
+        <h3>Security Check</h3>
+        <p>Find out if your site is safe for visitors. We look for missing locks (SSL), exposed files, and common attack risks.</p>
       </div>
-      <h3>Security Check</h3>
-      <p>Find out if your site is safe for visitors. We look for missing locks (SSL), exposed files, and common attack risks.</p>
-    </div>
-    <div class="landing-feature-card fade-up fade-up-delay-3">
-      <div class="feature-icon" style="background:linear-gradient(135deg,#ec4899,#be185d);">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <div class="landing-feature-card fade-up fade-up-delay-3" style="border-left:4px solid #ec4899;">
+        <div class="feature-icon" style="background:rgba(236,72,153,0.12);color:#f472b6;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+        </div>
+        <h3>Privacy Check</h3>
+        <p>We review your cookie settings and privacy setup so visitors trust your site and you stay on the right side of the rules.</p>
       </div>
-      <h3>Privacy Check</h3>
-      <p>We review your cookie settings and privacy setup so visitors trust your site and you stay on the right side of the rules.</p>
-    </div>
-    <div class="landing-feature-card fade-up fade-up-delay-1">
-      <div class="feature-icon" style="background:linear-gradient(135deg,#f59e0b,#ea580c);">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <div class="landing-feature-card fade-up fade-up-delay-1" style="border-left:4px solid #f59e0b;">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.12);color:#fbbf24;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3>Speed Test</h3>
+        <p>Slow sites lose customers. We measure how fast your pages load and show you what to fix first.</p>
       </div>
-      <h3>Speed Test</h3>
-      <p>Slow sites lose customers. We measure how fast your pages load and show you what to fix first.</p>
-    </div>
-    <div class="landing-feature-card fade-up fade-up-delay-2">
-      <div class="feature-icon" style="background:linear-gradient(135deg,#f43f5e,#e11d48);">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <div class="landing-feature-card fade-up fade-up-delay-2" style="border-left:4px solid #ef4444;">
+        <div class="feature-icon" style="background:rgba(239,68,68,0.12);color:#f87171;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <h3>Clear Reports</h3>
+        <p>No jargon. You get a short list of what to fix, sorted by impact, with plain-language steps you can follow today.</p>
       </div>
-      <h3>Clear Reports</h3>
-      <p>No jargon. You get a short list of what to fix, sorted by impact, with plain-language steps you can follow today.</p>
-    </div>
-    <div class="landing-feature-card fade-up fade-up-delay-3">
-      <div class="feature-icon" style="background:linear-gradient(135deg,#818cf8,#6366f1);">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <div class="landing-feature-card fade-up fade-up-delay-3" style="border-left:4px solid #8b5cf6;">
+        <div class="feature-icon" style="background:rgba(139,92,246,0.12);color:#a78bfa;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <h3>Accessibility</h3>
+        <p>Make sure everyone can use your site, including people who rely on screen readers or keyboard navigation.</p>
       </div>
-      <h3>Accessibility</h3>
-      <p>Make sure everyone can use your site, including people who rely on screen readers or keyboard navigation.</p>
     </div>
-  </div>
 </div>
 
 <hr class="section-divider">
