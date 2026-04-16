@@ -368,40 +368,6 @@ document.addEventListener('DOMContentLoaded', function() {
   {% endif %}
 </div>
 
-<!-- -- Filters ---------------------------------------------- -->
-<form onsubmit="return false"><div class="card">
-  <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-    <div class="filter-group">
-      <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
-      <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="all" onclick="filterResults('all', this)" aria-label="Show all test results" aria-pressed="true">All</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" onclick="filterResults('failed', this)" aria-label="Show only failed tests" aria-pressed="false">Failed</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" onclick="filterResults('warning', this)" aria-label="Show only warning tests" aria-pressed="false">Warnings</button>
-      <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" onclick="filterResults('passed', this)" aria-label="Show only passed tests" aria-pressed="false">Passed</button>
-    </div>
-    <div class="filter-group">
-      <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
-      <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" onclick="filterModule('all', this)" title="All test modules">All</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" onclick="filterModule('availability', this)" title="Page Availability - Whether all pages load correctly">Availability</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" onclick="filterModule('links', this)" title="Broken Links - Detect 404s and redirect issues">Links</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" onclick="filterModule('forms', this)" title="Form Usability - Check input labels and validation">Forms</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="chaos" onclick="filterModule('chaos', this)" title="Page Speed - Performance under stress">Chaos</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="auth" onclick="filterModule('auth', this)" title="Auth & Sessions - Login and session handling">Auth</button>
-      <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" onclick="filterModule('security', this)" title="Security - Check headers and SSL">Security</button>
-    </div>
-  </div>
-</div>
-</form>
-
-<!-- -- Module Legend ----------------------------------------- -->
-<div style="background:var(--surface);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:16px;font-size:0.85rem;">
-  <div><span style="display:inline-block;width:12px;height:12px;background:#3b82f6;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Availability</div>
-  <div><span style="display:inline-block;width:12px;height:12px;background:#a855f7;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Broken Links</div>
-  <div><span style="display:inline-block;width:12px;height:12px;background:#06b6d4;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Form Usability</div>
-  <div><span style="display:inline-block;width:12px;height:12px;background:#f97316;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Chaos / Stress</div>
-  <div><span style="display:inline-block;width:12px;height:12px;background:#eab308;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Auth & Sessions</div>
-  <div><span style="display:inline-block;width:12px;height:12px;background:#ef4444;border-radius:2px;margin-right:6px;vertical-align:middle;"></span>Security</div>
-</div>
-
 <!-- -- Results Table (Business View: issues first) ----------- -->
 <div class="card" id="sect-results">
   <h2 id="detailed-results-heading">Detailed Results ({{ report.results|length }})</h2>
