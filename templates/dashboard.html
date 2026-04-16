@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Free Website Audit Tool — SEO, Security & Performance Scanner | Website Auditor{% endblock %}
+{% block title %}Free Website Audit Tool — AI Visibility, Security & Performance Scanner | Website Auditor{% endblock %}
 
 {% block content %}
 <!-- ── Hero Section ─────────────────────────────────────────── -->
@@ -9,7 +9,7 @@
     Over 1,000+ websites audited
   </div>
   <h1>Audit any website in one click</h1>
-  <p class="hero-subtitle">Find broken pages, security gaps, and slow load times that cost you customers. Just paste your URL — results in 30 seconds, no signup needed.</p>
+  <p class="hero-subtitle">See how your business shows up in AI tools like ChatGPT and Perplexity. We also catch broken pages, security gaps, and slow load times — all in 30 seconds, no signup needed.</p>
 
   <form method="POST" action="/run" id="runForm" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -87,8 +87,8 @@
                  style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;transition:border-color .2s;-webkit-appearance:none;">
           <div id="city-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#1e1e2e;border:1px solid rgba(255,255,255,0.1);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:10000;max-height:200px;overflow-y:auto;"></div>
         </div>
-        <p id="city-error" role="alert" style="display:none;margin:8px 0 0;font-size:0.8rem;color:#f87171;line-height:1.4;font-weight:600;">Please enter a city to continue. We need it to check your local search presence.</p>
-        <p style="margin:8px 0 0;font-size:0.8rem;color:var(--text-muted);line-height:1.4;">We use your business name and city to check how your site shows up in local search results.</p>
+        <p id="city-error" role="alert" style="display:none;margin:8px 0 0;font-size:0.8rem;color:#f87171;line-height:1.4;font-weight:600;">Please enter a city to continue. We need it to check how AI tools find your business.</p>
+        <p style="margin:8px 0 0;font-size:0.8rem;color:var(--text-muted);line-height:1.4;">We use your business name and city to check how your business appears in AI tools and local results.</p>
       </div>
     </div>
   </div>
@@ -222,7 +222,7 @@
   </div>
   <div style="margin-top:24px;display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;">
     <div style="background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:12px;padding:20px 24px;max-width:400px;text-align:left;">
-      <div style="color:#f1f5f9;font-size:0.92rem;line-height:1.6;font-style:italic;">"We found 3 broken links and a missing SSL redirect that had been hurting our Google rankings for months. Fixed them in an afternoon."</div>
+      <div style="color:#f1f5f9;font-size:0.92rem;line-height:1.6;font-style:italic;">"We found 3 broken links and a missing SSL redirect that had been hurting our chances of getting recommended by AI tools. Fixed them in an afternoon."</div>
       <div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.85rem;">JM</div>
         <div>
@@ -250,15 +250,15 @@
 <div class="section-block fade-up">
   <div class="section-header">
     <h2>What We Check</h2>
-    <p>We scan your site for the issues that matter most to your visitors and your bottom line.</p>
+    <p>We check AI visibility, security, speed, and more — the things that shape how customers find and trust your business.</p>
   </div>
     <div class="landing-features">
       <div class="landing-feature-card fade-up fade-up-delay-1" style="border-left:4px solid #3b82f6;">
         <div class="feature-icon" style="background:rgba(59,130,246,0.12);color:#60a5fa;">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         </div>
-        <h3>Search Visibility</h3>
-        <p>See if search engines can find your pages. We check titles, descriptions, links, and the things Google looks for.</p>
+        <h3>AI Visibility</h3>
+        <p>See how your business shows up when people ask AI tools like ChatGPT or Perplexity for help. We check the signals AI models use to decide which businesses to recommend.</p>
       </div>
       <div class="landing-feature-card fade-up fade-up-delay-2" style="border-left:4px solid #10b981;">
         <div class="feature-icon" style="background:rgba(16,185,129,0.12);color:#34d399;">
@@ -347,7 +347,7 @@
     </details>
     <details class="faq-item">
       <summary>What does the audit check?</summary>
-      <div class="faq-answer">Our audit covers SEO (meta tags, headings, broken links), security (SSL, headers, vulnerabilities), performance (load speed, resource optimization), accessibility (WCAG compliance), forms validation, and AI visibility across platforms like ChatGPT, Perplexity, and Claude.</div>
+      <div class="faq-answer">Our audit checks AI visibility (how your business appears when people ask tools like ChatGPT, Perplexity, or Claude for recommendations), security (SSL, headers), performance (load speed), accessibility, forms, and broken links.</div>
     </details>
     <details class="faq-item">
       <summary>How long does an audit take?</summary>
@@ -359,7 +359,7 @@
     </details>
     <details class="faq-item">
       <summary>How often should I audit my website?</summary>
-      <div class="faq-answer">We recommend auditing your website at least once a month, or after making significant changes. Regular audits help catch issues before they impact your search rankings or user experience.</div>
+      <div class="faq-answer">We recommend auditing your website at least once a month, or after making significant changes. Regular audits help catch issues before they hurt your AI visibility or push customers away.</div>
     </details>
   </div>
 </div>
@@ -368,7 +368,7 @@
 
 <!-- ── CTA Section ───────────────────────────────────────────── -->
 <div class="cta-section fade-up">
-  <div class="cta-label">Start optimizing your website today</div>
+  <div class="cta-label">Start improving your AI visibility today</div>
   <h2>Ready to Improve Your Website?</h2>
   <p>Get your free comprehensive audit report in seconds. No credit card required.</p>
   <a href="#audit" class="btn btn-primary" style="padding:14px 36px;font-size:1.05rem;">Get Free Audit</a>
