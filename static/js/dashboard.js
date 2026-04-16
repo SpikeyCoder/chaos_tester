@@ -98,6 +98,18 @@ document.getElementById('runForm').addEventListener('submit', function(e) {
   /* ── Validate: city/location is required ── */
   if (locInput && !locInput.value.trim()) {
     if (typeof showCityField === 'function') showCityField(false);
+    var cityErr = document.getElementById('city-error');
+    if (cityErr) cityErr.style.display = 'block';
+    var cityInput = document.getElementById('override_biz_city');
+    if (cityInput) {
+      cityInput.style.borderColor = '#f87171';
+      cityInput.focus();
+      cityInput.addEventListener('input', function clearCityErr() {
+        cityInput.style.borderColor = '';
+        if (cityErr) cityErr.style.display = 'none';
+        cityInput.removeEventListener('input', clearCityErr);
+      });
+    }
     return;
   }
 

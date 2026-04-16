@@ -46,6 +46,8 @@
     </div>
     <div id="cta-helper" style="text-align:center;margin-top:8px;font-size:0.82rem;color:var(--text-muted);transition:opacity 0.3s;">Enter a URL above to scan your website</div>
     <style>
+      #module-toggles summary::-webkit-details-marker { display: none; }
+      #module-toggles[open] > summary .module-chevron { transform: rotate(180deg); }
       .btn-audit:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
@@ -79,12 +81,13 @@
       <input type="text" id="override_biz_name" placeholder="e.g. Acme Web Design" aria-label="Business name"
              style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
       <div id="override-city-wrapper" style="display:none;margin-top:12px;">
-        <label for="override_biz_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business City</label>
+        <label for="override_biz_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business City <span style="color:#f87171;" aria-hidden="true">*</span><span class="sr-only">(required)</span></label>
         <div style="position:relative;">
           <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA" autocomplete="off" aria-label="Business city"
                  style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;transition:border-color .2s;-webkit-appearance:none;">
           <div id="city-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#1e1e2e;border:1px solid rgba(255,255,255,0.1);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:10000;max-height:200px;overflow-y:auto;"></div>
         </div>
+        <p id="city-error" role="alert" style="display:none;margin:8px 0 0;font-size:0.8rem;color:#f87171;line-height:1.4;font-weight:600;">Please enter a city to continue. We need it to check your local search presence.</p>
         <p style="margin:8px 0 0;font-size:0.8rem;color:var(--text-muted);line-height:1.4;">We use your business name and city to check how your site shows up in local search results.</p>
       </div>
     </div>
@@ -92,9 +95,10 @@
 
   <!-- Module toggles with descriptions -->
   <details id="module-toggles" style="max-width:680px;margin:16px auto 24px;text-align:left;">
-    <summary style="cursor:pointer;font-size:0.9rem;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:8px;padding:10px 0;min-height:44px;">
+    <summary style="cursor:pointer;font-size:0.9rem;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:8px;padding:10px 0;min-height:44px;list-style:none;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Customize Audit Modules
+      <svg class="module-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
     </summary>
     <div style="padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-top:8px;">
       <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:10px;font-weight:600;">Basic Scan (recommended)</div>
@@ -218,7 +222,7 @@
   </div>
   <div style="margin-top:24px;display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;">
     <div style="background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:12px;padding:20px 24px;max-width:400px;text-align:left;">
-      <div style="color:var(--text);font-size:0.92rem;line-height:1.6;font-style:italic;">"We found 3 broken links and a missing SSL redirect that had been hurting our Google rankings for months. Fixed them in an afternoon."</div>
+      <div style="color:#f1f5f9;font-size:0.92rem;line-height:1.6;font-style:italic;">"We found 3 broken links and a missing SSL redirect that had been hurting our Google rankings for months. Fixed them in an afternoon."</div>
       <div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.85rem;">JM</div>
         <div>
@@ -228,7 +232,7 @@
       </div>
     </div>
     <div style="background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:12px;padding:20px 24px;max-width:400px;text-align:left;">
-      <div style="color:var(--text);font-size:0.92rem;line-height:1.6;font-style:italic;">"I use this before every client website launch. The security scan alone has saved me from embarrassing mistakes twice."</div>
+      <div style="color:#f1f5f9;font-size:0.92rem;line-height:1.6;font-style:italic;">"I use this before every client website launch. The security scan alone has saved me from embarrassing mistakes twice."</div>
       <div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.85rem;">SP</div>
         <div>
@@ -326,108 +330,6 @@
   </div>
 </div>
 
-<!-- ── API Access Upsell Banner ──────────────────────────────── -->
-<style>
-  .api-upsell-section {
-    padding: 40px 0;
-  }
-  .api-upsell-card {
-    background: linear-gradient(
-      to right,
-      rgba(99, 102, 241, 0.10) 0%,
-      rgba(168, 85, 247, 0.10) 50%,
-      rgba(236, 72, 153, 0.10) 100%
-    );
-    border: 1px solid rgba(99, 102, 241, 0.20);
-    border-radius: 16px;
-    padding: 32px;
-  }
-  .api-upsell-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 24px;
-  }
-  .api-upsell-left {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .api-upsell-icon {
-    padding: 12px;
-    background: rgba(99, 102, 241, 0.20);
-    border-radius: 8px;
-    display: inline-flex;
-  }
-  .api-upsell-icon svg {
-    width: 32px;
-    height: 32px;
-    color: #818cf8;
-  }
-  .api-upsell-title {
-    margin: 0 0 4px;
-    font-size: 24px;
-    line-height: 32px;
-    font-weight: 700;
-    color: #ffffff;
-  }
-  .api-upsell-subtitle {
-    margin: 0;
-    color: #94a3b8;
-    font-size: 16px;
-  }
-  .api-upsell-btn {
-    display: inline-flex;
-    align-items: center;
-    background: #6366f1;
-    color: #ffffff;
-    font-weight: 500;
-    padding: 10px 18px;
-    border-radius: 8px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    font-size: 15px;
-    transition: background 0.15s ease;
-  }
-  .api-upsell-btn:hover {
-    background: #4f46e5;
-  }
-  .api-upsell-btn svg {
-    width: 16px;
-    height: 16px;
-    margin-left: 8px;
-  }
-</style>
-<section class="api-upsell-section fade-up">
-  <div class="api-upsell-card">
-    <div class="api-upsell-row">
-      <div class="api-upsell-left">
-        <div class="api-upsell-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-          </svg>
-        </div>
-        <div>
-          <h3 class="api-upsell-title">Need API access?</h3>
-          <p class="api-upsell-subtitle">Run 5 automated tests per day for just $10/month</p>
-        </div>
-      </div>
-      <a href="https://api.website-auditor.io/admin_portal/" target="_blank" rel="noopener" class="api-upsell-btn">
-        Start Free Trial
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-          <polyline points="15 3 21 3 21 9"/>
-          <line x1="10" y1="14" x2="21" y2="3"/>
-        </svg>
-      </a>
-    </div>
-  </div>
-</section>
-
-<hr class="section-divider">
-
 <!-- ── FAQ Section ───────────────────────────────────────────── -->
 <div class="section-block fade-up" id="faq">
   <div class="section-header">
@@ -472,6 +374,45 @@
   <a href="#audit" class="btn btn-primary" style="padding:14px 36px;font-size:1.05rem;">Get Free Audit</a>
 </div>
 
+<!-- ── API Access Upsell Banner (footer area) ──────────────────── -->
+<style>
+  .api-upsell-section { padding: 40px 0; }
+  .api-upsell-card { background: linear-gradient(to right, rgba(99,102,241,0.10) 0%, rgba(168,85,247,0.10) 50%, rgba(236,72,153,0.10) 100%); border: 1px solid rgba(99,102,241,0.20); border-radius: 16px; padding: 32px; }
+  .api-upsell-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+  .api-upsell-left { display: flex; align-items: center; gap: 16px; }
+  .api-upsell-icon { padding: 12px; background: rgba(99,102,241,0.20); border-radius: 8px; display: inline-flex; }
+  .api-upsell-icon svg { width: 32px; height: 32px; color: #818cf8; }
+  .api-upsell-title { margin: 0 0 4px; font-size: 24px; line-height: 32px; font-weight: 700; color: #ffffff; }
+  .api-upsell-subtitle { margin: 0; color: #94a3b8; font-size: 16px; }
+  .api-upsell-btn { display: inline-flex; align-items: center; background: #6366f1; color: #ffffff; font-weight: 500; padding: 10px 18px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font-size: 15px; transition: background 0.15s ease; }
+  .api-upsell-btn:hover { background: #4f46e5; }
+  .api-upsell-btn svg { width: 16px; height: 16px; margin-left: 8px; }
+</style>
+<section class="api-upsell-section fade-up">
+  <div class="api-upsell-card">
+    <div class="api-upsell-row">
+      <div class="api-upsell-left">
+        <div class="api-upsell-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="api-upsell-title">Need API access?</h3>
+          <p class="api-upsell-subtitle">Run 5 automated tests per day for just $10/month</p>
+        </div>
+      </div>
+      <a href="https://api.website-auditor.io/admin_portal/" target="_blank" rel="noopener" class="api-upsell-btn">
+        Start Free Trial
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4" defer></script>
 <script>
@@ -504,7 +445,18 @@ function disableAuditBtn() {
   btn.style.opacity = '0.5';
   btn.style.cursor = 'not-allowed';
   var helper = document.getElementById('cta-helper');
-  if (helper) helper.style.opacity = '1';
+  if (helper) {
+    helper.style.opacity = '1';
+    var urlField = document.getElementById('base_url');
+    var hasUrl = urlField && urlField.value.trim();
+    var locHidden = document.getElementById('business_location');
+    var hasLoc = locHidden && locHidden.value.trim();
+    if (hasUrl && !hasLoc) {
+      helper.textContent = 'Add a city to start your audit';
+    } else if (!hasUrl) {
+      helper.textContent = 'Enter a URL above to scan your website';
+    }
+  }
 }
 
 /* ── Slide-panel helpers ─────────────────────────────────────────── */
