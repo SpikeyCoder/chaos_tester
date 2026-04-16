@@ -2,11 +2,11 @@
 
 {% block title %}API Documentation - Website Auditor{% endblock %}
 
-{% block meta_description %}Website Auditor API documentation. REST API for running automated website audits with full control over audit parameters and real-time progress tracking.{% endblock %}
+{% block meta_description %}Website Auditor API documentation. REST API for triggering website audits programmatically. Built for IT departments and solo entrepreneurs.{% endblock %}
 
 {% block og_title %}Website Auditor API - Automated Audit REST API{% endblock %}
 
-{% block og_description %}Complete API documentation for Website Auditor. Run audits programmatically, check status, retrieve reports, and stream real-time progress.{% endblock %}
+{% block og_description %}Complete API documentation for Website Auditor. Trigger website audits programmatically with a simple REST API.{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -457,46 +457,44 @@
 {% block content %}
 <div class="api-hero">
     <h1>API Documentation</h1>
-    <p>Build your own website auditing solution with our REST API. Control every aspect of the audit with granular parameters and stream real-time progress.</p>
+    <p>Trigger website audits programmatically with our REST API. Built for IT departments at small-to-medium businesses and solo entrepreneurs.</p>
 </div>
 
-<!-- Subscription Banner -->
+<!-- API Key Banner -->
 <div class="api-banner">
     <div class="api-banner-text">
-        <p>Subscribe for <strong>$10/month</strong> to get an API key with <strong>5 automated audits per day</strong>. Start with a <strong>free trial</strong>.</p>
+        <p>Get an API key with <strong>5 automated audits per day</strong> through the admin portal. Sign in with Google to create and manage your keys.</p>
     </div>
-    <a href="https://api.website-auditor.io" class="btn-cta">Start Free Trial</a>
+    <a href="/admin_portal" class="btn-cta">Admin Portal →</a>
 </div>
 
 <!-- Authentication Section -->
 <div class="api-section">
     <h2>Authentication</h2>
-    <p>All API requests require an API key sent via the <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">Authorization</code> header as a Bearer token.</p>
+    <p>All API requests require an API key in the <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">X-API-Key</code> header. Keys start with <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">wa_</code>.</p>
 
     <div class="auth-card">
         <h3>Getting Your API Key</h3>
         <ol class="info-list" style="list-style:decimal;padding-left:20px;">
-            <li style="border-bottom:1px solid var(--border);">Sign up or log in to <a href="https://api.website-auditor.io" target="_blank" style="color:var(--accent);">api.website-auditor.io</a></li>
-            <li style="border-bottom:1px solid var(--border);">Navigate to the API Keys section in your dashboard</li>
-            <li style="border-bottom:1px solid var(--border);">Create a new API key (you can have multiple keys)</li>
-            <li style="border-bottom:1px solid var(--border);">Use this key in all API requests</li>
+            <li style="border-bottom:1px solid var(--border);">Visit <a href="/admin_portal" style="color:var(--accent);">/admin_portal</a> and sign in with Google</li>
+            <li style="border-bottom:1px solid var(--border);">Create a new API key — the plaintext key is shown once, copy it immediately</li>
+            <li style="border-bottom:1px solid var(--border);">Send the key in the <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">X-API-Key</code> header on every request</li>
+            <li style="border-bottom:1px solid var(--border);">Revoke or rotate keys any time from the portal</li>
         </ol>
     </div>
 
     <div class="auth-card">
         <h3>Example Request</h3>
-        <div class="code-block">curl -X POST https://api.website-auditor.io/run \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -H "X-Requested-With: XMLHttpRequest" \
-  -d '{"base_url":"https://example.com"}'</div>
+        <div class="code-block">curl "https://api.website-auditor.io/api/audit?businessUrl=example.com&businessName=Example+Inc&businessCity=Seattle" \
+  -H "X-API-Key: wa_your_api_key_here"</div>
     </div>
 
     <div class="rate-limit-box">
         <h3>Rate Limits</h3>
-        <p><strong>7-Day Free Trial:</strong> 5 audit per day (24-hour rolling window)</p>
-        <p><strong>$10/month Plan:</strong> 5 audits per day (24-hour rolling window)</p>
-        <p>Each audit counts as one request. The window resets every 24 hours from your first request.</p>
+        <p><strong>5 requests per API key per day.</strong> Rate limit headers are included in every response:</p>
+        <div class="code-block" style="margin-top:12px;">X-RateLimit-Limit: 5
+X-RateLimit-Remaining: 3
+X-RateLimit-Reset: 2026-03-31T23:59:59.999Z</div>
     </div>
 </div>
 
@@ -505,128 +503,13 @@
     <h2>Endpoints</h2>
 
     <div class="api-endpoints">
-        <!-- POST /run -->
+        <!-- GET /api/audit -->
         <div class="endpoint-card expanded">
             <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
-                <div class="endpoint-method post">POST</div>
-                <div class="endpoint-path">
-                    <div class="path">/run</div>
-                    <div class="desc">Launch a new audit</div>
-                </div>
-                <div class="endpoint-toggle">⌄</div>
-            </div>
-            <div class="endpoint-body">
-                <div class="endpoint-content">
-                    <div class="endpoint-section">
-                        <h4>Request</h4>
-                        <p>Send a JSON payload with audit parameters.</p>
-                        <p><strong>Headers:</strong></p>
-                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;
-Content-Type: application/json
-X-Requested-With: XMLHttpRequest</div>
-                        <p><strong>Body Parameters:</strong></p>
-                        <table class="param-table">
-                            <thead>
-                                <tr>
-                                    <th>Parameter</th>
-                                    <th>Type</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><span class="param-name">base_url</span></td>
-                                    <td><span class="param-type">string</span></td>
-                                    <td>Website URL to audit <span class="param-required">required</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">environment</span></td>
-                                    <td><span class="param-type">string</span></td>
-                                    <td>One of: staging, test, production (default: production)</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">max_pages</span></td>
-                                    <td><span class="param-type">integer</span></td>
-                                    <td>Max pages to crawl (1-1000, default: 100)</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">crawl_depth</span></td>
-                                    <td><span class="param-type">integer</span></td>
-                                    <td>Link depth to follow (1-10, default: 3)</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">request_timeout</span></td>
-                                    <td><span class="param-type">integer</span></td>
-                                    <td>Request timeout in seconds (1-120, default: 30)</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">concurrency</span></td>
-                                    <td><span class="param-type">integer</span></td>
-                                    <td>Parallel requests (1-20, default: 5)</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">run_availability</span></td>
-                                    <td><span class="param-type">boolean</span></td>
-                                    <td>Check HTTP status & availability (default: true)</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">run_links</span></td>
-                                    <td><span class="param-type">boolean</span></td>
-                                    <td>Check for broken links (default: true)</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">run_forms</span></td>
-                                    <td><span class="param-type">boolean</span></td>
-                                    <td>Test form submission (default: true)</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">run_chaos</span></td>
-                                    <td><span class="param-type">boolean</span></td>
-                                    <td>Run chaos engineering tests (default: false)</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">run_auth</span></td>
-                                    <td><span class="param-type">boolean</span></td>
-                                    <td>Test authentication flows (default: false)</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">run_security</span></td>
-                                    <td><span class="param-type">boolean</span></td>
-                                    <td>Run security scans (default: true)</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="endpoint-section">
-                        <h4>Response</h4>
-                        <p><strong>Status: 202 Accepted</strong></p>
-                        <p>The audit is queued and will begin processing.</p>
-                        <div class="code-block"><span class="key">{</span>
-  <span class="key">"status"</span>: <span class="string">"started"</span>,
-  <span class="key">"run_id"</span>: <span class="string">"run_abc123xyz"</span>,
-  <span class="key">"started_at"</span>: <span class="string">"2026-04-15T14:30:00Z"</span>,
-  <span class="key">"base_url"</span>: <span class="string">"https://example.com"</span>
-<span class="key">}</span></div>
-                        <p style="margin-top:16px;"><strong>Example Request:</strong></p>
-                        <div class="code-block"><span class="key">{</span>
-  <span class="key">"base_url"</span>: <span class="string">"https://example.com"</span>,
-  <span class="key">"max_pages"</span>: <span class="number">50</span>,
-  <span class="key">"crawl_depth"</span>: <span class="number">2</span>,
-  <span class="key">"run_security"</span>: <span class="boolean">true</span>,
-  <span class="key">"run_chaos"</span>: <span class="boolean">false</span>
-<span class="key">}</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- GET /api/status -->
-        <div class="endpoint-card collapsed">
-            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
                 <div class="endpoint-method get">GET</div>
                 <div class="endpoint-path">
-                    <div class="path">/api/status</div>
-                    <div class="desc">Check current run status</div>
+                    <div class="path">/api/audit</div>
+                    <div class="desc">Trigger a website audit and return the results</div>
                 </div>
                 <div class="endpoint-toggle">⌄</div>
             </div>
@@ -634,54 +517,8 @@ X-Requested-With: XMLHttpRequest</div>
                 <div class="endpoint-content">
                     <div class="endpoint-section">
                         <h4>Request</h4>
-                        <p>Get the status of the current or most recent audit run.</p>
                         <p><strong>Headers:</strong></p>
-                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;</div>
-                        <p><strong>Query Parameters:</strong> None</p>
-                    </div>
-                    <div class="endpoint-section">
-                        <h4>Response</h4>
-                        <p><strong>Status: 200 OK</strong></p>
-                        <div class="code-block"><span class="key">{</span>
-  <span class="key">"status"</span>: <span class="string">"running"</span>,
-  <span class="key">"current_run_id"</span>: <span class="string">"run_abc123xyz"</span>,
-  <span class="key">"progress"</span>: <span class="key">{</span>
-    <span class="key">"pages_crawled"</span>: <span class="number">12</span>,
-    <span class="key">"total_pages"</span>: <span class="number">50</span>,
-    <span class="key">"pct_complete"</span>: <span class="number">24</span>,
-    <span class="key">"current_module"</span>: <span class="string">"links"</span>
-  <span class="key">}</span>,
-  <span class="key">"started_at"</span>: <span class="string">"2026-04-15T14:30:00Z"</span>
-<span class="key">}</span></div>
-                        <p><strong>Possible Status Values:</strong></p>
-                        <div class="info-list">
-                            <li><strong>idle:</strong> No audit running</li>
-                            <li><strong>running:</strong> Audit in progress</li>
-                            <li><strong>completed:</strong> Audit finished successfully</li>
-                            <li><strong>failed:</strong> Audit encountered an error</li>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- GET /api/runs -->
-        <div class="endpoint-card collapsed">
-            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
-                <div class="endpoint-method get">GET</div>
-                <div class="endpoint-path">
-                    <div class="path">/api/runs</div>
-                    <div class="desc">List recent audit runs</div>
-                </div>
-                <div class="endpoint-toggle">⌄</div>
-            </div>
-            <div class="endpoint-body">
-                <div class="endpoint-content">
-                    <div class="endpoint-section">
-                        <h4>Request</h4>
-                        <p>Retrieve a list of recent audit runs for your account.</p>
-                        <p><strong>Headers:</strong></p>
-                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;</div>
+                        <div class="code-block">X-API-Key: wa_your_api_key_here</div>
                         <p><strong>Query Parameters:</strong></p>
                         <table class="param-table">
                             <thead>
@@ -693,100 +530,83 @@ X-Requested-With: XMLHttpRequest</div>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><span class="param-name">limit</span></td>
-                                    <td><span class="param-type">integer</span></td>
-                                    <td>Results to return (default: 20, max: 100)</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="param-name">offset</span></td>
-                                    <td><span class="param-type">integer</span></td>
-                                    <td>Results to skip for pagination (default: 0)</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="endpoint-section">
-                        <h4>Response</h4>
-                        <p><strong>Status: 200 OK</strong></p>
-                        <div class="code-block"><span class="key">[</span>
-  <span class="key">{</span>
-    <span class="key">"run_id"</span>: <span class="string">"run_abc123xyz"</span>,
-    <span class="key">"base_url"</span>: <span class="string">"https://example.com"</span>,
-    <span class="key">"environment"</span>: <span class="string">"production"</span>,
-    <span class="key">"started_at"</span>: <span class="string">"2026-04-15T14:30:00Z"</span>,
-    <span class="key">"completed_at"</span>: <span class="string">"2026-04-15T14:45:00Z"</span>,
-    <span class="key">"status"</span>: <span class="string">"completed"</span>,
-    <span class="key">"summary"</span>: <span class="key">{</span>
-      <span class="key">"issues"</span>: <span class="number">7</span>,
-      <span class="key">"warnings"</span>: <span class="number">3</span>
-    <span class="key">}</span>
-  <span class="key">}</span>
-<span class="key">]</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- GET /report/{run_id}/json -->
-        <div class="endpoint-card collapsed">
-            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
-                <div class="endpoint-method get">GET</div>
-                <div class="endpoint-path">
-                    <div class="path">/report/{run_id}/json</div>
-                    <div class="desc">Get full report as JSON</div>
-                </div>
-                <div class="endpoint-toggle">⌄</div>
-            </div>
-            <div class="endpoint-body">
-                <div class="endpoint-content">
-                    <div class="endpoint-section">
-                        <h4>Request</h4>
-                        <p>Retrieve the complete audit report for a specific run in JSON format.</p>
-                        <p><strong>Headers:</strong></p>
-                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;</div>
-                        <p><strong>Path Parameters:</strong></p>
-                        <table class="param-table">
-                            <thead>
-                                <tr>
-                                    <th>Parameter</th>
-                                    <th>Type</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><span class="param-name">run_id</span></td>
+                                    <td><span class="param-name">businessUrl</span></td>
                                     <td><span class="param-type">string</span></td>
-                                    <td>The run ID from POST /run response</td>
+                                    <td>Website URL to audit <span class="param-required">required</span><br><small style="color:var(--text-muted);">e.g. <code style="font-size:0.8rem;">example.com</code> or <code style="font-size:0.8rem;">https://example.com</code></small></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">businessName</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Name of the business <span class="param-required">required</span><br><small style="color:var(--text-muted);">e.g. <code style="font-size:0.8rem;">Example Inc</code></small></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">businessCity</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>City for local search analysis <span class="param-required">required</span><br><small style="color:var(--text-muted);">e.g. <code style="font-size:0.8rem;">Seattle, WA</code></small></td>
                                 </tr>
                             </tbody>
                         </table>
+                        <p style="margin-top:16px;"><strong>Example URL:</strong></p>
+                        <div class="code-block">GET /api/audit?businessUrl=example.com&businessName=Example+Inc&businessCity=Seattle</div>
                     </div>
                     <div class="endpoint-section">
-                        <h4>Response</h4>
-                        <p><strong>Status: 200 OK</strong></p>
-                        <p>Returns the full audit report object with all results, metrics, and details.</p>
+                        <h4>Responses</h4>
+                        <p><strong>200 OK — Audit completed:</strong></p>
                         <div class="code-block"><span class="key">{</span>
-  <span class="key">"run_id"</span>: <span class="string">"run_abc123xyz"</span>,
-  <span class="key">"base_url"</span>: <span class="string">"https://example.com"</span>,
-  <span class="key">"pages"</span>: [...],
-  <span class="key">"issues"</span>: [...],
-  <span class="key">"security_findings"</span>: [...],
-  <span class="key">"performance_metrics"</span>: {...},
-  <span class="key">"completed_at"</span>: <span class="string">"2026-04-15T14:45:00Z"</span>
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"request_id"</span>: <span class="string">"a1b2c3d4-e5f6-7890-abcd-ef1234567890"</span>,
+  <span class="key">"timestamp"</span>: <span class="string">"2026-03-31T12:00:00.000Z"</span>,
+  <span class="key">"duration_ms"</span>: <span class="number">15230</span>,
+  <span class="key">"audit"</span>: <span class="key">{</span>
+    <span class="key">"format"</span>: <span class="string">"html_report"</span>,
+    <span class="key">"report_url"</span>: <span class="string">"https://website-auditor.io/report/abc123"</span>,
+    <span class="key">"status"</span>: <span class="string">"completed"</span>,
+    <span class="key">"note"</span>: <span class="string">"The audit completed successfully. The full HTML report is available at the report_url."</span>
+  <span class="key">}</span>
+<span class="key">}</span></div>
+                        <p style="margin-top:16px;"><strong>400 Validation Error:</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"success"</span>: <span class="boolean">false</span>,
+  <span class="key">"error"</span>: <span class="string">"Validation failed"</span>,
+  <span class="key">"details"</span>: <span class="key">[</span>
+    <span class="string">"businessUrl is required. Provide the website URL to audit."</span>,
+    <span class="string">"businessCity is required. Provide the city for local search analysis."</span>
+  <span class="key">]</span>
+<span class="key">}</span></div>
+                        <p style="margin-top:16px;"><strong>401 Invalid API Key:</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"success"</span>: <span class="boolean">false</span>,
+  <span class="key">"error"</span>: <span class="string">"Invalid API key. Check that your key is correct."</span>
+<span class="key">}</span></div>
+                        <p style="margin-top:16px;"><strong>429 Rate Limited:</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"success"</span>: <span class="boolean">false</span>,
+  <span class="key">"error"</span>: <span class="string">"Rate limit exceeded. You can make 5 requests per day."</span>,
+  <span class="key">"rate_limit"</span>: <span class="key">{</span>
+    <span class="key">"limit"</span>: <span class="number">5</span>,
+    <span class="key">"remaining"</span>: <span class="number">0</span>,
+    <span class="key">"resets_at"</span>: <span class="string">"2026-03-31T23:59:59.999Z"</span>
+  <span class="key">}</span>
+<span class="key">}</span></div>
+                        <p style="margin-top:16px;"><strong>502 Upstream Error:</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"success"</span>: <span class="boolean">false</span>,
+  <span class="key">"request_id"</span>: <span class="string">"a1b2c3d4-e5f6-7890-abcd-ef1234567890"</span>,
+  <span class="key">"error"</span>: <span class="string">"The audit service returned an error. Please try again later."</span>,
+  <span class="key">"upstream_status"</span>: <span class="number">500</span>
 <span class="key">}</span></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- GET /report/{run_id}/download/json -->
+        <!-- GET /health -->
         <div class="endpoint-card collapsed">
             <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
                 <div class="endpoint-method get">GET</div>
                 <div class="endpoint-path">
-                    <div class="path">/report/{run_id}/download/json</div>
-                    <div class="desc">Download report as JSON file</div>
+                    <div class="path">/health</div>
+                    <div class="desc">Health check</div>
                 </div>
                 <div class="endpoint-toggle">⌄</div>
             </div>
@@ -794,123 +614,15 @@ X-Requested-With: XMLHttpRequest</div>
                 <div class="endpoint-content">
                     <div class="endpoint-section">
                         <h4>Request</h4>
-                        <p>Download the audit report as a JSON file attachment.</p>
-                        <p><strong>Headers:</strong></p>
-                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;</div>
-                        <p><strong>Path Parameters:</strong></p>
-                        <table class="param-table">
-                            <thead>
-                                <tr>
-                                    <th>Parameter</th>
-                                    <th>Type</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><span class="param-name">run_id</span></td>
-                                    <td><span class="param-type">string</span></td>
-                                    <td>The run ID from POST /run response</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <p>No authentication required.</p>
                     </div>
                     <div class="endpoint-section">
                         <h4>Response</h4>
                         <p><strong>Status: 200 OK</strong></p>
-                        <p><strong>Content-Type:</strong> application/json</p>
-                        <p><strong>Content-Disposition:</strong> attachment; filename="audit-{run_id}.json"</p>
-                        <p>Returns the full report as a downloadable JSON file.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- GET /report/{run_id}/download/csv -->
-        <div class="endpoint-card collapsed">
-            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
-                <div class="endpoint-method get">GET</div>
-                <div class="endpoint-path">
-                    <div class="path">/report/{run_id}/download/csv</div>
-                    <div class="desc">Download report as CSV file</div>
-                </div>
-                <div class="endpoint-toggle">⌄</div>
-            </div>
-            <div class="endpoint-body">
-                <div class="endpoint-content">
-                    <div class="endpoint-section">
-                        <h4>Request</h4>
-                        <p>Download the audit results as a CSV file for spreadsheet analysis.</p>
-                        <p><strong>Headers:</strong></p>
-                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;</div>
-                        <p><strong>Path Parameters:</strong></p>
-                        <table class="param-table">
-                            <thead>
-                                <tr>
-                                    <th>Parameter</th>
-                                    <th>Type</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><span class="param-name">run_id</span></td>
-                                    <td><span class="param-type">string</span></td>
-                                    <td>The run ID from POST /run response</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="endpoint-section">
-                        <h4>Response</h4>
-                        <p><strong>Status: 200 OK</strong></p>
-                        <p><strong>Content-Type:</strong> text/csv</p>
-                        <p><strong>Content-Disposition:</strong> attachment; filename="audit-{run_id}.csv"</p>
-                        <p>Returns the audit results as a CSV with columns for page, issue type, severity, and description.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- GET /stream -->
-        <div class="endpoint-card collapsed">
-            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
-                <div class="endpoint-method get">GET</div>
-                <div class="endpoint-path">
-                    <div class="path">/stream</div>
-                    <div class="desc">Real-time progress via Server-Sent Events (SSE)</div>
-                </div>
-                <div class="endpoint-toggle">⌄</div>
-            </div>
-            <div class="endpoint-body">
-                <div class="endpoint-content">
-                    <div class="endpoint-section">
-                        <h4>Request</h4>
-                        <p>Open a Server-Sent Events (SSE) stream to receive real-time progress updates for the current audit.</p>
-                        <p><strong>Headers:</strong></p>
-                        <div class="code-block">Authorization: Bearer &lt;API_KEY&gt;
-Accept: text/event-stream</div>
-                    </div>
-                    <div class="endpoint-section">
-                        <h4>Response</h4>
-                        <p><strong>Status: 200 OK</strong></p>
-                        <p><strong>Content-Type:</strong> text/event-stream</p>
-                        <p>Streams events with this structure:</p>
-                        <div class="code-block">data: <span class="key">{</span>
-  <span class="key">"module"</span>: <span class="string">"links"</span>,
-  <span class="key">"pct"</span>: <span class="number">45</span>,
-  <span class="key">"msg"</span>: <span class="string">"Checking links..."</span>,
-  <span class="key">"ts"</span>: <span class="string">"2026-04-15T14:32:10Z"</span>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"status"</span>: <span class="string">"ok"</span>,
+  <span class="key">"timestamp"</span>: <span class="string">"2026-03-31T12:00:00.000Z"</span>
 <span class="key">}</span></div>
-                        <p style="margin-top:16px;"><strong>JavaScript Example:</strong></p>
-                        <div class="code-block">const es = new EventSource(
-  '/stream',
-  { headers: { Authorization: 'Bearer YOUR_KEY' } }
-);
-es.onmessage = (e) => {
-  const progress = JSON.parse(e.data);
-  console.log(progress.msg, progress.pct + '%');
-};</div>
                     </div>
                 </div>
             </div>
@@ -925,70 +637,42 @@ es.onmessage = (e) => {
     <div class="status-code-list">
         <div class="status-code-item">
             <div class="code success">200 OK</div>
-            <div class="desc">Request succeeded and data is returned</div>
-        </div>
-        <div class="status-code-item">
-            <div class="code created">201 Created</div>
-            <div class="desc">Resource was successfully created</div>
-        </div>
-        <div class="status-code-item">
-            <div class="code accepted">202 Accepted</div>
-            <div class="desc">Request accepted for processing (audit queued)</div>
+            <div class="desc">Audit completed successfully</div>
         </div>
         <div class="status-code-item">
             <div class="code error">400 Bad Request</div>
-            <div class="desc">Invalid request parameters</div>
+            <div class="desc">Missing or invalid query parameters</div>
         </div>
         <div class="status-code-item">
             <div class="code error">401 Unauthorized</div>
             <div class="desc">Missing or invalid API key</div>
         </div>
         <div class="status-code-item">
-            <div class="code error">403 Forbidden</div>
-            <div class="desc">Quota exceeded or rate limited</div>
-        </div>
-        <div class="status-code-item">
-            <div class="code error">404 Not Found</div>
-            <div class="desc">Resource not found (e.g., invalid run_id)</div>
-        </div>
-        <div class="status-code-item">
             <div class="code error">429 Too Many Requests</div>
-            <div class="desc">Rate limit exceeded (see Rate Limits section)</div>
+            <div class="desc">Rate limit exceeded (5 requests per key per day)</div>
         </div>
         <div class="status-code-item">
-            <div class="code error">500 Internal Server Error</div>
-            <div class="desc">Server-side error; retry with exponential backoff</div>
-        </div>
-        <div class="status-code-item">
-            <div class="code error">503 Service Unavailable</div>
-            <div class="desc">Service temporarily unavailable; retry after delay</div>
+            <div class="code error">502 Bad Gateway</div>
+            <div class="desc">Upstream audit service error; try again later</div>
         </div>
     </div>
 </div>
 
-<!-- Best Practices -->
+<!-- Admin Portal -->
 <div class="api-section">
-    <h2>Best Practices</h2>
+    <h2>Admin Portal</h2>
+    <p>Visit <a href="/admin_portal" style="color:var(--accent);">/admin_portal</a> to manage your API keys. Sign in with Google.</p>
 
-    <h3>Error Handling</h3>
-    <p>All error responses include a JSON body with details:</p>
-    <div class="code-block"><span class="key">{</span>
-  <span class="key">"error"</span>: <span class="string">"invalid_request"</span>,
-  <span class="key">"message"</span>: <span class="string">"base_url is required"</span>,
-  <span class="key">"code"</span>: <span class="number">400</span>
-<span class="key">}</span></div>
-
-    <h3>Polling vs Streaming</h3>
-    <p>For progress updates, prefer Server-Sent Events (SSE) via <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">/stream</code> rather than repeatedly polling <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">/api/status</code>. SSE is more efficient and provides real-time updates without extra API calls.</p>
-
-    <h3>Retry Strategy</h3>
-    <p>Use exponential backoff for retries on 5xx errors. Start with 1 second and double the delay with each retry (1s, 2s, 4s, 8s, etc). Maximum 5 retries recommended.</p>
-
-    <h3>Request Timeouts</h3>
-    <p>Set your HTTP client timeout to at least 60 seconds, as audit processing may take time depending on site size and concurrency settings.</p>
-
-    <h3>Webhooks (Coming Soon)</h3>
-    <p>We're building webhook support to notify your system when audits complete. This will eliminate the need for polling entirely. Stay tuned!</p>
+    <div class="auth-card">
+        <h3>Portal Features</h3>
+        <ul class="info-list">
+            <li><strong>Create keys</strong> — plaintext shown once at creation, copy immediately</li>
+            <li><strong>View keys</strong> — creation date and last-used timestamp for each key</li>
+            <li><strong>Revoke keys</strong> — instantly disable a key that should no longer work</li>
+            <li><strong>Rotate keys</strong> — revokes the old key and generates a new one</li>
+            <li><strong>Usage stats</strong> — requests today and total requests per key</li>
+        </ul>
+    </div>
 </div>
 
 {% endblock %}
