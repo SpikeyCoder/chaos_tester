@@ -103,32 +103,32 @@
     <div style="padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-top:8px;">
       <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:10px;font-weight:600;">Basic Scan (recommended)</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">
-        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(59,130,246,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-          <input type="checkbox" checked onchange="document.getElementById('h_avail').value=this.checked?'on':''" style="accent-color:var(--accent);width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Page Availability">
+        <label for="mod-availability" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(59,130,246,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+          <input type="checkbox" id="mod-availability" checked onchange="document.getElementById('h_avail').value=this.checked?'on':''" style="accent-color:var(--accent);width:18px;height:18px;margin-top:2px;flex-shrink:0;">
           <div><strong style="color:var(--text);font-size:0.9rem;">Page Availability</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Can visitors reach every page on your site?</div></div>
         </label>
-        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(168,85,247,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-          <input type="checkbox" checked onchange="document.getElementById('h_links').value=this.checked?'on':''" style="accent-color:#a855f7;width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Broken Links">
+        <label for="mod-links" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(168,85,247,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+          <input type="checkbox" id="mod-links" checked onchange="document.getElementById('h_links').value=this.checked?'on':''" style="accent-color:#a855f7;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
           <div><strong style="color:var(--text);font-size:0.9rem;">Broken Links</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Finds dead links, missing images, and broken scripts</div></div>
         </label>
-        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(239,68,68,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-          <input type="checkbox" checked onchange="document.getElementById('h_security').value=this.checked?'on':''" style="accent-color:#ef4444;width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Security Scan">
+        <label for="mod-security" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(239,68,68,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+          <input type="checkbox" id="mod-security" checked onchange="document.getElementById('h_security').value=this.checked?'on':''" style="accent-color:#ef4444;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
           <div><strong style="color:var(--text);font-size:0.9rem;">Security Scan</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Checks for SSL, security headers, and exposed files</div></div>
         </label>
-        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(6,182,212,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-          <input type="checkbox" checked onchange="document.getElementById('h_forms').value=this.checked?'on':''" style="accent-color:#06b6d4;width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Forms">
+        <label for="mod-forms" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(6,182,212,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+          <input type="checkbox" id="mod-forms" checked onchange="document.getElementById('h_forms').value=this.checked?'on':''" style="accent-color:#06b6d4;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
           <div><strong style="color:var(--text);font-size:0.9rem;">Forms</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Tests that your contact and sign-up forms work correctly</div></div>
         </label>
       </div>
       <details style="margin-top:12px;">
         <summary style="cursor:pointer;font-size:0.82rem;font-weight:600;color:var(--text-muted);padding:6px 0;min-height:36px;">Advanced Options</summary>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:8px;">
-          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(249,115,22,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-            <input type="checkbox" onchange="document.getElementById('h_chaos').value=this.checked?'on':''" style="accent-color:#f97316;width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Resilience Testing">
+          <label for="mod-chaos" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(249,115,22,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+            <input type="checkbox" id="mod-chaos" onchange="document.getElementById('h_chaos').value=this.checked?'on':''" style="accent-color:#f97316;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
             <div><strong style="color:var(--text);font-size:0.9rem;">Resilience Testing</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Tests how your site handles errors and unexpected conditions</div></div>
           </label>
-          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(234,179,8,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
-            <input type="checkbox" onchange="document.getElementById('h_auth').value=this.checked?'on':''" style="accent-color:#eab308;width:18px;height:18px;margin-top:2px;flex-shrink:0;" aria-label="Login and Sessions">
+          <label for="mod-auth" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(234,179,8,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+            <input type="checkbox" id="mod-auth" onchange="document.getElementById('h_auth').value=this.checked?'on':''" style="accent-color:#eab308;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
             <div><strong style="color:var(--text);font-size:0.9rem;">Login and Sessions</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Checks login pages and <span title="How your site remembers who is logged in" style="border-bottom:1px dotted var(--text-muted);cursor:help;">session handling</span></div></div>
           </label>
         </div>
