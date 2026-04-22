@@ -8,8 +8,8 @@
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 12 6 6 10 10 14 4"/></svg>
     Over 1,000+ websites audited
   </div>
-  <h1>Audit any website in one click</h1>
-  <p class="hero-subtitle">See how your business shows up in AI tools like ChatGPT and Perplexity. We also catch broken pages, security gaps, and slow load times — all in 30 seconds, no signup needed.</p>
+  <h1>Does ChatGPT recommend your business?</h1>
+  <p class="hero-subtitle">Most small businesses don't know. In 30 seconds we'll check your AI visibility, site security, and page speed — and tell you what to fix first. No signup needed.</p>
 
   <form method="POST" action="/run" id="runForm" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -37,7 +37,7 @@
       {% if status == 'running' %}
         <a href="/progress" class="btn-audit" aria-label="View audit progress">View Progress</a>
       {% else %}
-        <button type="submit" class="btn-audit" id="auditBtn" disabled style="opacity:0.5;cursor:not-allowed;min-width:160px;" aria-label="Launch website audit">Audit Website</button>
+        <button type="submit" class="btn-audit" id="auditBtn" disabled style="opacity:0.5;cursor:not-allowed;min-width:160px;" aria-label="Check my site">Check my site</button>
       {% endif %}
       <div id="loading-indicator" style="display:none;margin-top:12px;color:var(--accent);">
         <span style="display:inline-block;animation:spin 2s linear infinite;margin-right:8px;">⏳</span>
@@ -344,7 +344,7 @@
     </details>
     <details class="faq-item">
       <summary>Do I need to create an account?</summary>
-      <div class="faq-answer">No account is needed. Simply enter your website URL and click "Audit Website" to get your comprehensive report instantly. No signup, no email verification.</div>
+      <div class="faq-answer">No account is needed. Simply enter your website URL and click "Check my site" to get your comprehensive report instantly. No signup, no email verification.</div>
     </details>
     <details class="faq-item">
       <summary>What does the audit check?</summary>
@@ -693,7 +693,7 @@ function showAuditSpinner() {
 function hideAuditSpinner() {
   var btn = document.getElementById('auditBtn');
   if (!btn) return;
-  btn.innerHTML = 'Audit Website';
+  btn.innerHTML = 'Check my site';
 }
 
 function detectBusiness() {
