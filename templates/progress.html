@@ -49,17 +49,24 @@
 </nav>
 
 <div class="card">
-  <h2><span class="spinner" id="runSpinner"></span> Test Run in Progress</h2>
+  <h1 style="font-size:1.3rem;margin:0 0 8px;"><span class="spinner" id="runSpinner" aria-hidden="true"></span> Test Run in Progress</h1>
 
   <!-- Enhanced progress bar with gradient -->
-  <div style="position:relative;height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:16px;">
+  <div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Audit progress" id="progressBarWrap" aria-valuenow="0" style="position:relative;height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:16px;">
     <div id="progressBar" style="width:0%;height:100%;border-radius:4px;background:linear-gradient(90deg,#3b82f6,#8b5cf6,#3b82f6);background-size:200% 100%;animation:shimmer 2s linear infinite;transition:width .4s ease;"></div>
   </div>
-  <style>@keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }</style>
+  <style>
+    @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .spinner { animation: none !important; border-top-color: var(--accent); }
+      .pulse-dot { animation: none !important; }
+      #progressBar { animation: none !important; }
+    }
+  </style>
 
   <div class="mt-2" style="display:flex;justify-content:space-between;align-items:center;">
-    <span id="progressText" class="text-muted text-sm">Starting…</span>
-    <span id="progressPct" style="font-size:1.5rem;font-weight:700;color:var(--accent);">0%</span>
+    <span id="progressText" class="text-muted text-sm" role="status" aria-live="polite" aria-atomic="true">Starting…</span>
+    <span id="progressPct" aria-live="polite" aria-atomic="true" style="font-size:1.5rem;font-weight:700;color:var(--accent);">0%</span>
   </div>
 
   <!-- Live check items -->

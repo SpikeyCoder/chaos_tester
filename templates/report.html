@@ -74,15 +74,15 @@
   </div>
   <div class="report-action-pills">
     <button type="button" class="pill-btn pill-share" onclick="copyShareLink()" id="share-link-btn" aria-label="Share report">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
       Share
     </button>
     <button type="button" class="pill-btn pill-pdf" onclick="downloadPDF()" aria-label="Export PDF">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Export PDF
     </button>
     <button type="button" class="pill-btn pill-schedule" onclick="window.location.href='/'" aria-label="Schedule Retest">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Schedule Retest
     </button>
   </div>
@@ -126,7 +126,7 @@
 <div id="sect-fix-first" class="card fade-up" style="margin-bottom:24px;border:1px solid rgba(249,115,22,0.35);background:linear-gradient(135deg, rgba(249,115,22,0.08), rgba(239,68,68,0.05));" role="region" aria-labelledby="fix-first-heading">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
     <div style="width:40px;height:40px;border-radius:10px;background:rgba(249,115,22,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
     </div>
     <div>
       <h2 id="fix-first-heading" style="margin:0;font-size:1.2rem;font-weight:700;color:#fff;">Fix These 3 Things First</h2>
@@ -295,7 +295,7 @@
     <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('all')" title="View detailed results">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-time">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" focusable="false"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </div>
       </div>
       <div class="exec-metric-value">{{ report.duration_s|round|int }}s</div>
@@ -308,7 +308,7 @@
 <div class="section-summary card fade-up" style="margin-bottom:24px;" role="region" aria-label="Section summary scores">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
     <div style="width:40px;height:40px;border-radius:10px;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2a10 10 0 0 1 7.07 2.93"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2a10 10 0 0 1 7.07 2.93"/></svg>
     </div>
     <div>
       <h2 style="margin:0;font-size:1.2rem;font-weight:700;color:#fff;">Snapshot Summary</h2>
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var offset = circ - (score / 100) * circ;
     var html = '<div class="section-gauge-item">' +
       '<div class="gauge-ring" style="position:relative;width:110px;height:110px;">' +
-        '<svg viewBox="0 0 100 100" width="110" height="110">' +
+        '<svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true" focusable="false">' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
             'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
@@ -623,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;">
       <div style="display:flex;align-items:center;gap:16px;">
         <div style="padding:12px;background:rgba(99,102,241,0.20);border-radius:8px;display:inline-flex;">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
           </svg>
         </div>
@@ -637,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() {
          onmouseover="this.style.background='#4f46e5'"
          onmouseout="this.style.background='#6366f1'">
         Click Here
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px;" aria-hidden="true" focusable="false">
           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
           <polyline points="15 3 21 3 21 9"/>
           <line x1="10" y1="14" x2="21" y2="3"/>
@@ -713,7 +713,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="card fade-up" style="margin-top:24px;" id="sect-history">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
     <div style="width:40px;height:40px;border-radius:10px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
     </div>
     <div>
       <h2 style="margin:0;font-size:1.2rem;font-weight:700;">Audit History for {{ domain }}</h2>
@@ -1444,8 +1444,9 @@ function switchPerfTab(strategy) {
   background: transparent; color: var(--text);
   cursor: pointer; font-size: 14px; transition: all .2s;
 }
-.perf-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.perf-tab.active { background: #1d4ed8; color: #fff; border-color: #1d4ed8; font-weight: 600; }
 .perf-tab:hover:not(.active) { background: rgba(99,102,241,.15); }
+.perf-tab:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
 
 .perf-grid {
   display: grid;

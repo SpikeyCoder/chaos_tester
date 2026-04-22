@@ -611,6 +611,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .fade-up-delay-2 { transition-delay: 0.2s; }
 .fade-up-delay-3 { transition-delay: 0.3s; }
 
+/* -- Reduced-motion accessibility guard -------------------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .fade-up { opacity: 1 !important; transform: none !important; }
+    .pulse-dot, .spinner { animation: none !important; }
+}
+
 /* -- Gradient text for headings --------------------------- */
 .gradient-text {
     background: var(--gradient-accent);
@@ -1258,7 +1270,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 <!-- Floating button -->
 <button type="button" class="bug-btn" onclick="bugReport.open()" title="Report a bug or request a feature" aria-label="Report a bug">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
         <path d="M8 2l1.88 1.88M14.12 3.88L16 2M9 7.13v-1a3.003 3.003 0 116 0v1"/>
         <path d="M12 20c-3.3 0-6-2.7-6-6v-3a6 6 0 0112 0v3c0 3.3-2.7 6-6 6z"/>
         <path d="M12 20v2M6 13H2M22 13h-4M6 17H3.5M20.5 17H18M6 9H4M20 9h-2"/>
@@ -1269,7 +1281,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 <div class="bug-overlay" id="bugOverlay" onclick="if(event.target===this)bugReport.close()">
     <div class="bug-modal" id="bugModal">
         <button type="button" class="bug-modal-close" onclick="bugReport.close()" aria-label="Close">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
 
         <!-- Form state -->
