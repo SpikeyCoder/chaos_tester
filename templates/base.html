@@ -1067,6 +1067,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     /* ── AI Visibility mobile ──────────────── */
     #perf-dashboard .card,
     .perf-tabs { flex-wrap: wrap; }
+
+    /* Touch targets WCAG 2.5.5 AAA ≥44px on mobile */
+    .perf-tab,
+    .filter-btn,
+    .module-btn {
+        min-height: 44px;
+        padding: 10px 14px;
+    }
 }
 
 @media (max-width: 480px) {
