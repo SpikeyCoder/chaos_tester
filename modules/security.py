@@ -195,10 +195,11 @@ class SecurityScanner(BaseModule):
 
     def _test_sensitive_files(self):
         base = self.config.base_url.rstrip("/")
+        probe_timeout = 3
 
-        def probe_path(path, timeout):
+        def _probe(path):
             url = base + path
-            resp, err, dt = self._safe_request("get", url, timeout=timeout)
+            resp, err, dt = self._safe_request("get", url, timeout=probe_timeout)
             if not resp or resp.status_code != 200:
                 return
             content_type = resp.headers.get("content-type", "").lower()
@@ -236,9 +237,12 @@ class SecurityScanner(BaseModule):
             )
 
         with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = {executor.submit(probe_path, path, 3): path for path in self.SENSITIVE_PATHS}
+            futures = {executor.submit(_probe, path): path for path in self.SENSITIVE_PATHS}
             for future in as_completed(futures):
-                future.result()
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.warning("Sensitive file probe failed for %s: %s", futures[future], exc)
 
     # -- CORS Misconfiguration -------------------------------------
 
@@ -341,9 +345,9 @@ class SecurityScanner(BaseModule):
         base = self.config.base_url.rstrip("/")
         dirs_to_check = ["/static/", "/uploads/", "/images/", "/assets/", "/media/", "/files/"]
 
-        def probe_dir(path, timeout):
+        def _check_dir(path):
             url = base + path
-            resp, err, dt = self._safe_request("get", url, timeout=timeout)
+            resp, err, dt = self._safe_request("get", url, timeout=3)
             if not resp or resp.status_code != 200:
                 return
             body = resp.text.lower()
@@ -360,9 +364,12 @@ class SecurityScanner(BaseModule):
                 )
 
         with ThreadPoolExecutor(max_workers=6) as executor:
-            futures = {executor.submit(probe_dir, path, 3): path for path in dirs_to_check}
+            futures = [executor.submit(_check_dir, path) for path in dirs_to_check]
             for future in as_completed(futures):
-                future.result()
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.debug("Directory listing check failed: %s", exc)
 
     # -- Error Disclosure ------------------------------------------
 
@@ -378,8 +385,8 @@ class SecurityScanner(BaseModule):
             (base + "/<script>", "xss_in_url"),
         ]
 
-        def probe_error(url, label, timeout):
-            resp, err, dt = self._safe_request("get", url, timeout=timeout)
+        def _check_payload(url, label):
+            resp, err, dt = self._safe_request("get", url, timeout=3)
             if not resp:
                 return
             body = resp.text[:5000].lower()
@@ -403,6 +410,9 @@ class SecurityScanner(BaseModule):
                 )
 
         with ThreadPoolExecutor(max_workers=4) as executor:
-            futures = {executor.submit(probe_error, url, label, 3): label for url, label in payloads}
+            futures = [executor.submit(_check_payload, url, label) for url, label in payloads]
             for future in as_completed(futures):
-                future.result()
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.debug("Error disclosure check failed: %s", exc)

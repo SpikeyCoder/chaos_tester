@@ -56,16 +56,20 @@ class ChaosTestRunner:
 
     # ── Module runners (each returns results list) ──────────────
 
-    def _run_links(self, discovered_pages):
+    def _run_links(self, discovered_pages, page_cache=None):
         self._emit("links", 25, "Checking links, images, scripts, stylesheets...")
         scanner = BrokenLinkScanner(self.config)
+        if page_cache:
+            scanner.page_cache = page_cache
         results = scanner.run(discovered_pages)
         self._add_results(results)
         self._emit("links", 40, f"Done -- {len(results)} resources checked.")
 
-    def _run_forms(self, discovered_pages):
+    def _run_forms(self, discovered_pages, page_cache=None):
         self._emit("forms", 45, "Testing forms, buttons, and input handling...")
         tester = FormInteractionTester(self.config)
+        if page_cache:
+            tester.page_cache = page_cache
         results = tester.run(discovered_pages)
         self._add_results(results)
         self._emit("forms", 55, f"Done -- {len(results)} interaction tests.")
@@ -134,6 +138,7 @@ class ChaosTestRunner:
 
         try:
             discovered_pages = []
+            page_cache: dict = {}
 
             # -- Start slow API calls immediately (they don't need discovered pages) --
             early_tasks = []
@@ -156,15 +161,16 @@ class ChaosTestRunner:
                     r.url for r in results
                     if r.module == "availability" and "Page load" in r.name and r.status.value == "passed"
                 })
+                page_cache = scanner.page_cache
                 self._emit("availability", 20, f"Done -- {len(discovered_pages)} pages OK, {len(results)} checks.")
 
             # -- Phase 2: Page-dependent modules concurrently ----------
             page_tasks = []
 
             if self.config.run_links:
-                page_tasks.append(("links", lambda dp=discovered_pages: self._run_links(dp)))
+                page_tasks.append(("links", lambda dp=discovered_pages, pc=page_cache: self._run_links(dp, pc)))
             if self.config.run_forms:
-                page_tasks.append(("forms", lambda dp=discovered_pages: self._run_forms(dp)))
+                page_tasks.append(("forms", lambda dp=discovered_pages, pc=page_cache: self._run_forms(dp, pc)))
             if self.config.run_chaos:
                 page_tasks.append(("chaos", lambda dp=discovered_pages: self._run_chaos(dp)))
             if self.config.run_auth:

@@ -12,9 +12,11 @@ import logging
 import re
 from urllib.parse import urljoin, urlparse, urldefrag
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait, FIRST_COMPLETED
 from typing import List, Set
 
 from bs4 import BeautifulSoup
+from requests.adapters import HTTPAdapter
 
 from .base import BaseModule
 from ..models import TestResult, TestStatus, Severity
@@ -31,7 +33,11 @@ class AvailabilityScanner(BaseModule):
 
     def run(self, discovered_pages: list = None) -> List[TestResult]:
         """Crawl and test every discovered page concurrently."""
-        from concurrent.futures import ThreadPoolExecutor, as_completed
+        # Mount a connection pool adapter for efficient crawling and page testing
+        adapter = HTTPAdapter(pool_connections=20, pool_maxsize=20)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+        self.page_cache: dict = {}
         pages = discovered_pages or self._crawl()
         logger.info(f"[availability] Testing {len(pages)} pages concurrently")
 
@@ -49,26 +55,27 @@ class AvailabilityScanner(BaseModule):
     # -- Crawler -------------------------------------------------------
 
     def _crawl(self) -> List[str]:
-        """BFS crawl from base_url in parallel using 20 workers."""
+        """BFS crawl from base_url in parallel using 20 workers (continuous, no batch-wait)."""
         import threading
-        from concurrent.futures import ThreadPoolExecutor, as_completed
         visited: Set[str] = set()
         visited_lock = threading.Lock()
-        queue = deque()
+        _cache_lock = threading.Lock()
 
         seeds = [self.config.base_url] + list(self.config.seed_urls)
         for s in seeds:
             s = urldefrag(s)[0]
             if self._is_same_domain(s) and not any(ex in s for ex in self.config.excluded_paths):
-                if s not in visited:
-                    visited.add(s)
-                    queue.append((s, 0))
+                visited.add(s)
 
         def _fetch_links(url: str, depth: int):
             """Fetch a page and return newly discovered links."""
             new_links = []
             try:
-                resp = self._get(url)
+                resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
+                with _cache_lock:
+                    self.page_cache[url] = (resp, err, dt)
+                if err or not resp:
+                    return new_links
                 if "text/html" not in resp.headers.get("content-type", ""):
                     return new_links
                 soup = BeautifulSoup(resp.text, "html.parser")
@@ -82,30 +89,29 @@ class AvailabilityScanner(BaseModule):
             return new_links
 
         with ThreadPoolExecutor(max_workers=20) as executor:
-            while queue and len(visited) < self.config.max_pages:
-                # Grab up to 20 URLs from the queue for this parallel batch
-                batch = []
-                while queue and len(batch) < 20:
-                    url, depth = queue.popleft()
-                    if depth < self.config.crawl_depth:
-                        batch.append((url, depth))
+            # Submit all seeds immediately
+            pending = {}
+            for s in visited:
+                if len(visited) < self.config.max_pages:
+                    pending[executor.submit(_fetch_links, s, 0)] = (s, 0)
 
-                if not batch:
-                    break  # remaining URLs are at max depth, no more link discovery needed
-
-                futures = {executor.submit(_fetch_links, url, depth): (url, depth)
-                           for url, depth in batch}
-
-                for future in as_completed(futures):
+            # Continuously process completed futures and submit new work without waiting
+            # for the whole batch — eliminates the slowest-URL-blocks-next-batch problem.
+            while pending:
+                done, _ = wait(list(pending.keys()), return_when=FIRST_COMPLETED)
+                for future in done:
+                    pending.pop(future)
                     try:
                         new_links = future.result()
                         with visited_lock:
                             for href, new_depth in new_links:
-                                if href not in visited and len(visited) < self.config.max_pages:
+                                if (href not in visited
+                                        and len(visited) < self.config.max_pages
+                                        and new_depth < self.config.crawl_depth):
                                     visited.add(href)
-                                    queue.append((href, new_depth))
+                                    pending[executor.submit(_fetch_links, href, new_depth)] = (href, new_depth)
                     except Exception as e:
-                        logger.debug(f"[crawl] Batch fetch error: {e}")
+                        logger.debug(f"[crawl] Fetch error: {e}")
 
         logger.info(f"[availability] Discovered {len(visited)} pages")
         return sorted(visited)
@@ -113,7 +119,11 @@ class AvailabilityScanner(BaseModule):
     # -- Individual page test ------------------------------------------
 
     def _test_page(self, url: str):
-        resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
+        cached = self.page_cache.get(url)
+        if cached is not None:
+            resp, err, dt = cached
+        else:
+            resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
 
         if err:
             self.add_result(

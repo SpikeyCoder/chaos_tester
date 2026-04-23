@@ -11,6 +11,8 @@ Discovers forms and interactive elements across pages and tests:
 
 import logging
 import re
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urljoin
 from typing import List
 
@@ -38,56 +40,75 @@ class FormInteractionTester(BaseModule):
     }
 
     def run(self, discovered_pages: list = None) -> List[TestResult]:
-        from concurrent.futures import ThreadPoolExecutor, as_completed
         pages = discovered_pages or [self.config.base_url]
-        logger.info(f"[forms] Scanning forms on {len(pages)} pages concurrently")
+        logger.info(f"[forms] Scanning forms on {len(pages)} pages")
+        self._tested_signatures: dict = {}
+        self._signatures_lock = threading.Lock()
 
-        workers = min(self.config.concurrency, len(pages), 8)
-        with ThreadPoolExecutor(max_workers=workers) as executor:
-            futures = {executor.submit(self._scan_page, url): url for url in pages}
+        # Pass 1: fetch pages and collect (page_url, form, idx) work items in parallel
+        work_items = []
+        work_lock = threading.Lock()
+
+        def _collect_page(page_url: str):
+            page_cache = getattr(self, 'page_cache', {})
+            if page_url in page_cache:
+                resp, err, dt = page_cache[page_url]
+            else:
+                resp, err, dt = self._safe_request("get", page_url, timeout=self.config.request_timeout)
+            if err or not resp:
+                return
+            if "text/html" not in resp.headers.get("content-type", ""):
+                return
+            soup = BeautifulSoup(resp.text, "html.parser")
+            forms = soup.find_all("form")
+            with work_lock:
+                for idx, form in enumerate(forms):
+                    work_items.append((page_url, form, idx))
+            # Check for buttons outside forms that default to type="submit"
+            # Buttons with explicit type="button" are intentionally JS-driven and
+            # don't need a form wrapper, so we exclude them from this check.
+            buttons = soup.find_all("button")
+            buttons += soup.find_all("input", {"type": "submit"})
+            buttons += soup.find_all("a", {"role": "button"})
+            standalone_buttons = [
+                b for b in buttons
+                if not b.find_parent("form")
+                and b.get("type", "").lower() != "button"
+            ]
+            if standalone_buttons:
+                self.add_result(
+                    name=f"Standalone buttons: {self._short_path(page_url)}",
+                    description=f"Found {len(standalone_buttons)} button(s) outside <form> tags without type=\"button\"",
+                    status=TestStatus.WARNING,
+                    severity=Severity.LOW,
+                    url=page_url,
+                    details=f"Buttons: {[self._button_label(b) for b in standalone_buttons[:5]]}",
+                    recommendation="Add type=\"button\" to JS-driven buttons, or wrap submit buttons in a <form>.",
+                )
+
+        collect_workers = min(self.config.concurrency, len(pages), 8)
+        with ThreadPoolExecutor(max_workers=collect_workers) as executor:
+            futures = {executor.submit(_collect_page, url): url for url in pages}
             for future in as_completed(futures):
                 try:
                     future.result()
                 except Exception as exc:
-                    logger.warning("Forms scan failed for %s: %s", futures[future], exc)
+                    logger.warning("Forms collect failed for %s: %s", futures[future], exc)
+
+        # Pass 2: test all discovered forms in parallel (25 workers for I/O-bound submissions)
+        _FORM_WORKERS = 25
+        with ThreadPoolExecutor(max_workers=_FORM_WORKERS) as executor:
+            futures = {
+                executor.submit(self._test_form, pu, form, idx): (pu, idx)
+                for pu, form, idx in work_items
+            }
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.warning("Form test failed: %s", exc)
 
         return self.results
-
-    def _scan_page(self, page_url: str):
-        resp, err, dt = self._safe_request("get", page_url, timeout=self.config.request_timeout)
-        if err or not resp:
-            return
-        if "text/html" not in resp.headers.get("content-type", ""):
-            return
-
-        soup = BeautifulSoup(resp.text, "html.parser")
-        forms = soup.find_all("form")
-
-        for idx, form in enumerate(forms):
-            self._test_form(page_url, form, idx)
-
-        # Check for buttons outside forms that default to type="submit"
-        # Buttons with explicit type="button" are intentionally JS-driven and
-        # don't need a form wrapper, so we exclude them from this check.
-        buttons = soup.find_all("button")
-        buttons += soup.find_all("input", {"type": "submit"})
-        buttons += soup.find_all("a", {"role": "button"})
-        standalone_buttons = [
-            b for b in buttons
-            if not b.find_parent("form")
-            and b.get("type", "").lower() != "button"
-        ]
-
-        if standalone_buttons:
-            self.add_result(
-                name=f"Standalone buttons: {self._short_path(page_url)}",
-                description=f"Found {len(standalone_buttons)} button(s) outside <form> tags without type=\"button\"",
-                status=TestStatus.WARNING,
-                severity=Severity.LOW,
-                url=page_url,
-                details=f"Buttons: {[self._button_label(b) for b in standalone_buttons[:5]]}",
-                recommendation="Add type=\"button\" to JS-driven buttons, or wrap submit buttons in a <form>.",
-            )
 
     def _test_form(self, page_url: str, form, idx: int):
         action = form.get("action", "")
@@ -114,6 +135,13 @@ class FormInteractionTester(BaseModule):
             if inp.get("type", "").lower() == "hidden" and "csrf" in name.lower():
                 has_csrf = True
 
+        # Deduplicate: skip forms whose (action, method, fields) signature was already tested
+        sig = (form_url, method, frozenset(input_names))
+        with self._signatures_lock:
+            if sig in self._tested_signatures:
+                return
+            self._tested_signatures[sig] = page_url
+
         # -- CSRF check --------------------------------------------
         if method == "post" and not has_csrf:
             self.add_result(
@@ -131,7 +159,7 @@ class FormInteractionTester(BaseModule):
             empty_data = {name: "" for name in input_names}
             resp, err, dt = self._safe_request(
                 "post", form_url, data=empty_data,
-                timeout=self.config.request_timeout,
+                timeout=4,
             )
             if resp:
                 if resp.status_code == 500:
@@ -172,7 +200,7 @@ class FormInteractionTester(BaseModule):
             xss_data = {name: self.FUZZ_PAYLOADS["xss_basic"] for name in input_names}
             resp, err, dt = self._safe_request(
                 "post", form_url, data=xss_data,
-                timeout=self.config.request_timeout,
+                timeout=4,
             )
             if resp and self.FUZZ_PAYLOADS["xss_basic"] in resp.text:
                 self.add_result(
