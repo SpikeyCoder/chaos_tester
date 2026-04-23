@@ -13,6 +13,7 @@ Checks for common security misconfigurations:
 """
 
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List
 from urllib.parse import urljoin
 
@@ -195,53 +196,58 @@ class SecurityScanner(BaseModule):
     def _test_sensitive_files(self):
         base = self.config.base_url.rstrip("/")
 
-        for path in self.SENSITIVE_PATHS:
+        def _probe(path):
             url = base + path
-            resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
+            resp, err, dt = self._safe_request("get", url, timeout=3)
             if not resp:
-                continue
-
-            if resp.status_code == 200:
-                content_type = resp.headers.get("content-type", "").lower()
-                body_preview = resp.text[:200]
-
-                # robots.txt and sitemap are expected to be public
-                if path in ("/robots.txt", "/sitemap.xml", "/.well-known/security.txt"):
-                    self.add_result(
-                        name=f"Public file: {path}",
-                        description=f"{path} is publicly accessible (expected)",
-                        status=TestStatus.PASSED,
-                        severity=Severity.INFO,
-                        url=url,
-                    )
-                    continue
-
-                # API docs might be intentional
-                if path in ("/api/docs", "/swagger.json", "/openapi.json", "/graphql"):
-                    self.add_result(
-                        name=f"API docs exposed: {path}",
-                        description=f"API documentation is publicly accessible",
-                        status=TestStatus.WARNING,
-                        severity=Severity.MEDIUM,
-                        url=url,
-                        details=f"{path} returned 200. May expose internal API structure.",
-                        recommendation="Restrict API docs to authenticated users in production.",
-                    )
-                    continue
-
-                # Everything else is a problem
-                # Only truly critical: .env and .git exposure (active security risk)
-                sev = Severity.CRITICAL if any(s in path for s in [".env", ".git"]) else Severity.HIGH
+                return
+            if resp.status_code != 200:
+                return
+            content_type = resp.headers.get("content-type", "").lower()
+            body_preview = resp.text[:200]
+            # robots.txt and sitemap are expected to be public
+            if path in ("/robots.txt", "/sitemap.xml", "/.well-known/security.txt"):
                 self.add_result(
-                    name=f"Sensitive file exposed: {path}",
-                    description=f"⚠ '{path}' is publicly accessible!",
-                    status=TestStatus.FAILED,
-                    severity=sev,
+                    name=f"Public file: {path}",
+                    description=f"{path} is publicly accessible (expected)",
+                    status=TestStatus.PASSED,
+                    severity=Severity.INFO,
                     url=url,
-                    details=f"HTTP 200 for {path}. Content-Type: {content_type}. Preview: {body_preview[:80]}...",
-                    recommendation=f"Block access to '{path}' via web server config. Never expose config or DB files.",
-                    duration_ms=dt,
                 )
+                return
+            # API docs might be intentional
+            if path in ("/api/docs", "/swagger.json", "/openapi.json", "/graphql"):
+                self.add_result(
+                    name=f"API docs exposed: {path}",
+                    description=f"API documentation is publicly accessible",
+                    status=TestStatus.WARNING,
+                    severity=Severity.MEDIUM,
+                    url=url,
+                    details=f"{path} returned 200. May expose internal API structure.",
+                    recommendation="Restrict API docs to authenticated users in production.",
+                )
+                return
+            # Everything else is a problem
+            # Only truly critical: .env and .git exposure (active security risk)
+            sev = Severity.CRITICAL if any(s in path for s in [".env", ".git"]) else Severity.HIGH
+            self.add_result(
+                name=f"Sensitive file exposed: {path}",
+                description=f"⚠ '{path}' is publicly accessible!",
+                status=TestStatus.FAILED,
+                severity=sev,
+                url=url,
+                details=f"HTTP 200 for {path}. Content-Type: {content_type}. Preview: {body_preview[:80]}...",
+                recommendation=f"Block access to '{path}' via web server config. Never expose config or DB files.",
+                duration_ms=dt,
+            )
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(_probe, path) for path in self.SENSITIVE_PATHS]
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.debug("Sensitive file probe failed: %s", exc)
 
     # -- CORS Misconfiguration -------------------------------------
 
@@ -344,12 +350,11 @@ class SecurityScanner(BaseModule):
         base = self.config.base_url.rstrip("/")
         dirs_to_check = ["/static/", "/uploads/", "/images/", "/assets/", "/media/", "/files/"]
 
-        for path in dirs_to_check:
+        def _check_dir(path):
             url = base + path
-            resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
+            resp, err, dt = self._safe_request("get", url, timeout=3)
             if not resp or resp.status_code != 200:
-                continue
-
+                return
             body = resp.text.lower()
             if "index of" in body or "directory listing" in body or "<pre>" in body:
                 self.add_result(
@@ -362,6 +367,14 @@ class SecurityScanner(BaseModule):
                     recommendation="Disable directory listing in web server config (e.g., Options -Indexes).",
                     duration_ms=dt,
                 )
+
+        with ThreadPoolExecutor(max_workers=len(dirs_to_check)) as executor:
+            futures = [executor.submit(_check_dir, path) for path in dirs_to_check]
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.debug("Directory listing check failed: %s", exc)
 
     # -- Error Disclosure ------------------------------------------
 
@@ -377,11 +390,10 @@ class SecurityScanner(BaseModule):
             (base + "/<script>", "xss_in_url"),
         ]
 
-        for url, label in payloads:
-            resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
+        def _check_payload(url, label):
+            resp, err, dt = self._safe_request("get", url, timeout=3)
             if not resp:
-                continue
-
+                return
             body = resp.text[:5000].lower()
             stack_trace_indicators = [
                 "traceback", "stack trace", "exception", "at line",
@@ -389,7 +401,6 @@ class SecurityScanner(BaseModule):
                 "mysql", "postgresql", "sqlite", "mongodb",
                 "file \"", "line ", "module '",
             ]
-
             found = [ind for ind in stack_trace_indicators if ind in body]
             if found and resp.status_code >= 400:
                 self.add_result(
@@ -402,3 +413,11 @@ class SecurityScanner(BaseModule):
                     recommendation="Disable debug mode in production. Use generic error pages.",
                     duration_ms=dt,
                 )
+
+        with ThreadPoolExecutor(max_workers=len(payloads)) as executor:
+            futures = [executor.submit(_check_payload, url, label) for url, label in payloads]
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.debug("Error disclosure check failed: %s", exc)

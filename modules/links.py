@@ -11,6 +11,7 @@ from typing import List, Set, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from bs4 import BeautifulSoup
+from requests.adapters import HTTPAdapter
 
 from .base import BaseModule
 from ..models import TestResult, TestStatus, Severity
@@ -25,6 +26,11 @@ class BrokenLinkScanner(BaseModule):
     def run(self, discovered_pages: list = None) -> List[TestResult]:
         pages = discovered_pages or [self.config.base_url]
         logger.info(f"[links] Scanning links on {len(pages)} pages")
+
+        # Mount a connection pool adapter for efficient link checking
+        adapter = HTTPAdapter(pool_connections=20, pool_maxsize=20)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
 
         # Collect all unique resources across pages in parallel
         import threading
@@ -43,9 +49,10 @@ class BrokenLinkScanner(BaseModule):
 
         logger.info(f"[links] Found {len(resource_map)} unique resources to verify")
 
-        # Check each resource (with concurrency)
+        # Check each resource with a higher worker count (I/O-bound HEAD requests)
+        _LINK_WORKERS = 50
         checked: Set[str] = set()
-        with ThreadPoolExecutor(max_workers=self.config.concurrency) as executor:
+        with ThreadPoolExecutor(max_workers=_LINK_WORKERS) as executor:
             futures = {}
             for url, info in resource_map.items():
                 if url in checked:
@@ -107,7 +114,7 @@ class BrokenLinkScanner(BaseModule):
         try:
             resp, dt = self._timed(
                 self.session.head, url,
-                timeout=self.config.request_timeout,
+                timeout=3,
                 allow_redirects=True,
             )
             status = resp.status_code
@@ -142,7 +149,7 @@ class BrokenLinkScanner(BaseModule):
             try:
                 resp, dt = self._timed(
                     self.session.get, url,
-                    timeout=self.config.request_timeout,
+                    timeout=4,
                     allow_redirects=True,
                     stream=True,
                 )

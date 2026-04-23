@@ -130,7 +130,7 @@ class ChaosConfig:
         self.max_pages = _clamp(self.max_pages, 1, 1000)
         self.crawl_depth = _clamp(self.crawl_depth, 1, 10)
         self.request_timeout = _clamp(self.request_timeout, 1, 120)
-        self.concurrency = _clamp(self.concurrency, 1, 20)
+        self.concurrency = _clamp(self.concurrency, 1, 50)
 
         # Validate chaos intensity
         if self.chaos_intensity not in ("low", "medium", "high"):
