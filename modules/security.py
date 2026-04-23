@@ -195,16 +195,19 @@ class SecurityScanner(BaseModule):
 
     def _test_sensitive_files(self):
         base = self.config.base_url.rstrip("/")
+        probe_timeout = 3
 
         def _probe(path):
             url = base + path
-            resp, err, dt = self._safe_request("get", url, timeout=3)
+            resp, err, dt = self._safe_request("get", url, timeout=probe_timeout)
             if not resp:
                 return
             if resp.status_code != 200:
                 return
+
             content_type = resp.headers.get("content-type", "").lower()
             body_preview = resp.text[:200]
+
             # robots.txt and sitemap are expected to be public
             if path in ("/robots.txt", "/sitemap.xml", "/.well-known/security.txt"):
                 self.add_result(
@@ -215,6 +218,7 @@ class SecurityScanner(BaseModule):
                     url=url,
                 )
                 return
+
             # API docs might be intentional
             if path in ("/api/docs", "/swagger.json", "/openapi.json", "/graphql"):
                 self.add_result(
@@ -227,6 +231,7 @@ class SecurityScanner(BaseModule):
                     recommendation="Restrict API docs to authenticated users in production.",
                 )
                 return
+
             # Everything else is a problem
             # Only truly critical: .env and .git exposure (active security risk)
             sev = Severity.CRITICAL if any(s in path for s in [".env", ".git"]) else Severity.HIGH
@@ -242,12 +247,12 @@ class SecurityScanner(BaseModule):
             )
 
         with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = [executor.submit(_probe, path) for path in self.SENSITIVE_PATHS]
+            futures = {executor.submit(_probe, path): path for path in self.SENSITIVE_PATHS}
             for future in as_completed(futures):
                 try:
                     future.result()
                 except Exception as exc:
-                    logger.debug("Sensitive file probe failed: %s", exc)
+                    logger.warning("Sensitive file probe failed for %s: %s", futures[future], exc)
 
     # -- CORS Misconfiguration -------------------------------------
 
