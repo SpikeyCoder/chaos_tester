@@ -148,9 +148,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- -- Performance Dashboard -------------------------------- -->
 <div id="perf-dashboard" class="card" style="margin-bottom:24px">
   <h2 style="margin:0 0 16px">&#x26A1; Performance Metrics</h2>
-  <div class="perf-tabs">
-    <button type="button" class="perf-tab active" onclick="switchPerfTab('mobile')" id="tab-mobile">&#x1F4F1; Mobile</button>
-    <button type="button" class="perf-tab" onclick="switchPerfTab('desktop')" id="tab-desktop">&#x1F5A5; Desktop</button>
+  <div class="perf-tabs" role="tablist" aria-label="Performance strategy">
+    <button type="button" role="tab" class="perf-tab active" onclick="switchPerfTab('mobile')" id="tab-mobile" aria-selected="true" aria-controls="panel-mobile" tabindex="0">&#x1F4F1; Mobile</button>
+    <button type="button" role="tab" class="perf-tab" onclick="switchPerfTab('desktop')" id="tab-desktop" aria-selected="false" aria-controls="panel-desktop" tabindex="-1">&#x1F5A5; Desktop</button>
   </div>
   <!-- Mobile panel -->
   <div class="perf-panel" id="panel-mobile">
@@ -280,10 +280,38 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 function switchPerfTab(strategy) {
   document.querySelectorAll('.perf-panel').forEach(function(p) { p.style.display = 'none'; });
-  document.querySelectorAll('.perf-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.perf-tab').forEach(function(t) {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+    t.setAttribute('tabindex', '-1');
+  });
   document.getElementById('panel-' + strategy).style.display = 'block';
-  document.getElementById('tab-' + strategy).classList.add('active');
+  var tab = document.getElementById('tab-' + strategy);
+  tab.classList.add('active');
+  tab.setAttribute('aria-selected', 'true');
+  tab.setAttribute('tabindex', '0');
 }
+
+// Arrow-key keyboard nav for the Performance tablist (WCAG 2.1)
+(function() {
+  var tablist = document.querySelector('.perf-tabs[role="tablist"]');
+  if (!tablist) return;
+  var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+  tabs.forEach(function(tab, i) {
+    tab.addEventListener('keydown', function(e) {
+      var next = null;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = tabs[(i + 1) % tabs.length];
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (e.key === 'Home') next = tabs[0];
+      else if (e.key === 'End') next = tabs[tabs.length - 1];
+      if (next) {
+        e.preventDefault();
+        switchPerfTab(next.id.replace('tab-', ''));
+        next.focus();
+      }
+    });
+  });
+})();
 </script>
 
 <!-- Moylan Arrow Gauge Renderer (same as report.html) -->
