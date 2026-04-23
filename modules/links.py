@@ -73,7 +73,13 @@ class BrokenLinkScanner(BaseModule):
         """Extract all linkable resources from a page."""
         resources = []
         try:
-            resp = self._get(page_url)
+            page_cache = getattr(self, 'page_cache', {})
+            if page_url in page_cache:
+                resp, err, _ = page_cache[page_url]
+                if err or not resp:
+                    return resources
+            else:
+                resp = self._get(page_url)
             if "text/html" not in resp.headers.get("content-type", ""):
                 return resources
             soup = BeautifulSoup(resp.text, "html.parser")

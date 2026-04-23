@@ -37,7 +37,7 @@ class AvailabilityScanner(BaseModule):
         adapter = HTTPAdapter(pool_connections=20, pool_maxsize=20)
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
-
+        self.page_cache: dict = {}
         pages = discovered_pages or self._crawl()
         logger.info(f"[availability] Testing {len(pages)} pages concurrently")
 
@@ -59,6 +59,7 @@ class AvailabilityScanner(BaseModule):
         import threading
         visited: Set[str] = set()
         visited_lock = threading.Lock()
+        _cache_lock = threading.Lock()
 
         seeds = [self.config.base_url] + list(self.config.seed_urls)
         for s in seeds:
@@ -70,7 +71,11 @@ class AvailabilityScanner(BaseModule):
             """Fetch a page and return newly discovered links."""
             new_links = []
             try:
-                resp = self._get(url)
+                resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
+                with _cache_lock:
+                    self.page_cache[url] = (resp, err, dt)
+                if err or not resp:
+                    return new_links
                 if "text/html" not in resp.headers.get("content-type", ""):
                     return new_links
                 soup = BeautifulSoup(resp.text, "html.parser")
@@ -114,7 +119,11 @@ class AvailabilityScanner(BaseModule):
     # -- Individual page test ------------------------------------------
 
     def _test_page(self, url: str):
-        resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
+        cached = self.page_cache.get(url)
+        if cached is not None:
+            resp, err, dt = cached
+        else:
+            resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
 
         if err:
             self.add_result(

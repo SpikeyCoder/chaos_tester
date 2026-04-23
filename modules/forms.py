@@ -42,13 +42,19 @@ class FormInteractionTester(BaseModule):
     def run(self, discovered_pages: list = None) -> List[TestResult]:
         pages = discovered_pages or [self.config.base_url]
         logger.info(f"[forms] Scanning forms on {len(pages)} pages")
+        self._tested_signatures: dict = {}
+        self._signatures_lock = threading.Lock()
 
         # Pass 1: fetch pages and collect (page_url, form, idx) work items in parallel
         work_items = []
         work_lock = threading.Lock()
 
         def _collect_page(page_url: str):
-            resp, err, dt = self._safe_request("get", page_url, timeout=self.config.request_timeout)
+            page_cache = getattr(self, 'page_cache', {})
+            if page_url in page_cache:
+                resp, err, dt = page_cache[page_url]
+            else:
+                resp, err, dt = self._safe_request("get", page_url, timeout=self.config.request_timeout)
             if err or not resp:
                 return
             if "text/html" not in resp.headers.get("content-type", ""):
@@ -128,6 +134,13 @@ class FormInteractionTester(BaseModule):
                 has_csrf = True
             if inp.get("type", "").lower() == "hidden" and "csrf" in name.lower():
                 has_csrf = True
+
+        # Deduplicate: skip forms whose (action, method, fields) signature was already tested
+        sig = (form_url, method, frozenset(input_names))
+        with self._signatures_lock:
+            if sig in self._tested_signatures:
+                return
+            self._tested_signatures[sig] = page_url
 
         # -- CSRF check --------------------------------------------
         if method == "post" and not has_csrf:
