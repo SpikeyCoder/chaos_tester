@@ -193,55 +193,63 @@ class SecurityScanner(BaseModule):
     # -- Sensitive File Exposure -----------------------------------
 
     def _test_sensitive_files(self):
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
         base = self.config.base_url.rstrip("/")
+        probe_timeout = 3
 
-        for path in self.SENSITIVE_PATHS:
+        def probe(path):
             url = base + path
-            resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
+            resp, err, dt = self._safe_request("get", url, timeout=probe_timeout)
             if not resp:
-                continue
+                return
+            if resp.status_code != 200:
+                return
 
-            if resp.status_code == 200:
-                content_type = resp.headers.get("content-type", "").lower()
-                body_preview = resp.text[:200]
+            content_type = resp.headers.get("content-type", "").lower()
+            body_preview = resp.text[:200]
 
-                # robots.txt and sitemap are expected to be public
-                if path in ("/robots.txt", "/sitemap.xml", "/.well-known/security.txt"):
-                    self.add_result(
-                        name=f"Public file: {path}",
-                        description=f"{path} is publicly accessible (expected)",
-                        status=TestStatus.PASSED,
-                        severity=Severity.INFO,
-                        url=url,
-                    )
-                    continue
-
-                # API docs might be intentional
-                if path in ("/api/docs", "/swagger.json", "/openapi.json", "/graphql"):
-                    self.add_result(
-                        name=f"API docs exposed: {path}",
-                        description=f"API documentation is publicly accessible",
-                        status=TestStatus.WARNING,
-                        severity=Severity.MEDIUM,
-                        url=url,
-                        details=f"{path} returned 200. May expose internal API structure.",
-                        recommendation="Restrict API docs to authenticated users in production.",
-                    )
-                    continue
-
-                # Everything else is a problem
-                # Only truly critical: .env and .git exposure (active security risk)
-                sev = Severity.CRITICAL if any(s in path for s in [".env", ".git"]) else Severity.HIGH
+            if path in ("/robots.txt", "/sitemap.xml", "/.well-known/security.txt"):
                 self.add_result(
-                    name=f"Sensitive file exposed: {path}",
-                    description=f"⚠ '{path}' is publicly accessible!",
-                    status=TestStatus.FAILED,
-                    severity=sev,
+                    name=f"Public file: {path}",
+                    description=f"{path} is publicly accessible (expected)",
+                    status=TestStatus.PASSED,
+                    severity=Severity.INFO,
                     url=url,
-                    details=f"HTTP 200 for {path}. Content-Type: {content_type}. Preview: {body_preview[:80]}...",
-                    recommendation=f"Block access to '{path}' via web server config. Never expose config or DB files.",
-                    duration_ms=dt,
                 )
+                return
+
+            if path in ("/api/docs", "/swagger.json", "/openapi.json", "/graphql"):
+                self.add_result(
+                    name=f"API docs exposed: {path}",
+                    description=f"API documentation is publicly accessible",
+                    status=TestStatus.WARNING,
+                    severity=Severity.MEDIUM,
+                    url=url,
+                    details=f"{path} returned 200. May expose internal API structure.",
+                    recommendation="Restrict API docs to authenticated users in production.",
+                )
+                return
+
+            sev = Severity.CRITICAL if any(s in path for s in [".env", ".git"]) else Severity.HIGH
+            self.add_result(
+                name=f"Sensitive file exposed: {path}",
+                description=f"⚠ '{path}' is publicly accessible!",
+                status=TestStatus.FAILED,
+                severity=sev,
+                url=url,
+                details=f"HTTP 200 for {path}. Content-Type: {content_type}. Preview: {body_preview[:80]}...",
+                recommendation=f"Block access to '{path}' via web server config. Never expose config or DB files.",
+                duration_ms=dt,
+            )
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {executor.submit(probe, path): path for path in self.SENSITIVE_PATHS}
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.warning("Sensitive file probe failed for %s: %s", futures[future], exc)
 
     # -- CORS Misconfiguration -------------------------------------
 
