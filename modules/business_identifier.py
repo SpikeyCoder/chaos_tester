@@ -8,12 +8,21 @@ performing reverse lookups against multiple business-record sources.
 import logging
 import re
 import json
+import time
+import threading
 import requests
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
+
+# URL-keyed cache so the pre-flight /api/detect-business result is reused by
+# the audit run, avoiding a second full identification pipeline.
+_identify_cache: dict = {}
+_identify_cache_lock = threading.Lock()
+_IDENTIFY_CACHE_TTL = 900  # 15 minutes
 
 # Legal entity suffixes, ordered longest-first so regex is greedy
 ENTITY_SUFFIXES = [
@@ -356,31 +365,26 @@ class BusinessIdentifier:
                 logger.info("Location from HTML patterns: %r", loc)
                 return loc, "page_content"
 
-        # Source 3: OpenCorporates API
-        loc = self._lookup_opencorporates(business_name)
-        if loc:
-            logger.info("Location from OpenCorporates: %r", loc)
-            return loc, "opencorporates"
-
-        # Source 4: IRS Exempt Organizations
-        loc = self._lookup_irs_eo_location(business_name)
-        if loc:
-            logger.info("Location from IRS EO: %r", loc)
-            return loc, "irs_eo"
-
-        # Source 5: Scrape secondary pages (/about, /contact)
+        # Sources 3-6: run all external calls in parallel, pick by priority.
+        tasks = [
+            ("opencorporates", self._lookup_opencorporates, business_name),
+            ("irs_eo", self._lookup_irs_eo_location, business_name),
+        ]
         if url:
-            loc = self._scrape_secondary_pages(url)
-            if loc:
-                logger.info("Location from secondary page: %r", loc)
-                return loc, "secondary_page"
+            tasks.append(("secondary_page", self._scrape_secondary_pages, url))
+            tasks.append(("whois", self._infer_location_from_whois, url))
 
-        # Source 6: Try to infer from domain WHOIS region
-        if url:
-            loc = self._infer_location_from_whois(url)
-            if loc:
-                logger.info("Location from WHOIS: %r", loc)
-                return loc, "whois"
+        with ThreadPoolExecutor(max_workers=len(tasks)) as executor:
+            futures = {label: executor.submit(fn, arg) for label, fn, arg in tasks}
+
+        for label, _, _ in tasks:
+            try:
+                loc = futures[label].result()
+                if loc:
+                    logger.info("Location from %s: %r", label, loc)
+                    return loc, label
+            except Exception as exc:
+                logger.debug("%s lookup failed: %s", label, exc)
 
         return "", ""
 
@@ -437,7 +441,15 @@ class BusinessIdentifier:
           "candidates": list[dict],
           "lookup_source": str,
         }
+        Results are cached by URL for _IDENTIFY_CACHE_TTL seconds so that
+        a pre-flight /api/detect-business call is reused by the audit run.
         """
+        with _identify_cache_lock:
+            entry = _identify_cache.get(url)
+            if entry and time.time() - entry["ts"] < _IDENTIFY_CACHE_TTL:
+                logger.info("BusinessIdentifier cache hit for %r", url)
+                return entry["result"]
+
         candidates = self.scrape_candidates(url, html)
         business_name = self.pick_best(candidates)
         location = ""
@@ -445,10 +457,19 @@ class BusinessIdentifier:
         sector = "local business services"
 
         if business_name:
-            location, lookup_source = self.lookup_headquarters(
-                business_name, url=url, html=html
-            )
-            sector = self.detect_sector(business_name, html=html)
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                hq_future = executor.submit(
+                    self.lookup_headquarters, business_name, url, html
+                )
+                sector_future = executor.submit(self.detect_sector, business_name, html)
+            try:
+                location, lookup_source = hq_future.result()
+            except Exception as exc:
+                logger.warning("lookup_headquarters failed: %s", exc)
+            try:
+                sector = sector_future.result()
+            except Exception as exc:
+                logger.warning("detect_sector failed: %s", exc)
 
         # Fallback: try to extract location from the page itself
         # (already tried in lookup_headquarters, but just in case)
@@ -464,13 +485,18 @@ class BusinessIdentifier:
             [c["name"] for c in candidates[:5]],
         )
 
-        return {
+        result = {
             "business_name": business_name,
             "location": location,
             "sector": sector,
             "candidates": candidates[:10],
             "lookup_source": lookup_source,
         }
+
+        with _identify_cache_lock:
+            _identify_cache[url] = {"ts": time.time(), "result": result}
+
+        return result
 
     # ==================================================================
     # Location extraction helpers
@@ -575,36 +601,39 @@ class BusinessIdentifier:
 
         return ""
 
+    def _scrape_one_secondary_page(self, page_url: str) -> str:
+        """Fetch a single secondary page and extract a location string, or ""."""
+        try:
+            resp = self.session.get(
+                page_url, timeout=self.timeout, verify=True, allow_redirects=True,
+            )
+            if resp.status_code != 200:
+                return ""
+            page_html = resp.text[:15000]
+            loc = self._extract_location_from_structured_data(page_html)
+            if loc:
+                return loc
+            return self._extract_location_from_html(page_html)
+        except Exception as exc:
+            logger.debug("Secondary page %s failed: %s", page_url, exc)
+            return ""
+
     def _scrape_secondary_pages(self, url: str) -> str:
-        """Fetch /about, /contact, etc. and look for address info."""
+        """Fetch /about, /contact, etc. in parallel and return first location found."""
         parsed = urlparse(url)
         base = f"{parsed.scheme}://{parsed.netloc}"
+        page_urls = [urljoin(base, path) for path in _SECONDARY_PATHS]
 
-        for path in _SECONDARY_PATHS:
-            try:
-                page_url = urljoin(base, path)
-                resp = self.session.get(
-                    page_url, timeout=self.timeout, verify=True,
-                    allow_redirects=True,
-                )
-                if resp.status_code != 200:
-                    continue
-
-                page_html = resp.text[:15000]
-
-                # Try structured data first
-                loc = self._extract_location_from_structured_data(page_html)
-                if loc:
-                    return loc
-
-                # Then regex patterns
-                loc = self._extract_location_from_html(page_html)
-                if loc:
-                    return loc
-
-            except Exception as exc:
-                logger.debug("Secondary page %s failed: %s", path, exc)
-                continue
+        with ThreadPoolExecutor(max_workers=len(page_urls)) as executor:
+            # Submit in path-priority order; iterate futures in the same order.
+            futures = [executor.submit(self._scrape_one_secondary_page, u) for u in page_urls]
+            for fut in futures:
+                try:
+                    loc = fut.result()
+                    if loc:
+                        return loc
+                except Exception as exc:
+                    logger.debug("Secondary page future failed: %s", exc)
 
         return ""
 
