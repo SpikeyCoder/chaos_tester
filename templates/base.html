@@ -736,20 +736,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     font-size: 0.7rem;
 }
 
-/* -- Stats bar -------------------------------------------- */
-.stats-bar {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
-    max-width: 900px; margin: 0 auto;
-    padding: 48px 0;
-}
-.stats-bar .stat-item { text-align: center; }
-.stats-bar .stat-value {
-    font-size: 2rem; font-weight: 800; color: #fff;
-    margin-bottom: 4px;
-}
-.stats-bar .stat-label {
-    font-size: 0.85rem; color: var(--text-muted);
-}
 
 /* -- Section headings ------------------------------------- */
 .section-block {
@@ -917,9 +903,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     .hero-search input[type="url"] { padding: 12px; width: 100%; }
     .hero-search .btn-audit { width: 100%; text-align: center; justify-content: center; }
     .trust-badges { gap: 16px; }
-    .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    .stats-bar .stat-value { font-size: 1.5rem; }
-    .landing-features { grid-template-columns: 1fr; }
+.landing-features { grid-template-columns: 1fr; }
     .steps-grid { grid-template-columns: 1fr; gap: 24px; }
     .section-block { padding: 40px 0; }
     .section-header h2 { font-size: 1.5rem; }
