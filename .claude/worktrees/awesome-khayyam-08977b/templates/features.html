@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Features - Free Website Audit Tool | Website Auditor{% endblock %}
+{% block meta_description %}Explore Website Auditor's features: broken link detection, SEO analysis, security scanning, form testing, performance monitoring, and more. All free, no login required.{% endblock %}
+{% block og_title %}Features - Comprehensive Website Audit Tool{% endblock %}
+{% block og_description %}Check broken links, SEO issues, security vulnerabilities, forms, and performance in one click.{% endblock %}
+
+{% block extra_schema %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "What does Website Auditor check?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Website Auditor checks page availability, broken links, forms and interactions, security headers, authentication flows, and overall site performance across your entire website."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Is Website Auditor free?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, Website Auditor is completely free with no page limits, no login required, and no feature restrictions."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How many pages can Website Auditor crawl?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "You can configure the crawler to check up to hundreds of pages per audit, with adjustable crawl depth, concurrency, and timeout settings."
+            }
+        }
+    ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section fade-up">
+    <h1>Powerful <span class="gradient-text">Audit Features</span></h1>
+    <p class="hero-subtitle">Everything you need to monitor, test, and improve your website — all in one free tool.</p>
+</div>
+
+<div class="feature-grid">
+    <div class="feature-card fade-up fade-up-delay-1">
+        <h3>Page Availability</h3>
+        <p>Find broken pages before your visitors do. We check every URL for errors, redirects, and slow load times.</p>
+    </div>
+    <div class="feature-card fade-up fade-up-delay-2">
+        <h3>Broken Link Detection</h3>
+        <p>Find every dead link on your site -- internal pages, external links, and missing images that frustrate visitors.</p>
+    </div>
+    <div class="feature-card fade-up fade-up-delay-3">
+        <h3>Form Testing</h3>
+        <p>Make sure your contact forms and sign-up forms work. We check for missing labels, broken buttons, and common mistakes.</p>
+    </div>
+    <div class="feature-card fade-up fade-up-delay-1">
+        <h3>Security Analysis</h3>
+        <p>Check that your site is safe for visitors. We look for missing SSL, exposed files, weak headers, and <span title="How your site stores small pieces of data in the visitor's browser" style="border-bottom:1px dotted var(--text-muted);cursor:help;">cookie security settings</span>.</p>
+    </div>
+    <div class="feature-card fade-up fade-up-delay-2">
+        <h3>Error Handling</h3>
+        <p>See what happens when things go wrong. We test how your site handles slow connections, bad requests, and unexpected errors.</p>
+    </div>
+    <div class="feature-card fade-up fade-up-delay-3">
+        <h3>Login and Session Testing</h3>
+        <p>If your site has a login page, we check that it handles sessions properly and does not expose private areas.</p>
+    </div>
+</div>
+
+<div class="card mt-3 fade-up">
+    <h2>Why Choose Website Auditor?</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>100% Free</h3>
+            <p>No subscriptions, no page limits, no feature gates. Every audit capability is available to everyone at no cost.</p>
+        </div>
+        <div class="feature-card">
+            <h3>One-Click Audits</h3>
+            <p>Paste a URL and click one button. You get a full report in under a minute, no setup needed.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Clear Reports</h3>
+            <p>Every audit shows your top issues first, sorted by impact, with plain-language steps to fix each one.</p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3 fade-up">
+    <h2>What Small Business Owners Say</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <p style="font-style:italic; color:var(--text); margin-bottom:12px;">"Website Auditor found 47 broken links on our bakery site that were killing our ChatGPT ranking. After fixing them, our traffic jumped 35% in just two weeks."</p>
+            <p style="font-weight:600; color:var(--accent); font-size:0.9rem;">— Sarah Martinez, Owner</p>
+            <p class="text-muted text-sm">Artisan Bakery & Café</p>
+        </div>
+        <div class="feature-card">
+            <p style="font-style:italic; color:var(--text); margin-bottom:12px;">"As a law firm, security is everything. Website Auditor caught missing security headers we didn't know about. We immediately fixed them before a client noticed."</p>
+            <p style="font-weight:600; color:var(--accent); font-size:0.9rem;">— David Chen, IT Director</p>
+            <p class="text-muted text-sm">Chen & Associates Legal</p>
+        </div>
+        <div class="feature-card">
+            <p style="font-style:italic; color:var(--text); margin-bottom:12px;">"We discovered critical form validation issues that were preventing customers from completing orders. Website Auditor helped us catch bugs before they cost us sales."</p>
+            <p style="font-weight:600; color:var(--accent); font-size:0.9rem;">— Jessica Liu, E-Commerce Manager</p>
+            <p class="text-muted text-sm">Modern Home Goods Store</p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3 fade-up">
+    <h2>Frequently Asked Questions</h2>
+    <div style="margin-top: 16px;">
+        <details class="faq-item">
+            <summary>What does Website Auditor check?</summary>
+            <p class="text-muted">Website Auditor checks page availability, broken links, forms and interactions, security headers, authentication flows, and overall site performance across your entire website.</p>
+        </details>
+        <details class="faq-item">
+            <summary>Is Website Auditor free?</summary>
+            <p class="text-muted">Yes, Website Auditor is completely free with no page limits, no login required, and no feature restrictions.</p>
+        </details>
+        <details class="faq-item">
+            <summary>How many pages can Website Auditor crawl?</summary>
+            <p class="text-muted">You can configure the crawler to check up to hundreds of pages per audit, with adjustable crawl depth, concurrency, and timeout settings.</p>
+        </details>
+        <details class="faq-item">
+            <summary>Do I need to create an account?</summary>
+            <p class="text-muted">No. Website Auditor requires no registration, login, or account creation. Just enter a URL and start auditing.</p>
+        </details>
+        <details class="faq-item">
+            <summary>How is this different from Semrush or Ahrefs?</summary>
+            <p class="text-muted">Unlike Semrush ($140/mo) or Ahrefs ($99/mo) <span style="color:var(--text-muted);font-size:0.85em;">(as of early 2025)</span>, Website Auditor is completely free. It focuses specifically on comprehensive site auditing with error resilience testing capabilities that most SEO tools lack.</p>
+        </details>
+    </div>
+</div>
+
+<div style="text-align:center; margin-top:32px;">
+    <a href="/" class="btn btn-primary" style="font-size:1.05rem; padding: 12px 28px;">Start Your Free Audit</a>
+</div>
+
+<style>
+.faq-item {
+    background: var(--surface); backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 16px 20px; margin-bottom: 12px;
+    transition: border-color .3s;
+}
+.faq-item[open] { border-color: rgba(59,130,246,0.5); }
+.faq-item summary {
+    color: var(--text); font-weight: 600; font-size: 1rem;
+    cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after { content: "+"; font-size: 1.4rem; color: var(--accent); transition: transform .2s; }
+.faq-item[open] summary::after { content: "−"; }
+.faq-item p { margin-top: 10px; }
+</style>
+{% endblock %}

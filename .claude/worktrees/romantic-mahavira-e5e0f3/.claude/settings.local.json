@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m py_compile runner.py modules/availability.py modules/links.py modules/forms.py)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git fetch *)",
+      "Bash(git rebase *)",
+      "Bash(python3 -m py_compile modules/availability.py modules/forms.py modules/links.py runner.py)"
+    ]
+  }
+}

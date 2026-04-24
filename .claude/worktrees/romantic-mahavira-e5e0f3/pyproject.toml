@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chaos-tester"
+version = "1.0.0"
+description = "Chaos-Monkey-inspired web testing tool for automated resilience, QA, and security sweeps."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Kevin Armstrong"},
+]
+requires-python = ">=3.9"
+dependencies = [
+    "flask>=3.0",
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/chaos-tester"
+Repository = "https://github.com/your-org/chaos-tester"
+
+[project.scripts]
+chaos-tester = "chaos_tester.app:main"
+
+[tool.setuptools.packages.find]
+include = ["chaos_tester*"]

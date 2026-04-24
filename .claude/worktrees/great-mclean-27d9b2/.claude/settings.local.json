@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('modules/security.py'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('modules/security.py'\\).read\\(\\)\\); print\\('syntax OK'\\)\")"
+    ]
+  }
+}

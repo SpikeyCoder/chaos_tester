@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import ast, sys; ast.parse\\(open\\('modules/business_identifier.py'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)"
+    ]
+  }
+}

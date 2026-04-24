@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% block title %}Website Auditor -- Running{% endblock %}
+
+{% block content %}
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  .retry-badge {
+    display: inline-block;
+    background: var(--yellow);
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+  }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); } 50% { box-shadow: 0 0 0 8px rgba(59,130,246,0); } }
+  .pulse-dot { animation: pulse 2s ease-in-out infinite; }
+</style>
+
+<!-- Progress Stepper -->
+<nav aria-label="Audit progress" style="margin-bottom:24px;">
+  <div style="display:flex;align-items:center;justify-content:center;gap:0;max-width:500px;margin:0 auto;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">
+      <div style="width:36px;height:36px;border-radius:50%;background:rgba(74,222,128,0.15);color:#4ade80;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">✓</div>
+      <span style="font-size:0.78rem;color:#4ade80;font-weight:600;">Paste URL</span>
+    </div>
+    <div style="flex:1;height:2px;background:linear-gradient(90deg,#4ade80,var(--accent));margin-top:-20px;"></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;" class="pulse-dot">2</div>
+      <span style="font-size:0.78rem;color:var(--accent);font-weight:600;">Scanning</span>
+    </div>
+    <div style="flex:1;height:2px;background:var(--border);margin-top:-20px;"></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);color:var(--text-muted);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">3</div>
+      <span style="font-size:0.78rem;color:var(--text-muted);font-weight:500;">Report</span>
+    </div>
+  </div>
+</nav>
+
+<div class="card">
+  <h1 style="font-size:1.3rem;margin:0 0 8px;"><span class="spinner" id="runSpinner" aria-hidden="true"></span> Test Run in Progress</h1>
+
+  <!-- Enhanced progress bar with gradient -->
+  <div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Audit progress" id="progressBarWrap" aria-valuenow="0" style="position:relative;height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:16px;">
+    <div id="progressBar" style="width:0%;height:100%;border-radius:4px;background:linear-gradient(90deg,#3b82f6,#8b5cf6,#3b82f6);background-size:200% 100%;animation:shimmer 2s linear infinite;transition:width .4s ease;"></div>
+  </div>
+  <style>
+    @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .spinner { animation: none !important; border-top-color: var(--accent); }
+      .pulse-dot { animation: none !important; }
+      #progressBar { animation: none !important; }
+    }
+  </style>
+
+  <div class="mt-2" style="display:flex;justify-content:space-between;align-items:center;">
+    <span id="progressText" class="text-muted text-sm" role="status" aria-live="polite" aria-atomic="true">Starting…</span>
+    <span id="progressPct" aria-live="polite" aria-atomic="true" style="font-size:1.5rem;font-weight:700;color:var(--accent);">0%</span>
+  </div>
+
+  <!-- Live check items -->
+  <div id="checkItems" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:20px;">
+    <div class="check-item" data-module="availability" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:10px;transition:all .3s;">
+      <span class="check-icon" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--text-muted);flex-shrink:0;">○</span>
+      <span style="font-size:0.85rem;color:var(--text-muted);">Page Availability</span>
+    </div>
+    <div class="check-item" data-module="links" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:10px;transition:all .3s;">
+      <span class="check-icon" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--text-muted);flex-shrink:0;">○</span>
+      <span style="font-size:0.85rem;color:var(--text-muted);">Broken Links</span>
+    </div>
+    <div class="check-item" data-module="forms" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:10px;transition:all .3s;">
+      <span class="check-icon" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--text-muted);flex-shrink:0;">○</span>
+      <span style="font-size:0.85rem;color:var(--text-muted);">Forms & Inputs</span>
+    </div>
+    <div class="check-item" data-module="security" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:10px;transition:all .3s;">
+      <span class="check-icon" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--text-muted);flex-shrink:0;">○</span>
+      <span style="font-size:0.85rem;color:var(--text-muted);">Security Scan</span>
+    </div>
+    <div class="check-item" data-module="performance" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:10px;transition:all .3s;">
+      <span class="check-icon" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--text-muted);flex-shrink:0;">○</span>
+      <span style="font-size:0.85rem;color:var(--text-muted);">Performance</span>
+    </div>
+    <div class="check-item" data-module="ai_visibility" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:10px;transition:all .3s;">
+      <span class="check-icon" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--text-muted);flex-shrink:0;">○</span>
+      <span style="font-size:0.85rem;color:var(--text-muted);">AI Visibility</span>
+    </div>
+  </div>
+
+  <details style="margin-top:16px;">
+    <summary style="cursor:pointer;font-size:0.82rem;color:var(--text-muted);font-weight:500;padding:8px 0;">Show detailed log</summary>
+    <div class="mt-1" id="logBox"
+         style="background:rgba(10,15,26,0.6);border:1px solid var(--border);border-radius:8px;padding:16px;max-height:300px;overflow-y:auto;font-family:var(--mono);font-size:0.82rem;line-height:1.8;">
+    </div>
+  </details>
+
+  <div class="mt-2" id="doneActions">
+    <a href="#" class="btn btn-primary" id="viewReportBtn" style="display:none;">📊 View Report</a>
+    <a href="/" class="btn btn-secondary" style="margin-left:8px;">← Dashboard</a>
+  </div>
+</div>
+
+<script>
+const bar = document.getElementById('progressBar');
+const pct = document.getElementById('progressPct');
+const txt = document.getElementById('progressText');
+const log = document.getElementById('logBox');
+const reportBtn = document.getElementById('viewReportBtn');
+const spinner = document.getElementById('runSpinner');
+
+const moduleColors = {
+  availability: '#3b82f6',
+  links: '#a855f7',
+  forms: '#06b6d4',
+  chaos: '#f97316',
+  auth: '#eab308',
+  security: '#ef4444',
+  performance: '#10b981',
+  ai_visibility: '#8b5cf6',
+  runner: '#22c55e',
+  done: '#22c55e',
+};
+
+const source = new EventSource('/stream');
+source.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  const color = moduleColors[data.module] || '#8b8fa3';
+
+  bar.style.width = data.pct + '%';
+  pct.textContent = data.pct + '%';
+  txt.textContent = data.msg;
+
+  const line = document.createElement('div');
+
+  const modSpan = document.createElement('span');
+  modSpan.style.cssText = 'color:' + color + ';font-weight:600;';
+  modSpan.textContent = '[' + data.module + ']';
+
+  const tsSpan = document.createElement('span');
+  tsSpan.style.color = 'var(--text-muted)';
+  tsSpan.textContent = ' ' + (data.ts && typeof WATime !== 'undefined' ? WATime.timeFromISO(data.ts) : (data.ts ? data.ts.substring(11, 19) : '')) + ' ';
+
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = data.msg;
+
+  /* Highlight retry messages */
+  if (data.msg && data.msg.includes('retrying')) {
+    line.style.cssText = 'background:rgba(234,179,8,0.12);border-radius:4px;padding:2px 6px;margin:4px 0;';
+  }
+
+  line.appendChild(modSpan);
+  line.appendChild(tsSpan);
+  line.appendChild(msgSpan);
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+
+  /* Update live check items */
+  var checkItem = document.querySelector('.check-item[data-module="' + data.module + '"]');
+  if (checkItem) {
+    var icon = checkItem.querySelector('.check-icon');
+    var label = checkItem.querySelector('span:last-child');
+    if (!checkItem.classList.contains('check-active') && data.module !== 'done' && data.module !== 'runner') {
+      checkItem.classList.add('check-active');
+      icon.style.background = color;
+      icon.style.color = '#fff';
+      icon.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin:0;"></span>';
+      label.style.color = 'var(--text)';
+      label.style.fontWeight = '600';
+      checkItem.style.borderColor = color;
+    }
+  }
+  /* Mark previous module as complete if a new one started */
+  var allChecks = document.querySelectorAll('.check-item.check-active');
+  allChecks.forEach(function(item) {
+    if (item.getAttribute('data-module') !== data.module && data.module !== 'done' && data.module !== 'runner') {
+      var ic = item.querySelector('.check-icon');
+      if (ic && !item.classList.contains('check-done')) {
+        item.classList.add('check-done');
+        ic.style.background = 'rgba(74,222,128,0.15)';
+        ic.style.color = '#4ade80';
+        ic.innerHTML = '✓';
+      }
+    }
+  });
+
+  if (data.module === 'done') {
+    source.close();
+    spinner.style.display = 'none';
+    reportBtn.style.display = 'inline-flex';
+    if (data.run_id) { reportBtn.href = '/report/' + data.run_id; }
+
+    /* Mark all check items as complete */
+    document.querySelectorAll('.check-item').forEach(function(item) {
+      var ic = item.querySelector('.check-icon');
+      if (ic) {
+        ic.style.background = data.msg === 'completed' ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)';
+        ic.style.color = data.msg === 'completed' ? '#4ade80' : '#f87171';
+        ic.innerHTML = data.msg === 'completed' ? '✓' : '✗';
+      }
+      item.style.borderColor = data.msg === 'completed' ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)';
+    });
+    /* Stop shimmer animation on progress bar */
+    document.getElementById('progressBar').style.animation = 'none';
+    document.getElementById('progressBar').style.background = data.msg === 'completed' ? '#4ade80' : '#f87171';
+
+    if (data.msg === 'completed') {
+      pct.style.color = 'var(--green)';
+      txt.textContent = 'All tests complete!';
+    } else if (data.msg === 'idle') {
+      /* Status is idle -- but the run may still be starting up.
+         Fall back to polling /api/status before giving up. */
+      reportBtn.style.display = 'none';
+      txt.textContent = 'Waiting for run to start…';
+      startPollingFallback();
+      return; /* keep spinner running during polling */
+    } else {
+      pct.style.color = 'var(--red)';
+      txt.textContent = 'Run failed after all retry attempts -- see logs for details.';
+      reportBtn.textContent = '📊 View Partial Report';
+    }
+
+    /* Update stepper to show Report step as active */
+    var stepperDots = document.querySelectorAll('nav[aria-label="Audit progress"] div[style*="border-radius:50%"]');
+    if (stepperDots.length >= 3) {
+      /* Step 2: mark complete */
+      stepperDots[1].className = '';
+      stepperDots[1].style.background = 'rgba(74,222,128,0.15)';
+      stepperDots[1].style.color = '#4ade80';
+      stepperDots[1].textContent = '✓';
+      stepperDots[1].nextElementSibling.style.color = '#4ade80';
+      /* Step 3: make active */
+      stepperDots[2].style.background = 'var(--accent)';
+      stepperDots[2].style.color = '#fff';
+      stepperDots[2].style.borderColor = 'var(--accent)';
+      stepperDots[2].nextElementSibling.style.color = 'var(--accent)';
+      stepperDots[2].nextElementSibling.style.fontWeight = '600';
+      /* Connector line */
+      var connectors = document.querySelectorAll('nav[aria-label="Audit progress"] div[style*="height:2px"]');
+      if (connectors.length >= 2) {
+        connectors[1].style.background = 'linear-gradient(90deg, var(--accent), var(--accent))';
+      }
+    }
+  }
+};
+
+source.onerror = function() {
+  source.close();
+  /* Don't give up immediately -- fall back to polling /api/status */
+  txt.textContent = 'Reconnecting…';
+  startPollingFallback();
+};
+
+/* Fallback: if SSE fails or returns idle prematurely, poll /api/status */
+function startPollingFallback() {
+  let polls = 0;
+  const maxPolls = 20; /* poll for up to ~30 seconds */
+  const interval = setInterval(async () => {
+    polls++;
+    try {
+      const resp = await fetch('/api/status');
+      const data = await resp.json();
+      if (data.status === 'running') {
+        /* Run is active! Reconnect SSE */
+        clearInterval(interval);
+        txt.textContent = 'Run detected -- reconnecting stream…';
+        setTimeout(() => { location.reload(); }, 1000);
+      } else if (data.status === 'completed' && data.current_run_id) {
+        clearInterval(interval);
+        spinner.style.display = 'none';
+        pct.style.color = 'var(--green)';
+        pct.textContent = '100%';
+        txt.textContent = 'All tests complete!';
+        reportBtn.style.display = 'inline-flex';
+        reportBtn.href = '/report/' + data.current_run_id;
+      } else if (polls >= maxPolls) {
+        clearInterval(interval);
+        spinner.style.display = 'none';
+        txt.textContent = 'No active run detected. Return to Dashboard to start one.';
+      }
+    } catch (e) {
+      if (polls >= maxPolls) {
+        clearInterval(interval);
+        spinner.style.display = 'none';
+        txt.textContent = 'Connection lost. Refresh to check status.';
+      }
+    }
+  }, 1500);
+}
+</script>
+{% endblock %}

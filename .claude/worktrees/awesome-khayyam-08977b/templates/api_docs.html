@@ -1,0 +1,678 @@
+{% extends "base.html" %}
+
+{% block title %}API Documentation - Website Auditor{% endblock %}
+
+{% block meta_description %}Website Auditor API documentation. REST API for triggering website audits programmatically. Built for IT departments and solo entrepreneurs.{% endblock %}
+
+{% block og_title %}Website Auditor API - Automated Audit REST API{% endblock %}
+
+{% block og_description %}Complete API documentation for Website Auditor. Trigger website audits programmatically with a simple REST API.{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── API Documentation Styles ────────────────────────────── */
+.api-hero {
+    text-align: center;
+    padding: 48px 0 32px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.api-hero h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: #fff;
+}
+
+.api-hero p {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 650px;
+    margin: 0 auto;
+}
+
+/* ── Info Banner / Subscription CTA ────────────────────── */
+.api-banner {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.api-banner-text {
+    flex: 1;
+}
+
+.api-banner-text p {
+    color: #fff;
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.api-banner .btn-cta {
+    flex-shrink: 0;
+    padding: 12px 28px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all .2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.api-banner .btn-cta:hover {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.5);
+}
+
+@media (max-width: 768px) {
+    .api-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* ── Endpoint Cards ───────────────────────────────────── */
+.api-endpoints {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 48px;
+}
+
+.endpoint-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 0;
+    overflow: hidden;
+    transition: border-color .3s, box-shadow .3s;
+}
+
+.endpoint-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.endpoint-header {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background .2s;
+}
+
+.endpoint-card.collapsed .endpoint-header:hover {
+    background: rgba(255,255,255,0.02);
+}
+
+.endpoint-method {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 70px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.endpoint-method.get {
+    background: rgba(59,130,246,0.25);
+    border: 1px solid rgba(59,130,246,0.5);
+    color: #60a5fa;
+}
+
+.endpoint-method.post {
+    background: rgba(74,222,128,0.25);
+    border: 1px solid rgba(74,222,128,0.5);
+    color: #4ade80;
+}
+
+.endpoint-path {
+    flex: 1;
+}
+
+.endpoint-path .path {
+    font-family: var(--mono);
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 600;
+}
+
+.endpoint-path .desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.endpoint-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(59,130,246,0.1);
+    border-radius: 6px;
+    color: var(--accent);
+    font-weight: bold;
+    transition: transform .3s, background .2s;
+}
+
+.endpoint-card.expanded .endpoint-toggle {
+    transform: rotate(180deg);
+}
+
+.endpoint-card.expanded .endpoint-toggle {
+    background: rgba(59,130,246,0.15);
+}
+
+.endpoint-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .3s ease-out;
+}
+
+.endpoint-card.expanded .endpoint-body {
+    max-height: 2000px;
+}
+
+.endpoint-content {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+}
+
+@media (max-width: 900px) {
+    .endpoint-content {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
+
+.endpoint-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.endpoint-section h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+}
+
+.endpoint-section p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    line-height: 1.6;
+}
+
+.code-block {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--text);
+    overflow-x: auto;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.code-block .key {
+    color: #93c5fd;
+}
+
+.code-block .string {
+    color: #4ade80;
+}
+
+.code-block .number {
+    color: #f97316;
+}
+
+.code-block .boolean {
+    color: #fbbf24;
+}
+
+.code-block .null {
+    color: #9ca3af;
+}
+
+.param-table {
+    width: 100%;
+    font-size: 0.9rem;
+    border-collapse: collapse;
+}
+
+.param-table th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--bg-alt);
+    color: var(--text-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.param-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.param-table tr:hover {
+    background: rgba(59,130,246,0.02);
+}
+
+.param-name {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.param-type {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: var(--bg-alt);
+    padding: 2px 6px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.param-required {
+    color: #ef4444;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.param-optional {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+/* ── Auth & Info Section ───────────────────────────────── */
+.api-section {
+    margin-bottom: 48px;
+}
+
+.api-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #fff;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.api-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 24px 0 12px;
+}
+
+.api-section p {
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+
+.auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 16px;
+}
+
+.auth-card h3 {
+    margin-top: 0;
+}
+
+.info-list {
+    list-style: none;
+    padding: 0;
+}
+
+.info-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.info-list li:last-child {
+    border-bottom: none;
+}
+
+.info-list strong {
+    color: #fff;
+}
+
+/* ── Rate Limit Box ────────────────────────────────────── */
+.rate-limit-box {
+    background: var(--surface);
+    border-left: 4px solid var(--warning);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--warning);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+}
+
+.rate-limit-box h3 {
+    margin-top: 0;
+    color: var(--warning);
+}
+
+.rate-limit-box p {
+    color: var(--text-muted);
+    margin: 8px 0;
+    font-size: 0.95rem;
+}
+
+/* ── Status Codes ──────────────────────────────────────── */
+.status-code-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.status-code-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.status-code-item .code {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.status-code-item .code.success { color: var(--success); }
+.status-code-item .code.created { color: var(--success); }
+.status-code-item .code.accepted { color: var(--accent); }
+.status-code-item .code.error { color: var(--danger); }
+
+.status-code-item .desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .api-hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .endpoint-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .endpoint-path {
+        flex-basis: 100%;
+    }
+
+    .endpoint-path .path {
+        font-size: 0.85rem;
+        word-break: break-all;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="api-hero">
+    <h1>API Documentation</h1>
+    <p>Trigger website audits programmatically with our REST API. Built for IT departments at small-to-medium businesses and solo entrepreneurs.</p>
+</div>
+
+<!-- API Key Banner -->
+<div class="api-banner">
+    <div class="api-banner-text">
+        <p>Get an API key with <strong>5 automated audits per day</strong> through the admin portal. Sign in with Google to create and manage your keys.</p>
+    </div>
+    <a href="https://api.website-auditor.io/admin_portal/" class="btn-cta">Admin Portal →</a>
+</div>
+
+<!-- Authentication Section -->
+<div class="api-section">
+    <h2>Authentication</h2>
+    <p>All API requests require an API key in the <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">X-API-Key</code> header. Keys start with <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">wa_</code>.</p>
+
+    <div class="auth-card">
+        <h3>Getting Your API Key</h3>
+        <ol class="info-list" style="list-style:decimal;padding-left:20px;">
+            <li style="border-bottom:1px solid var(--border);">Visit <a href="https://api.website-auditor.io/admin_portal/" style="color:var(--accent);">/admin_portal</a> and sign in with Google</li>
+            <li style="border-bottom:1px solid var(--border);">Create a new API key — the plaintext key is shown once, copy it immediately</li>
+            <li style="border-bottom:1px solid var(--border);">Send the key in the <code style="background:var(--bg-alt);padding:2px 6px;border-radius:3px;font-family:var(--mono);">X-API-Key</code> header on every request</li>
+            <li style="border-bottom:1px solid var(--border);">Revoke or rotate keys any time from the portal</li>
+        </ol>
+    </div>
+
+    <div class="auth-card">
+        <h3>Example Request</h3>
+        <div class="code-block">curl "https://api.website-auditor.io/api/audit?businessUrl=example.com&businessName=Example+Inc&businessCity=Seattle" \
+  -H "X-API-Key: wa_your_api_key_here"</div>
+    </div>
+
+    <div class="rate-limit-box">
+        <h3>Rate Limits</h3>
+        <p><strong>5 requests per API key per day.</strong> Rate limit headers are included in every response:</p>
+        <div class="code-block" style="margin-top:12px;">X-RateLimit-Limit: 5
+X-RateLimit-Remaining: 3
+X-RateLimit-Reset: 2026-03-31T23:59:59.999Z</div>
+    </div>
+</div>
+
+<!-- Endpoints -->
+<div class="api-section">
+    <h2>Endpoints</h2>
+
+    <div class="api-endpoints">
+        <!-- GET /api/audit -->
+        <div class="endpoint-card expanded">
+            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="endpoint-method get">GET</div>
+                <div class="endpoint-path">
+                    <div class="path">/api/audit</div>
+                    <div class="desc">Trigger a website audit and return the results</div>
+                </div>
+                <div class="endpoint-toggle">⌄</div>
+            </div>
+            <div class="endpoint-body">
+                <div class="endpoint-content">
+                    <div class="endpoint-section">
+                        <h3>Request</h3>
+                        <p><strong>Headers:</strong></p>
+                        <div class="code-block">X-API-Key: wa_your_api_key_here</div>
+                        <p><strong>Query Parameters:</strong></p>
+                        <table class="param-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">businessUrl</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Website URL to audit <span class="param-required">required</span><br><small style="color:var(--text-muted);">e.g. <code style="font-size:0.8rem;">example.com</code> or <code style="font-size:0.8rem;">https://example.com</code></small></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">businessName</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Name of the business <span class="param-required">required</span><br><small style="color:var(--text-muted);">e.g. <code style="font-size:0.8rem;">Example Inc</code></small></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">businessCity</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>City for local search analysis <span class="param-required">required</span><br><small style="color:var(--text-muted);">e.g. <code style="font-size:0.8rem;">Seattle, WA</code></small></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top:16px;"><strong>Example URL:</strong></p>
+                        <div class="code-block">GET /api/audit?businessUrl=example.com&businessName=Example+Inc&businessCity=Seattle</div>
+                    </div>
+                    <div class="endpoint-section">
+                        <h3>Responses</h3>
+                        <p><strong>200 OK — Audit completed:</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"request_id"</span>: <span class="string">"a1b2c3d4-e5f6-7890-abcd-ef1234567890"</span>,
+  <span class="key">"timestamp"</span>: <span class="string">"2026-03-31T12:00:00.000Z"</span>,
+  <span class="key">"duration_ms"</span>: <span class="number">15230</span>,
+  <span class="key">"audit"</span>: <span class="key">{</span>
+    <span class="key">"format"</span>: <span class="string">"html_report"</span>,
+    <span class="key">"report_url"</span>: <span class="string">"https://website-auditor.io/report/abc123"</span>,
+    <span class="key">"status"</span>: <span class="string">"completed"</span>,
+    <span class="key">"note"</span>: <span class="string">"The audit completed successfully. The full HTML report is available at the report_url."</span>
+  <span class="key">}</span>
+<span class="key">}</span></div>
+                        <p style="margin-top:16px;"><strong>400 Validation Error:</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"success"</span>: <span class="boolean">false</span>,
+  <span class="key">"error"</span>: <span class="string">"Validation failed"</span>,
+  <span class="key">"details"</span>: <span class="key">[</span>
+    <span class="string">"businessUrl is required. Provide the website URL to audit."</span>,
+    <span class="string">"businessCity is required. Provide the city for local search analysis."</span>
+  <span class="key">]</span>
+<span class="key">}</span></div>
+                        <p style="margin-top:16px;"><strong>401 Invalid API Key:</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"success"</span>: <span class="boolean">false</span>,
+  <span class="key">"error"</span>: <span class="string">"Invalid API key. Check that your key is correct."</span>
+<span class="key">}</span></div>
+                        <p style="margin-top:16px;"><strong>429 Rate Limited:</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"success"</span>: <span class="boolean">false</span>,
+  <span class="key">"error"</span>: <span class="string">"Rate limit exceeded. You can make 5 requests per day."</span>,
+  <span class="key">"rate_limit"</span>: <span class="key">{</span>
+    <span class="key">"limit"</span>: <span class="number">5</span>,
+    <span class="key">"remaining"</span>: <span class="number">0</span>,
+    <span class="key">"resets_at"</span>: <span class="string">"2026-03-31T23:59:59.999Z"</span>
+  <span class="key">}</span>
+<span class="key">}</span></div>
+                        <p style="margin-top:16px;"><strong>502 Upstream Error:</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"success"</span>: <span class="boolean">false</span>,
+  <span class="key">"request_id"</span>: <span class="string">"a1b2c3d4-e5f6-7890-abcd-ef1234567890"</span>,
+  <span class="key">"error"</span>: <span class="string">"The audit service returned an error. Please try again later."</span>,
+  <span class="key">"upstream_status"</span>: <span class="number">500</span>
+<span class="key">}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GET /health -->
+        <div class="endpoint-card collapsed">
+            <div class="endpoint-header" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="endpoint-method get">GET</div>
+                <div class="endpoint-path">
+                    <div class="path">/health</div>
+                    <div class="desc">Health check</div>
+                </div>
+                <div class="endpoint-toggle">⌄</div>
+            </div>
+            <div class="endpoint-body">
+                <div class="endpoint-content">
+                    <div class="endpoint-section">
+                        <h3>Request</h3>
+                        <p>No authentication required.</p>
+                    </div>
+                    <div class="endpoint-section">
+                        <h3>Response</h3>
+                        <p><strong>Status: 200 OK</strong></p>
+                        <div class="code-block"><span class="key">{</span>
+  <span class="key">"status"</span>: <span class="string">"ok"</span>,
+  <span class="key">"timestamp"</span>: <span class="string">"2026-03-31T12:00:00.000Z"</span>
+<span class="key">}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HTTP Status Codes -->
+<div class="api-section">
+    <h2>HTTP Status Codes</h2>
+    <p>The API uses standard HTTP status codes to indicate the result of your request.</p>
+    <div class="status-code-list">
+        <div class="status-code-item">
+            <div class="code success">200 OK</div>
+            <div class="desc">Audit completed successfully</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code error">400 Bad Request</div>
+            <div class="desc">Missing or invalid query parameters</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code error">401 Unauthorized</div>
+            <div class="desc">Missing or invalid API key</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code error">429 Too Many Requests</div>
+            <div class="desc">Rate limit exceeded (5 requests per key per day)</div>
+        </div>
+        <div class="status-code-item">
+            <div class="code error">502 Bad Gateway</div>
+            <div class="desc">Upstream audit service error; try again later</div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Portal -->
+<div class="api-section">
+    <h2>Admin Portal</h2>
+    <p>Visit <a href="https://api.website-auditor.io/admin_portal/" style="color:var(--accent);">/admin_portal</a> to manage your API keys. Sign in with Google.</p>
+
+    <div class="auth-card">
+        <h3>Portal Features</h3>
+        <ul class="info-list">
+            <li><strong>Create keys</strong> — plaintext shown once at creation, copy immediately</li>
+            <li><strong>View keys</strong> — creation date and last-used timestamp for each key</li>
+            <li><strong>Revoke keys</strong> — instantly disable a key that should no longer work</li>
+            <li><strong>Rotate keys</strong> — revokes the old key and generates a new one</li>
+            <li><strong>Usage stats</strong> — requests today and total requests per key</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

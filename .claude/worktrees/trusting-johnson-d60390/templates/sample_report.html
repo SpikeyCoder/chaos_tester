@@ -1,0 +1,1019 @@
+{% extends "base.html" %}
+{% block title %}Sample Report -- Website Auditor{% endblock %}
+{% block robots %}index, follow{% endblock %}
+{% block content %}
+<!-- -- Report Top Bar -------------------------------------- -->
+<div class="report-top-bar fade-up">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="/" class="back-link" aria-label="Back to Dashboard">← Back</a>
+    <div class="report-title-group">
+      <h1>Audit Report</h1>
+      <div class="report-subtitle">
+        bestlocalbakery.com &bull;
+        Completed just now
+      </div>
+    </div>
+  </div>
+  <div class="report-action-pills">
+    <button type="button" class="pill-btn pill-share" onclick="copyShareLink()" id="share-link-btn" aria-label="Share report">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share
+    </button>
+    <button type="button" class="pill-btn pill-pdf" onclick="downloadPDF()" aria-label="Export PDF">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+    <button type="button" class="pill-btn pill-schedule" onclick="window.location.href='/'" aria-label="Schedule Retest">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Schedule Retest
+    </button>
+  </div>
+</div>
+
+<!-- Banner indicating this is sample data -->
+<div class="card" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.4);border-left:4px solid #3b82f6;padding:16px 20px;margin-bottom:24px;">
+  <div style="display:flex;align-items:flex-start;gap:12px;">
+    <div style="font-size:1.4rem;">&#x2139;&#xFE0F;</div>
+    <div>
+      <div style="font-weight:600;color:var(--text);margin-bottom:4px;">Sample Data</div>
+      <div style="color:var(--text-muted);font-size:0.9rem;">This report demonstrates realistic audit findings for illustrative purposes. The website, findings, and metrics shown are fictional but representative of typical audits.</div>
+    </div>
+  </div>
+</div>
+
+<!-- -- Executive Summary ----------------------------------- -->
+<div class="exec-summary fade-up" role="region" aria-label="Executive summary">
+  <div class="exec-summary-header">
+    <div>
+      <h2>Executive Summary</h2>
+      <div class="exec-subtitle">Overall website health and critical findings</div>
+    </div>
+    <div class="exec-score">
+      <div class="score-number" style="color:var(--green)">93</div>
+      <div class="score-label">Overall Score</div>
+    </div>
+  </div>
+
+  <div class="exec-alert">
+    <div class="alert-icon">&#x26A0;</div>
+    <div>
+      <div class="alert-title">4 Issues Found That May Affect Your Customers</div>
+      <div class="alert-desc">These issues could impact your visitors' experience, search engine rankings, or site security. Review the details below for plain-language explanations and recommended fixes.</div>
+    </div>
+  </div>
+
+  <div class="exec-metrics">
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('all')" title="View all issues">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-warn">&#x26A0;</div>
+      </div>
+      <div class="exec-metric-value">7</div>
+      <div class="exec-metric-label">Total Issues Found</div>
+    </div>
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('failed')" title="View critical issues">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-crit">&#x2715;</div>
+      </div>
+      <div class="exec-metric-value">4</div>
+      <div class="exec-metric-label">Critical Issues</div>
+    </div>
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('passed')" title="View passed checks">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-pass">&#x2713;</div>
+      </div>
+      <div class="exec-metric-value">87</div>
+      <div class="exec-metric-label">Checks Passed</div>
+    </div>
+    <div class="exec-metric-card" style="cursor:pointer;" onclick="scrollToResults('all')" title="View detailed results">
+      <div class="exec-metric-top">
+        <div class="exec-metric-icon icon-time">&#x26A1;</div>
+      </div>
+      <div class="exec-metric-value">18s</div>
+      <div class="exec-metric-label">Scan Duration</div>
+    </div>
+  </div>
+</div>
+
+<!-- -- Snapshot Summary (circular gauges) -------------------- -->
+<div class="section-summary card fade-up" style="margin-bottom:24px;" role="region" aria-label="Section summary scores">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+    <div style="width:40px;height:40px;border-radius:10px;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2a10 10 0 0 1 7.07 2.93"/></svg>
+    </div>
+    <div>
+      <h2 style="margin:0;font-size:1.2rem;font-weight:700;color:#fff;">Snapshot Summary</h2>
+      <p style="margin:0;font-size:0.82rem;color:var(--text-muted);">Core Web Vitals and performance metrics</p>
+    </div>
+  </div>
+  <div class="section-gauges" id="sectionGauges">
+    <!-- Gauges rendered by JS below -->
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var sections = [
+    { label: 'Performance', score: 96 },
+    { label: 'Security', score: 90 },
+    { label: 'Availability', score: 90 },
+    { label: 'Links & Forms', score: 95 },
+    { label: 'Resilience', score: 100 }
+  ];
+  var container = document.getElementById('sectionGauges');
+  if (!container) return;
+  sections.forEach(function(sec) {
+    var score = sec.score;
+    var color = score >= 90 ? '#4ade80' : (score >= 70 ? '#f97316' : '#ef4444');
+    var r = 44, stroke = 7, circ = 2 * Math.PI * r;
+    var offset = circ - (score / 100) * circ;
+    var html = '<div class="section-gauge-item">' +
+      '<div class="gauge-ring" style="position:relative;width:110px;height:110px;">' +
+        '<svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true" focusable="false">' +
+          '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
+          '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
+            'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
+            'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
+            'style="transition:stroke-dashoffset 1s ease;"/>' +
+        '</svg>' +
+        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
+          '<span style="font-size:1.6rem;font-weight:700;color:' + color + ';">' + score + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="gauge-label-text">' + sec.label + '</div>' +
+    '</div>';
+    container.insertAdjacentHTML('beforeend', html);
+  });
+});
+</script>
+
+<!-- -- Performance Dashboard -------------------------------- -->
+<div id="perf-dashboard" class="card" style="margin-bottom:24px">
+  <h2 style="margin:0 0 16px">&#x26A1; Performance Metrics</h2>
+  <div class="perf-tabs" role="tablist" aria-label="Performance strategy">
+    <button type="button" role="tab" class="perf-tab active" onclick="switchPerfTab('mobile')" id="tab-mobile" aria-selected="true" aria-controls="panel-mobile" tabindex="0">&#x1F4F1; Mobile</button>
+    <button type="button" role="tab" class="perf-tab" onclick="switchPerfTab('desktop')" id="tab-desktop" aria-selected="false" aria-controls="panel-desktop" tabindex="-1">&#x1F5A5; Desktop</button>
+  </div>
+  <!-- Mobile panel -->
+  <div class="perf-panel" id="panel-mobile">
+    <div style="text-align:center;margin-bottom:20px">
+      <div class="gauge-container gauge-main"
+           data-type="overall"
+           data-value="96"
+           data-display="96"></div>
+      <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Overall Score</div>
+    </div>
+    <div class="perf-grid">
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="first-contentful-paint"
+             data-value="0.3"
+             data-display="0.3 s"></div>
+        <div class="gauge-label">First Contentful Paint</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="speed-index"
+             data-value="0.6"
+             data-display="0.6 s"></div>
+        <div class="gauge-label">Speed Index</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="largest-contentful-paint"
+             data-value="0.8"
+             data-display="0.8 s"></div>
+        <div class="gauge-label">Largest Contentful Paint</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="cumulative-layout-shift"
+             data-value="0.001"
+             data-display="0.001"></div>
+        <div class="gauge-label">Cumulative Layout Shift</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="interactive"
+             data-value="2.4"
+             data-display="2.4 s"></div>
+        <div class="gauge-label">Time to Interactive</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="total-blocking-time"
+             data-value="120"
+             data-display="120 ms"></div>
+        <div class="gauge-label">Total Blocking Time</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+      <h3 style="font-size:1rem;font-weight:600;margin:0 0 12px;">&#x1F4A1; Top Recommendations</h3>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid var(--yellow);">
+        <div style="font-weight:600;font-size:0.9rem;">Render-blocking requests</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Requests are blocking the page's initial render, which may delay LCP. Deferring or inlining can move these network requests out of the critical path.</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid var(--yellow);">
+        <div style="font-weight:600;font-size:0.9rem;">Network dependency tree</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Avoid chaining critical requests by reducing the length of chains, reducing the download size of resources, or deferring the download of unnecessary resources to improve page load.</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid var(--green);">
+        <div style="font-weight:600;font-size:0.9rem;">Use efficient cache lifetimes</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">A long cache lifetime can speed up repeat visits to your page. Learn more about efficient caching.</div>
+      </div>
+    </div>
+  </div>
+  <!-- Desktop panel (hidden by default) -->
+  <div class="perf-panel" id="panel-desktop" style="display:none;">
+    <div style="text-align:center;margin-bottom:20px">
+      <div class="gauge-container gauge-main"
+           data-type="overall"
+           data-value="99"
+           data-display="99"></div>
+      <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Overall Score</div>
+    </div>
+    <div class="perf-grid">
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="first-contentful-paint"
+             data-value="0.2"
+             data-display="0.2 s"></div>
+        <div class="gauge-label">First Contentful Paint</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="speed-index"
+             data-value="0.3"
+             data-display="0.3 s"></div>
+        <div class="gauge-label">Speed Index</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="largest-contentful-paint"
+             data-value="0.4"
+             data-display="0.4 s"></div>
+        <div class="gauge-label">Largest Contentful Paint</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="cumulative-layout-shift"
+             data-value="0.001"
+             data-display="0.001"></div>
+        <div class="gauge-label">Cumulative Layout Shift</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="interactive"
+             data-value="0.5"
+             data-display="0.5 s"></div>
+        <div class="gauge-label">Time to Interactive</div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-container gauge-metric"
+             data-type="total-blocking-time"
+             data-value="10"
+             data-display="10 ms"></div>
+        <div class="gauge-label">Total Blocking Time</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchPerfTab(strategy) {
+  document.querySelectorAll('.perf-panel').forEach(function(p) { p.style.display = 'none'; });
+  document.querySelectorAll('.perf-tab').forEach(function(t) {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+    t.setAttribute('tabindex', '-1');
+  });
+  document.getElementById('panel-' + strategy).style.display = 'block';
+  var tab = document.getElementById('tab-' + strategy);
+  tab.classList.add('active');
+  tab.setAttribute('aria-selected', 'true');
+  tab.setAttribute('tabindex', '0');
+}
+
+// Arrow-key keyboard nav for the Performance tablist (WCAG 2.1)
+(function() {
+  var tablist = document.querySelector('.perf-tabs[role="tablist"]');
+  if (!tablist) return;
+  var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+  tabs.forEach(function(tab, i) {
+    tab.addEventListener('keydown', function(e) {
+      var next = null;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = tabs[(i + 1) % tabs.length];
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (e.key === 'Home') next = tabs[0];
+      else if (e.key === 'End') next = tabs[tabs.length - 1];
+      if (next) {
+        e.preventDefault();
+        switchPerfTab(next.id.replace('tab-', ''));
+        next.focus();
+      }
+    });
+  });
+})();
+</script>
+
+<!-- Moylan Arrow Gauge Renderer (same as report.html) -->
+<script>
+(function() {
+  var TH = {
+    'overall':                  {g:90,  y:50,   max:100,  rev:true, gl:'90', yl:'50'},
+    'first-contentful-paint':   {g:1.8, y:3.0,  max:6.0,  rev:false, gl:'1.8s', yl:'3.0s'},
+    'speed-index':              {g:3.4, y:5.8,  max:10.0, rev:false, gl:'3.4s', yl:'5.8s'},
+    'largest-contentful-paint': {g:2.5, y:4.0,  max:8.0,  rev:false, gl:'2.5s', yl:'4.0s'},
+    'cumulative-layout-shift':  {g:0.1, y:0.25, max:0.5,  rev:false, gl:'0.1',  yl:'0.25'},
+    'interactive':              {g:3.8, y:7.3,  max:12.0, rev:false, gl:'3.8s', yl:'7.3s'},
+    'total-blocking-time':      {g:200, y:600,  max:1200, rev:false, gl:'200ms',yl:'600ms'}
+  };
+
+  var NS = 'http://www.w3.org/2000/svg';
+
+  function el(tag, attrs) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function arcPt(cx, cy, r, proportion) {
+    var a = Math.PI * (1 - proportion);
+    return { x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) };
+  }
+
+  function drawGauge(container) {
+    var type  = container.getAttribute('data-type');
+    var value = parseFloat(container.getAttribute('data-value'));
+    var disp  = container.getAttribute('data-display') || '';
+    var big   = container.classList.contains('gauge-main');
+
+    var cfg = TH[type];
+    if (!cfg) return;
+
+    var PAD = big ? 20 : 14;
+    var W = 200 + PAD * 2, H = big ? 150 : 134;
+    var CX = 100 + PAD, CY = big ? 115 : 104;
+    var R  = big ? 80 : 70;
+    var SW = big ? 16 : 12;
+    var ARC = Math.PI * R;
+
+    var gP, yP, rP;
+    if (cfg.rev) {
+      gP = (cfg.max - cfg.g) / cfg.max;
+      yP = (cfg.g - cfg.y) / cfg.max;
+      rP = cfg.y / cfg.max;
+    } else {
+      gP = cfg.g / cfg.max;
+      yP = (cfg.y - cfg.g) / cfg.max;
+      rP = (cfg.max - cfg.y) / cfg.max;
+    }
+    var gL = gP * ARC, yL = yP * ARC, rL = rP * ARC;
+
+    var nPos;
+    if (cfg.rev) {
+      nPos = Math.max(0, Math.min(1, (cfg.max - value) / cfg.max));
+    } else {
+      nPos = Math.max(0, Math.min(1, value / cfg.max));
+    }
+    var needleDeg = -90 + nPos * 180;
+
+    var nCol;
+    if (nPos <= gP + 0.001) nCol = '#0cce6b';
+    else if (nPos <= gP + yP + 0.001) nCol = '#ffa400';
+    else nCol = '#ff4e42';
+
+    var svg = el('svg', {viewBox: '0 0 ' + W + ' ' + H});
+    svg.style.width = '100%';
+    svg.style.maxWidth = big ? '260px' : '195px';
+
+    var arcD = 'M ' + (CX - R) + ',' + CY +
+               ' A ' + R + ',' + R + ' 0 0,1 ' + (CX + R) + ',' + CY;
+
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: 'rgba(255,255,255,0.06)',
+      'stroke-width': SW, 'stroke-linecap': 'butt'
+    }));
+
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#0cce6b',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': gL + ' ' + (ARC * 3)
+    }));
+
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#ffa400',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': '0.001 ' + gL + ' ' + yL + ' ' + (ARC * 3)
+    }));
+
+    svg.appendChild(el('path', {
+      d: arcD, fill: 'none', stroke: '#ff4e42',
+      'stroke-width': SW, 'stroke-linecap': 'butt',
+      'stroke-dasharray': '0.001 ' + (gL + yL) + ' ' + rL + ' ' + (ARC * 3)
+    }));
+
+    function addTick(prop, label) {
+      var oP = arcPt(CX, CY, R + SW / 2 + 1, prop);
+      var iP = arcPt(CX, CY, R - SW / 2 - 1, prop);
+      svg.appendChild(el('line', {
+        x1: oP.x, y1: oP.y, x2: iP.x, y2: iP.y,
+        stroke: 'rgba(255,255,255,0.4)', 'stroke-width': '1.5'
+      }));
+      var lP = arcPt(CX, CY, R + SW / 2 + (big ? 13 : 11), prop);
+      var t = el('text', {
+        x: lP.x, y: lP.y, 'text-anchor': 'middle',
+        'dominant-baseline': 'middle',
+        fill: 'rgba(255,255,255,0.55)',
+        'font-size': big ? '10' : '8',
+        'font-family': 'system-ui, sans-serif'
+      });
+      t.textContent = label;
+      svg.appendChild(t);
+    }
+
+    addTick(gP, cfg.gl);
+    addTick(gP + yP, cfg.yl);
+
+    var NL = R - 16;
+    var nw = big ? 4.5 : 3.5;
+
+    var g = el('g', {transform: 'rotate(' + needleDeg + ', ' + CX + ', ' + CY + ')'});
+
+    g.appendChild(el('polygon', {
+      points: [
+        (CX - nw) + ',' + CY,
+        (CX + nw) + ',' + CY,
+        (CX + 1.2) + ',' + (CY - NL + 6),
+        CX + ',' + (CY - NL),
+        (CX - 1.2) + ',' + (CY - NL + 6)
+      ].join(' '),
+      fill: nCol, opacity: '0.92'
+    }));
+
+    g.appendChild(el('polygon', {
+      points: [
+        (CX - nw * 0.6) + ',' + CY,
+        (CX + nw * 0.6) + ',' + CY,
+        (CX + nw * 0.4) + ',' + (CY + 10),
+        (CX - nw * 0.4) + ',' + (CY + 10)
+      ].join(' '),
+      fill: '#555', opacity: '0.7'
+    }));
+
+    g.appendChild(el('circle', {
+      cx: CX, cy: CY, r: big ? 7 : 5.5,
+      fill: '#555', stroke: '#777', 'stroke-width': '1.5'
+    }));
+
+    svg.appendChild(g);
+
+    var vt = el('text', {
+      x: CX, y: CY + (big ? 28 : 22),
+      'text-anchor': 'middle', fill: nCol,
+      'font-size': big ? '24' : '16',
+      'font-weight': 'bold',
+      'font-family': 'system-ui, sans-serif'
+    });
+    vt.textContent = disp;
+    svg.appendChild(vt);
+
+    container.appendChild(svg);
+  }
+
+  document.querySelectorAll('.gauge-container').forEach(drawGauge);
+})();
+</script>
+
+<!-- -- Results Table (condensed: first 5 visible) ----------- -->
+<div class="card" id="detailed-results-card">
+  <h2 id="detailed-results-heading">&#x1F4DD; Detailed Results (94)</h2>
+  <!-- Filter bar -->
+  <form onsubmit="return false" style="margin-bottom:16px;">
+    <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+      <div class="filter-group">
+        <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
+        <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="all" aria-pressed="true" onclick="filterResults('all', this)">All</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" aria-pressed="false" onclick="filterResults('failed', this)">Failed</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" aria-pressed="false" onclick="filterResults('warning', this)">Warnings</button>
+        <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" aria-pressed="false" onclick="filterResults('passed', this)">Passed</button>
+      </div>
+      <div class="filter-group">
+        <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
+        <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" aria-pressed="true" onclick="filterModule('all', this)">All</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" aria-pressed="false" onclick="filterModule('availability', this)">Avail</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" aria-pressed="false" onclick="filterModule('links', this)">Links</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="forms" aria-pressed="false" onclick="filterModule('forms', this)">Forms</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="chaos" aria-pressed="false" onclick="filterModule('chaos', this)">Chaos</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="auth" aria-pressed="false" onclick="filterModule('auth', this)">Auth</button>
+        <button type="button" class="btn btn-secondary text-sm module-btn" data-module="security" aria-pressed="false" onclick="filterModule('security', this)">Security</button>
+      </div>
+    </div>
+  </form>
+  <div id="detailed-results-wrapper" style="overflow-x:auto;max-height:none;">
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th style="width:50px">#</th>
+          <th>Status</th>
+          <th>Severity</th>
+          <th>Module</th>
+          <th>Test</th>
+          <th>Details</th>
+          <th style="width:80px">Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 1: Page load / availability -->
+        <tr class="result-row" data-status="passed" data-module="availability" onclick="toggleResultDetail(this)" style="cursor:pointer;">
+          <td class="text-muted mono text-sm cell-index">1</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /</div>
+            <div class="text-muted text-sm">GET https://bestlocalbakery.com/</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Homepage loads in 680ms with HTTP 200 status.</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">29ms</td>
+        </tr>
+
+        <!-- 2: Page load /menu -->
+        <tr class="result-row" data-status="passed" data-module="availability" onclick="toggleResultDetail(this)" style="cursor:pointer;">
+          <td class="text-muted mono text-sm cell-index">2</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /menu</div>
+            <div class="text-muted text-sm">GET https://bestlocalbakery.com/menu</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Menu page loads correctly with HTTP 200.</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/menu</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">24ms</td>
+        </tr>
+
+        <!-- 3: Page load /blog/spring-menu -->
+        <tr class="result-row" data-status="passed" data-module="availability" onclick="toggleResultDetail(this)" style="cursor:pointer;">
+          <td class="text-muted mono text-sm cell-index">3</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /blog/spring-menu-update</div>
+            <div class="text-muted text-sm">https://bestlocalbakery.com/blog/spring-menu-update</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Blog page loads correctly.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">54ms</td>
+        </tr>
+
+        <!-- 4: ethical-robots-txt-compliance -->
+        <tr class="result-row" data-status="passed" data-module="availability" onclick="toggleResultDetail(this)" style="cursor:pointer;">
+          <td class="text-muted mono text-sm cell-index">4</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> ethical-robots-txt-compliance</div>
+            <div class="text-muted text-sm">Verified robots.txt allows crawling of key pages</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Robots.txt present and properly configured. All important pages are crawlable.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">12ms</td>
+        </tr>
+
+        <!-- 5: Page load /blog/the-psycho... (long title truncated) -->
+        <tr class="result-row" data-status="passed" data-module="availability" onclick="toggleResultDetail(this)" style="cursor:pointer;">
+          <td class="text-muted mono text-sm cell-index">5</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /blog/the-psychology...</div>
+            <div class="text-muted text-sm">https://bestlocalbakery.com/blog/the-psychology-of-bread-aroma</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Blog article loads correctly with HTTP 200.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">67ms</td>
+        </tr>
+
+        <!-- Hidden rows: additional sample findings -->
+        <tr class="result-row" data-status="failed" data-module="links" onclick="toggleResultDetail(this)" style="cursor:pointer;display:none;">
+          <td class="text-muted mono text-sm cell-index">6</td>
+          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
+          <td data-label="Severity"><span class="badge badge-high">high</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#a855f7;font-weight:600;">links</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Broken Link: /menu-old</div>
+            <div class="text-muted text-sm">HTTP 404 on legacy menu page</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Page returns 404 Not Found. This link is still referenced from the main navigation.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Remove the link or restore the /menu-old page</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/menu-old</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">245ms</td>
+        </tr>
+
+        <tr class="result-row" data-status="warning" data-module="security" onclick="toggleResultDetail(this)" style="cursor:pointer;display:none;">
+          <td class="text-muted mono text-sm cell-index">7</td>
+          <td data-label="Status"><span class="badge badge-warning">warning</span></td>
+          <td data-label="Severity"><span class="badge badge-high">high</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#ef4444;font-weight:600;">security</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Missing Content-Security-Policy Header</div>
+            <div class="text-muted text-sm">CSP header not found in response</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">The Content-Security-Policy header is missing, leaving the site vulnerable to XSS and injection attacks.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Add CSP header with restrictive defaults: default-src 'self'; script-src 'self' 'unsafe-inline'</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">42ms</td>
+        </tr>
+
+        <tr class="result-row" data-status="failed" data-module="security" onclick="toggleResultDetail(this)" style="cursor:pointer;display:none;">
+          <td class="text-muted mono text-sm cell-index">8</td>
+          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
+          <td data-label="Severity"><span class="badge badge-high">high</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#ef4444;font-weight:600;">security</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Session Cookie Missing Secure Flag</div>
+            <div class="text-muted text-sm">Cookie transmitted over plain HTTP</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">The session_id cookie is transmitted over insecure HTTP connections. Attackers on the same network could intercept it.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Add Secure flag to session cookies and enforce HTTPS only</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">38ms</td>
+        </tr>
+
+        <tr class="result-row" data-status="failed" data-module="forms" onclick="toggleResultDetail(this)" style="cursor:pointer;display:none;">
+          <td class="text-muted mono text-sm cell-index">9</td>
+          <td data-label="Status"><span class="badge badge-failed">failed</span></td>
+          <td data-label="Severity"><span class="badge badge-medium">medium</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#06b6d4;font-weight:600;">forms</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Contact Form: Missing Label on Email Field</div>
+            <div class="text-muted text-sm">Email input lacks associated label element</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">The email input field on the contact form has no &lt;label&gt; element. Screen readers cannot identify the field purpose.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Add &lt;label for="email"&gt;Email Address&lt;/label&gt; and link with id attribute</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">156ms</td>
+        </tr>
+
+        <tr class="result-row" data-status="passed" data-module="security" onclick="toggleResultDetail(this)" style="cursor:pointer;display:none;">
+          <td class="text-muted mono text-sm cell-index">10</td>
+          <td data-label="Status"><span class="badge badge-passed">passed</span></td>
+          <td data-label="Severity"><span class="badge badge-low">low</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#ef4444;font-weight:600;">security</span></td>
+          <td data-label="Test">
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> HTTPS Enabled Everywhere</div>
+            <div class="text-muted text-sm">All pages serve over secure connection</div>
+          </td>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">All pages are served via HTTPS with a valid certificate from Let's Encrypt.</div>
+          </td>
+          <td data-label="Time" class="mono text-sm text-muted">35ms</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="text-align:center;padding:12px 0;">
+    <button type="button" class="btn btn-secondary text-sm" onclick="toggleDetailedResults()" id="detailed-toggle-btn" aria-expanded="false" aria-controls="resultsTable">
+      Show All 94 Results &#x25BC;
+    </button>
+  </div>
+</div>
+
+<!-- -- AI Visibility Dashboard ----------------------------------- -->
+<div class="card">
+  <h2>&#x1F916; AI Visibility Dashboard</h2>
+
+  <!-- Summary Score -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:2.5rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Overall AI Visibility</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:2.5rem;font-weight:700;">0/32</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Appearances in AI Results</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:1.1rem;font-weight:600;">BEST LOCAL BAKERY</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Bakery &mdash; Seattle</div>
+    </div>
+  </div>
+
+  <!-- Platform Scores -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;margin-bottom:24px;">
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #10a37f;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2310a37f%22%20d%3D%22M22.282%209.821a6%206%200%200%200-.516-4.91a6.05%206.05%200%200%200-6.51-2.9A6.065%206.065%200%200%200%204.981%204.18a6%206%200%200%200-3.998%202.9a6.05%206.05%200%200%200%20.743%207.097a5.98%205.98%200%200%200%20.51%204.911a6.05%206.05%200%200%200%206.515%202.9A6%206%200%200%200%2013.26%2024a6.06%206.06%200%200%200%205.772-4.206a6%206%200%200%200%203.997-2.9a6.06%206.06%200%200%200-.747-7.073M13.26%2022.43a4.48%204.48%200%200%201-2.876-1.04l.141-.081l4.779-2.758a.8.8%200%200%200%20.392-.681v-6.737l2.02%201.168a.07.07%200%200%201%20.038.052v5.583a4.504%204.504%200%200%201-4.494%204.494M3.6%2018.304a4.47%204.47%200%200%201-.535-3.014l.142.085l4.783%202.759a.77.77%200%200%200%20.78%200l5.843-3.369v2.332a.08.08%200%200%201-.033.062L9.74%2019.95a4.5%204.5%200%200%201-6.14-1.646M2.34%207.896a4.5%204.5%200%200%201%202.366-1.973V11.6a.77.77%200%200%200%20.388.677l5.815%203.354l-2.02%201.168a.08.08%200%200%201-.071%200l-4.83-2.786A4.504%204.504%200%200%201%202.34%207.872zm16.597%203.855l-5.833-3.387L15.119%207.2a.08.08%200%200%201%20.071%200l4.83%202.791a4.494%204.494%200%200%201-.676%208.105v-5.678a.79.79%200%200%200-.407-.667m2.01-3.023l-.141-.085l-4.774-2.782a.78.78%200%200%200-.785%200L9.409%209.23V6.897a.07.07%200%200%201%20.028-.061l4.83-2.787a4.5%204.5%200%200%201%206.68%204.66zm-12.64%204.135l-2.02-1.164a.08.08%200%200%201-.038-.057V6.075a4.5%204.5%200%200%201%207.375-3.453l-.142.08L8.704%205.46a.8.8%200%200%200-.393.681zm1.097-2.365l2.602-1.5l2.607%201.5v2.999l-2.597%201.5l-2.607-1.5Z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt="" style="vertical-align:middle;"> ChatGPT
+      </div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#10a37f;"></div>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #1e88e5;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2320808d%22%20d%3D%22M22.398%207.09h-2.31V.068l-7.51%206.354V.158h-1.156v6.196L4.49%200v7.09H1.602v10.397H4.49V24l6.933-6.36v6.201h1.155v-6.047l6.932%206.181v-6.488h2.888zm-3.466-4.531v4.53h-5.355zm-13.286.067l4.869%204.464h-4.87zM2.758%2016.332V8.245h7.847L4.49%2014.36v1.972zm2.888%205.04v-6.534l5.776-5.776v7.011zm12.708.025l-5.776-5.15V9.061l5.776%205.776zm2.889-5.065H19.51V14.36l-6.115-6.115h7.848z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt="" style="vertical-align:middle;"> Perplexity
+      </div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#1e88e5;"></div>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #d97706;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23cc785c%22%20d%3D%22M17.304%203.541h-3.672l6.696%2016.918H24Zm-10.608%200L0%2020.459h3.744l1.37-3.553h7.005l1.369%203.553h3.744L10.536%203.541Zm-.371%2010.223L8.616%207.82l2.291%205.945Z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt="" style="vertical-align:middle;"> Claude
+      </div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#d97706;"></div>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #6366f1;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%234285f4%22%20d%3D%22M11.04%2019.32Q12%2021.51%2012%2024q0-2.49.93-4.68q.96-2.19%202.58-3.81t3.81-2.55Q21.51%2012%2024%2012q-2.49%200-4.68-.93a12.3%2012.3%200%200%201-3.81-2.58a12.3%2012.3%200%200%201-2.58-3.81Q12%202.49%2012%200q0%202.49-.96%204.68q-.93%202.19-2.55%203.81a12.3%2012.3%200%200%201-3.81%202.58Q2.49%2012%200%2012q2.49%200%204.68.96q2.19.93%203.81%202.55t2.55%203.81%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt="" style="vertical-align:middle;"> Gemini
+      </div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#6366f1;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Visibility Recommendations -->
+  <div style="margin-bottom:24px;border:1px solid var(--border);border-radius:12px;padding:20px;background:linear-gradient(135deg, rgba(99,102,241,0.05), rgba(16,185,129,0.05));">
+    <h3 style="font-size:1rem;font-weight:700;margin:0 0 12px;">&#x1F4A1; Top Actions to Improve AI Visibility</h3>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid #f97316;">
+      <div style="font-weight:600;font-size:0.9rem;">&#x1F4AA; Strengthen Your Online Presence</div>
+      <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Your business appears in only 0% of AI queries. Focus on building authoritative content, earning quality backlinks, and maintaining consistent NAP (Name, Address, Phone) across directories.</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid #f97316;">
+      <div style="font-weight:600;font-size:0.9rem;">&#x1F50D; Improve Visibility on ChatGPT & Claude & Gemini & Perplexity</div>
+      <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Your business wasn't found on ChatGPT, Claude, Gemini, Perplexity. Ensure your Google Business Profile is complete, encourage customer reviews, and add structured data (schema.org) to your website.</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid #f97316;">
+      <div style="font-weight:600;font-size:0.9rem;">&#x1F4DD; Create Sector-Specific Content</div>
+      <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">AI models aren't recommending your business for 32 out of 32 queries. Publish authoritative blog posts, case studies, and FAQs targeting the exact phrases customers use.</div>
+    </div>
+  </div>
+
+  <!-- Custom AI Query -->
+  <div style="margin-bottom:24px;background:var(--surface2);border-radius:12px;padding:20px;">
+    <h3 style="font-size:1rem;font-weight:700;margin:0 0 4px;">&#x1F50D; Run a Custom Query</h3>
+    <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 12px;">Enter any search query to see how AI platforms respond. The query runs against all 4 AI models.</p>
+    <div style="display:flex;gap:8px;align-items:stretch;">
+      <input type="text" id="custom-ai-query" placeholder="e.g. best plumber in Seattle" style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:0.9rem;" disabled>
+      <button type="button" class="btn btn-primary" style="white-space:nowrap;" disabled>Run Query</button>
+    </div>
+    <div style="margin-top:8px;color:var(--text-muted);font-size:0.8rem;font-style:italic;">Custom queries are available on real audit reports.</div>
+  </div>
+
+  <!-- AI Results Table -->
+  <div style="position:relative;">
+    <div id="ai-results-table" style="overflow-x:auto;max-height:none;">
+      <table id="aiResultsTable">
+        <thead>
+          <tr>
+            <th>AI Platform</th>
+            <th>Search Query</th>
+            <th>Recommended</th>
+            <th>Client Appears</th>
+            <th>Position</th>
+            <th>Competitors</th>
+            <th>Visibility Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ai-result-row">
+            <td data-label="Platform"><span style="color:#10a37f;font-weight:600;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2310a37f%22%20d%3D%22M22.282%209.821a6%206%200%200%200-.516-4.91a6.05%206.05%200%200%200-6.51-2.9A6.065%206.065%200%200%200%204.981%204.18a6%206%200%200%200-3.998%202.9a6.05%206.05%200%200%200%20.743%207.097a5.98%205.98%200%200%200%20.51%204.911a6.05%206.05%200%200%200%206.515%202.9A6%206%200%200%200%2013.26%2024a6.06%206.06%200%200%200%205.772-4.206a6%206%200%200%200%203.997-2.9a6.06%206.06%200%200%200-.747-7.073M13.26%2022.43a4.48%204.48%200%200%201-2.876-1.04l.141-.081l4.779-2.758a.8.8%200%200%200%20.392-.681v-6.737l2.02%201.168a.07.07%200%200%201%20.038.052v5.583a4.504%204.504%200%200%201-4.494%204.494M3.6%2018.304a4.47%204.47%200%200%201-.535-3.014l.142.085l4.783%202.759a.77.77%200%200%200%20.78%200l5.843-3.369v2.332a.08.08%200%200%201-.033.062L9.74%2019.95a4.5%204.5%200%200%201-6.14-1.646M2.34%207.896a4.5%204.5%200%200%201%202.366-1.973V11.6a.77.77%200%200%200%20.388.677l5.815%203.354l-2.02%201.168a.08.08%200%200%201-.071%200l-4.83-2.786A4.504%204.504%200%200%201%202.34%207.872zm16.597%203.855l-5.833-3.387L15.119%207.2a.08.08%200%200%201%20.071%200l4.83%202.791a4.494%204.494%200%200%201-.676%208.105v-5.678a.79.79%200%200%200-.407-.667m2.01-3.023l-.141-.085l-4.774-2.782a.78.78%200%200%200-.785%200L9.409%209.23V6.897a.07.07%200%200%201%20.028-.061l4.83-2.787a4.5%204.5%200%200%201%206.68%204.66zm-12.64%204.135l-2.02-1.164a.08.08%200%200%201-.038-.057V6.075a4.5%204.5%200%200%201%207.375-3.453l-.142.08L8.704%205.46a.8.8%200%200%200-.393.681zm1.097-2.365l2.602-1.5l2.607%201.5v2.999l-2.597%201.5l-2.607-1.5Z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt="" style="vertical-align:middle;"> ChatGPT</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">recommended bakery in Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Macrina Bakery, Bakery Nouveau, Columbia City Bakery, Tall Grass Bakery</td>
+            <td data-label="Found"><span class="badge badge-failed">No</span></td>
+            <td data-label="Position">N/A</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Macrina Bakery, Bakery Nouveau, Columbia City Bakery</td>
+            <td data-label="Score">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
+                </div>
+                <span>0%</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="ai-result-row">
+            <td data-label="Platform"><span style="color:#1e88e5;font-weight:600;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2320808d%22%20d%3D%22M22.398%207.09h-2.31V.068l-7.51%206.354V.158h-1.156v6.196L4.49%200v7.09H1.602v10.397H4.49V24l6.933-6.36v6.201h1.155v-6.047l6.932%206.181v-6.488h2.888zm-3.466-4.531v4.53h-5.355zm-13.286.067l4.869%204.464h-4.87zM2.758%2016.332V8.245h7.847L4.49%2014.36v1.972zm2.888%205.04v-6.534l5.776-5.776v7.011zm12.708.025l-5.776-5.15V9.061l5.776%205.776zm2.889-5.065H19.51V14.36l-6.115-6.115h7.848z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt="" style="vertical-align:middle;"> Perplexity</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">recommended bakery in Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Bakery Nouveau, Macrina Bakery, Essential Baking Company</td>
+            <td data-label="Found"><span class="badge badge-failed">No</span></td>
+            <td data-label="Position">N/A</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Bakery Nouveau, Macrina Bakery</td>
+            <td data-label="Score">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
+                </div>
+                <span>0%</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="ai-result-row">
+            <td data-label="Platform"><span style="color:#d97706;font-weight:600;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23cc785c%22%20d%3D%22M17.304%203.541h-3.672l6.696%2016.918H24Zm-10.608%200L0%2020.459h3.744l1.37-3.553h7.005l1.369%203.553h3.744L10.536%203.541Zm-.371%2010.223L8.616%207.82l2.291%205.945Z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt="" style="vertical-align:middle;"> Claude</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">best artisan bread near Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Columbia City Bakery, Tall Grass Bakery, Bakery Nouveau</td>
+            <td data-label="Found"><span class="badge badge-failed">No</span></td>
+            <td data-label="Position">N/A</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Columbia City Bakery, Tall Grass Bakery</td>
+            <td data-label="Score">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
+                </div>
+                <span>0%</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="ai-result-row">
+            <td data-label="Platform"><span style="color:#6366f1;font-weight:600;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%234285f4%22%20d%3D%22M11.04%2019.32Q12%2021.51%2012%2024q0-2.49.93-4.68q.96-2.19%202.58-3.81t3.81-2.55Q21.51%2012%2024%2012q-2.49%200-4.68-.93a12.3%2012.3%200%200%201-3.81-2.58a12.3%2012.3%200%200%201-2.58-3.81Q12%202.49%2012%200q0%202.49-.96%204.68q-.93%202.19-2.55%203.81a12.3%2012.3%200%200%201-3.81%202.58Q2.49%2012%200%2012q2.49%200%204.68.96q2.19.93%203.81%202.55t2.55%203.81%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt="" style="vertical-align:middle;"> Gemini</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">top rated bakery near Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Essential Baking Company, Macrina Bakery, Bakery Nouveau</td>
+            <td data-label="Found"><span class="badge badge-failed">No</span></td>
+            <td data-label="Position">N/A</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Essential Baking Company, Macrina Bakery</td>
+            <td data-label="Score">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
+                </div>
+                <span>0%</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="ai-result-row" style="display:none;">
+            <td data-label="Platform"><span style="color:#10a37f;font-weight:600;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2310a37f%22%20d%3D%22M22.282%209.821a6%206%200%200%200-.516-4.91a6.05%206.05%200%200%200-6.51-2.9A6.065%206.065%200%200%200%204.981%204.18a6%206%200%200%200-3.998%202.9a6.05%206.05%200%200%200%20.743%207.097a5.98%205.98%200%200%200%20.51%204.911a6.05%206.05%200%200%200%206.515%202.9A6%206%200%200%200%2013.26%2024a6.06%206.06%200%200%200%205.772-4.206a6%206%200%200%200%203.997-2.9a6.06%206.06%200%200%200-.747-7.073M13.26%2022.43a4.48%204.48%200%200%201-2.876-1.04l.141-.081l4.779-2.758a.8.8%200%200%200%20.392-.681v-6.737l2.02%201.168a.07.07%200%200%201%20.038.052v5.583a4.504%204.504%200%200%201-4.494%204.494M3.6%2018.304a4.47%204.47%200%200%201-.535-3.014l.142.085l4.783%202.759a.77.77%200%200%200%20.78%200l5.843-3.369v2.332a.08.08%200%200%201-.033.062L9.74%2019.95a4.5%204.5%200%200%201-6.14-1.646M2.34%207.896a4.5%204.5%200%200%201%202.366-1.973V11.6a.77.77%200%200%200%20.388.677l5.815%203.354l-2.02%201.168a.08.08%200%200%201-.071%200l-4.83-2.786A4.504%204.504%200%200%201%202.34%207.872zm16.597%203.855l-5.833-3.387L15.119%207.2a.08.08%200%200%201%20.071%200l4.83%202.791a4.494%204.494%200%200%201-.676%208.105v-5.678a.79.79%200%200%200-.407-.667m2.01-3.023l-.141-.085l-4.774-2.782a.78.78%200%200%200-.785%200L9.409%209.23V6.897a.07.07%200%200%201%20.028-.061l4.83-2.787a4.5%204.5%200%200%201%206.68%204.66zm-12.64%204.135l-2.02-1.164a.08.08%200%200%201-.038-.057V6.075a4.5%204.5%200%200%201%207.375-3.453l-.142.08L8.704%205.46a.8.8%200%200%200-.393.681zm1.097-2.365l2.602-1.5l2.607%201.5v2.999l-2.597%201.5l-2.607-1.5Z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt="" style="vertical-align:middle;"> ChatGPT</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">best custom cakes in Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Trophy Cupcakes, Bakery Nouveau, Macrina Bakery</td>
+            <td data-label="Found"><span class="badge badge-failed">No</span></td>
+            <td data-label="Position">N/A</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Trophy Cupcakes, Bakery Nouveau</td>
+            <td data-label="Score">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
+                </div>
+                <span>0%</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="ai-show-more-bar" style="text-align:center;padding:12px 0;">
+      <button type="button" class="btn btn-secondary text-sm" onclick="toggleAIResults()" id="ai-toggle-btn">
+        Show All 32 Results &#x25BC;
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentStatus = 'all';
+let currentModule = 'all';
+let _detailedExpanded = false;
+let _aiExpanded = false;
+
+function filterResults(status, btn) {
+  currentStatus = status;
+  document.querySelectorAll('.filter-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+  btn.classList.add('active');
+  btn.setAttribute('aria-pressed', 'true');
+  applyFilters();
+}
+
+function filterModule(mod, btn) {
+  currentModule = mod;
+  document.querySelectorAll('.module-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+  btn.classList.add('active');
+  btn.setAttribute('aria-pressed', 'true');
+  applyFilters();
+}
+
+function applyFilters() {
+  var isFiltering = currentStatus !== 'all' || currentModule !== 'all';
+  document.querySelectorAll('.result-row').forEach(function(row, i) {
+    var matchStatus = currentStatus === 'all' || row.dataset.status === currentStatus;
+    var matchModule = currentModule === 'all' || row.dataset.module === currentModule;
+    if (isFiltering) {
+      row.style.display = (matchStatus && matchModule) ? '' : 'none';
+    } else if (_detailedExpanded) {
+      row.style.display = (matchStatus && matchModule) ? '' : 'none';
+    } else {
+      row.style.display = (matchStatus && matchModule && i < 5) ? '' : 'none';
+    }
+  });
+}
+
+function toggleDetailedResults() {
+  _detailedExpanded = !_detailedExpanded;
+  var btn = document.getElementById('detailed-toggle-btn');
+  btn.setAttribute('aria-expanded', _detailedExpanded ? 'true' : 'false');
+  btn.textContent = _detailedExpanded ? 'Show First 5 Results \u25B2' : 'Show All 94 Results \u25BC';
+  applyFilters();
+}
+
+function toggleResultDetail(row) {
+  var cell = row.querySelector('.result-detail-cell');
+  var chevron = row.querySelector('.expand-chevron');
+  if (!cell) return;
+  var isOpen = cell.style.display !== 'none';
+  cell.style.display = isOpen ? 'none' : '';
+  if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function toggleAIResults() {
+  _aiExpanded = !_aiExpanded;
+  var btn = document.getElementById('ai-toggle-btn');
+  btn.textContent = _aiExpanded ? 'Show First 4 Results \u25B2' : 'Show All 32 Results \u25BC';
+  document.querySelectorAll('.ai-result-row').forEach(function(row, i) {
+    row.style.display = _aiExpanded ? '' : (i < 4 ? '' : 'none');
+  });
+}
+
+function scrollToResults(filter) {
+  var el = document.getElementById('detailed-results-card');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (filter && filter !== 'all') {
+    var btn = document.querySelector('.filter-btn[data-filter="' + filter + '"]');
+    if (btn) filterResults(filter, btn);
+  }
+}
+
+function downloadPDF() {
+  var style = document.createElement('style');
+  style.id = 'pdf-print-style';
+  style.textContent = '@media print { .report-action-pills, nav, footer, .filter-bar { display: none !important; } body { background: #fff !important; color: #111 !important; } .card, .stat-card { border: 1px solid #ddd !important; background: #fff !important; } .badge { border: 1px solid #999; } @page { margin: 1cm; } }';
+  document.head.appendChild(style);
+  window.print();
+  setTimeout(function() { var ps = document.getElementById('pdf-print-style'); if (ps) ps.remove(); }, 1000);
+}
+
+function copyShareLink() {
+  var url = window.location.href;
+  var btn = document.getElementById('share-link-btn');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function() {
+      btn.innerHTML = '\u2713 Copied!';
+      setTimeout(function() { btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share'; }, 2000);
+    });
+  }
+}
+</script>
+
+<style>
+.filter-btn.active, .module-btn.active {
+  border-color: var(--accent) !important;
+  color: var(--accent);
+}
+.perf-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.perf-tab {
+  padding: 8px 20px; border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--text);
+  cursor: pointer; font-size: 14px; transition: all .2s;
+}
+.perf-tab.active { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+.perf-tab:hover:not(.active) { background: rgba(99,102,241,.15); }
+.perf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) { .perf-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .perf-grid { grid-template-columns: 1fr; } }
+.gauge-card {
+  text-align: center; padding: 16px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: rgba(255,255,255,.03);
+}
+.gauge-container { display: flex; justify-content: center; }
+.gauge-label { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+</style>
+
+{% endblock %}
