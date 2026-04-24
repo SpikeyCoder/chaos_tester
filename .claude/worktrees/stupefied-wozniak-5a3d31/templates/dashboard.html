@@ -1,0 +1,926 @@
+{% extends "base.html" %}
+{% block title %}Free Website Audit Tool — AI Visibility, Security & Performance Scanner | Website Auditor{% endblock %}
+
+{% block content %}
+<!-- ── Hero Section ─────────────────────────────────────────── -->
+<div class="landing-hero fade-up" id="audit">
+  <div class="hero-pill">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><polyline points="2 12 6 6 10 10 14 4"/></svg>
+    Over 1,000+ websites audited
+  </div>
+  <h1>Does ChatGPT recommend your business?</h1>
+  <p class="hero-subtitle">Most small businesses don't know. In 30 seconds we'll check your AI visibility, site security, and page speed — and tell you what to fix first. No signup needed.</p>
+
+  <form method="POST" action="/run" id="runForm" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <!-- Defaults for advanced options -->
+    <input type="hidden" name="environment" value="production">
+    <input type="hidden" name="allow_production" value="on">
+    <input type="hidden" name="crawl_depth" value="3">
+    <input type="hidden" name="max_pages" value="100">
+    <input type="hidden" name="concurrency" value="5">
+    <input type="hidden" name="request_timeout" value="15">
+    <input type="hidden" name="chaos_intensity" value="medium">
+    <input type="hidden" name="auth_cookie_name" value="sessionid">
+    <input type="hidden" name="run_availability" value="on" id="h_avail">
+    <input type="hidden" name="run_links" value="on" id="h_links">
+    <input type="hidden" name="run_forms" value="on" id="h_forms">
+    <input type="hidden" name="run_chaos" value="" id="h_chaos">
+    <input type="hidden" name="run_auth" value="" id="h_auth">
+    <input type="hidden" name="run_security" value="on" id="h_security">
+    <input type="hidden" name="business_location" id="business_location" value="">
+    <input type="hidden" name="business_name" id="business_name" value="">
+
+    <div class="hero-search">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="url" id="base_url" name="base_url" placeholder="Enter your website URL (e.g., https://yourbusiness.com)" required value="" autocomplete="url" aria-label="Website URL to audit">
+      {% if status == 'running' %}
+        <a href="/progress" class="btn-audit" aria-label="View audit progress">View Progress</a>
+      {% else %}
+        <button type="submit" class="btn-audit" id="auditBtn" disabled style="opacity:0.5;cursor:not-allowed;min-width:160px;" aria-label="Check my site">Check my site</button>
+      {% endif %}
+      <div id="loading-indicator" style="display:none;margin-top:12px;color:var(--accent);">
+        <span style="display:inline-block;animation:spin 2s linear infinite;margin-right:8px;">⏳</span>
+        <span>Starting audit... Please wait.</span>
+      </div>
+    </div>
+    <div id="cta-helper" style="text-align:center;margin-top:8px;font-size:0.82rem;color:var(--text-muted);transition:opacity 0.3s;">Enter a URL above to scan your website</div>
+    <div style="text-align:center;margin-top:6px;font-size:0.78rem;color:var(--text-muted);">Want to customize what we check? <a href="#" onclick="document.getElementById('module-toggles').open=true;document.getElementById('module-toggles').scrollIntoView({behavior:'smooth',block:'nearest'});return false;" style="color:var(--accent);text-decoration:underline;text-underline-offset:2px;">Advanced options</a></div>
+    <style>
+      #module-toggles summary::-webkit-details-marker { display: none; }
+      #module-toggles[open] > summary .module-chevron { transform: rotate(180deg); }
+      .btn-audit:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+      }
+      .btn-audit:active:not(:disabled) {
+        transform: translateY(0);
+      }
+      .btn-audit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </form>
+
+  <!-- Business name confirmation row: shown when business name is auto-detected -->
+  <div id="biz-name-confirmed" aria-live="polite" style="display:none;overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;max-width:680px;margin-left:auto;margin-right:auto;">
+    <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <span id="biz-name-display" style="font-weight:700;font-size:1.05rem;color:#4ade80;"></span>
+      <button type="button" id="biz-name-wrong-btn" style="background:none;border:none;color:var(--text-muted);font-size:0.82rem;cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:2px;white-space:nowrap;">Not the right business?</button>
+    </div>
+  </div>
+
+  <!-- Business name override fields: shown when user clicks "Not the right business?" or detection fails -->
+  <div id="biz-name-override" aria-live="polite" style="display:none;overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;max-width:680px;margin-left:auto;margin-right:auto;">
+    <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;text-align:left;">
+      <div id="detected-biz-label" style="display:none;font-size:0.82rem;color:#4ade80;margin-bottom:8px;line-height:1.4;"></div>
+      <label for="override_biz_name" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business Name</label>
+      <input type="text" id="override_biz_name" placeholder="e.g. Acme Web Design" aria-label="Business name"
+             style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
+      <div id="override-city-wrapper" style="display:none;margin-top:12px;">
+        <label for="override_biz_city" style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;color:var(--text);">Business City <span style="color:#f87171;" aria-hidden="true">*</span><span class="sr-only">(required)</span></label>
+        <div style="position:relative;">
+          <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA" autocomplete="off" aria-label="Business city"
+                 style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;transition:border-color .2s;-webkit-appearance:none;">
+          <div id="city-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#1e1e2e;border:1px solid rgba(255,255,255,0.1);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:10000;max-height:200px;overflow-y:auto;"></div>
+        </div>
+        <p id="city-error" role="alert" style="display:none;margin:8px 0 0;font-size:0.8rem;color:#f87171;line-height:1.4;font-weight:600;">Please enter a city to continue. We need it to check how AI tools find your business.</p>
+        <p style="margin:8px 0 0;font-size:0.8rem;color:var(--text-muted);line-height:1.4;">We use your business name and city to check how your business appears in AI tools and local results.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module toggles with descriptions -->
+  <details id="module-toggles" style="max-width:680px;margin:16px auto 24px;text-align:left;">
+    <summary style="cursor:pointer;font-size:0.9rem;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:8px;padding:10px 0;min-height:44px;list-style:none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Customize Audit Modules
+      <svg class="module-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;transition:transform 0.2s;" aria-hidden="true" focusable="false"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div style="padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-top:8px;">
+      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:10px;font-weight:600;">Basic Scan (recommended)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">
+        <label for="mod-availability" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(59,130,246,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+          <input type="checkbox" id="mod-availability" checked onchange="document.getElementById('h_avail').value=this.checked?'on':''" style="accent-color:var(--accent);width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+          <div><strong style="color:var(--text);font-size:0.9rem;">Page Availability</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Can visitors reach every page on your site?</div></div>
+        </label>
+        <label for="mod-links" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(168,85,247,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+          <input type="checkbox" id="mod-links" checked onchange="document.getElementById('h_links').value=this.checked?'on':''" style="accent-color:#a855f7;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+          <div><strong style="color:var(--text);font-size:0.9rem;">Broken Links</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Finds dead links, missing images, and broken scripts</div></div>
+        </label>
+        <label for="mod-security" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(239,68,68,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+          <input type="checkbox" id="mod-security" checked onchange="document.getElementById('h_security').value=this.checked?'on':''" style="accent-color:#ef4444;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+          <div><strong style="color:var(--text);font-size:0.9rem;">Security Scan</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Checks for SSL, security headers, and exposed files</div></div>
+        </label>
+        <label for="mod-forms" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(6,182,212,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+          <input type="checkbox" id="mod-forms" checked onchange="document.getElementById('h_forms').value=this.checked?'on':''" style="accent-color:#06b6d4;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+          <div><strong style="color:var(--text);font-size:0.9rem;">Forms</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Tests that your contact and sign-up forms work correctly</div></div>
+        </label>
+      </div>
+      <details style="margin-top:12px;">
+        <summary style="cursor:pointer;font-size:0.82rem;font-weight:600;color:var(--text-muted);padding:6px 0;min-height:36px;">Advanced Options</summary>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:8px;">
+          <label for="mod-chaos" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(249,115,22,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+            <input type="checkbox" id="mod-chaos" onchange="document.getElementById('h_chaos').value=this.checked?'on':''" style="accent-color:#f97316;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+            <div><strong style="color:var(--text);font-size:0.9rem;">Error Handling</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Tests how your site handles errors and unexpected conditions</div></div>
+          </label>
+          <label for="mod-auth" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(234,179,8,0.06);border-radius:8px;cursor:pointer;min-height:44px;margin:0;">
+            <input type="checkbox" id="mod-auth" onchange="document.getElementById('h_auth').value=this.checked?'on':''" style="accent-color:#eab308;width:18px;height:18px;margin-top:2px;flex-shrink:0;">
+            <div><strong style="color:var(--text);font-size:0.9rem;">Login Pages</strong><div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px;">Checks login pages and <span title="How your site remembers who is logged in" style="border-bottom:1px dotted var(--text-muted);cursor:help;">session handling</span></div></div>
+          </label>
+        </div>
+      </details>
+    </div>
+  </details>
+
+  <div class="trust-badges">
+    <span class="trust-item"><span class="trust-check">&#10003;</span> 100% Free</span>
+    <span class="trust-item"><span class="trust-check">&#10003;</span> No Signup Required</span>
+    <span class="trust-item"><span class="trust-check">&#10003;</span> Instant Results</span>
+  </div>
+
+  <!-- Mock audit preview -->
+  <div class="fade-up" style="margin-top:32px;max-width:680px;margin-left:auto;margin-right:auto;">
+    <div style="background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:16px;padding:24px;text-align:left;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;right:0;width:200px;height:200px;background:radial-gradient(circle,rgba(59,130,246,0.08),transparent);pointer-events:none;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="font-weight:700;font-size:1rem;color:#fff;">Sample Audit Preview</div>
+        <span style="background:rgba(74,222,128,0.15);color:#4ade80;padding:4px 12px;border-radius:9999px;font-size:0.78rem;font-weight:600;">Score: 87/100</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+        <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:1.2rem;font-weight:700;color:#4ade80;">✓ 42</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Passed</div>
+        </div>
+        <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:1.2rem;font-weight:700;color:#f87171;">✗ 3</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Failed</div>
+        </div>
+        <div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:1.2rem;font-weight:700;color:#fbbf24;">⚠ 5</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Warnings</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(248,113,113,0.06);border-radius:8px;border-left:3px solid #f87171;">
+          <span style="color:#f87171;font-weight:600;font-size:0.82rem;">Critical</span>
+          <span style="color:var(--text);font-size:0.85rem;">Missing SSL certificate on 2 subdomains</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(251,191,36,0.06);border-radius:8px;border-left:3px solid #fbbf24;">
+          <span style="color:#fbbf24;font-weight:600;font-size:0.82rem;">Warning</span>
+          <span style="color:var(--text);font-size:0.85rem;">3 images missing alt text</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(74,222,128,0.06);border-radius:8px;border-left:3px solid #4ade80;">
+          <span style="color:#4ade80;font-weight:600;font-size:0.82rem;">Passed</span>
+          <span style="color:var(--text);font-size:0.85rem;">All forms have CSRF protection</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;text-align:center;">
+    <a href="/sample-report" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent-hover,#60a5fa);font-weight:600;font-size:0.95rem;padding:8px 16px;border:1px solid rgba(59,130,246,0.3);border-radius:8px;transition:all .2s;background:rgba(59,130,246,0.06);" onmouseover="this.style.background='rgba(59,130,246,0.12)';this.style.borderColor='rgba(59,130,246,0.5)'" onmouseout="this.style.background='rgba(59,130,246,0.06)';this.style.borderColor='rgba(59,130,246,0.3)'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      View Sample Report
+    </a>
+  </div>
+</div>
+
+<!-- ── Social Proof ────────────────────────────────────────── -->
+<div class="fade-up" style="padding:32px 0 16px;text-align:center;">
+  <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">Trusted by businesses across industries</p>
+  <div style="display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap;opacity:0.5;">
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">E-commerce</div>
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">SaaS</div>
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">Healthcare</div>
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">Real Estate</div>
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">Restaurants</div>
+    <div style="color:var(--text-muted);font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">Legal</div>
+  </div>
+  <div style="margin-top:24px;display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;">
+    <div style="background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:12px;padding:20px 24px;max-width:400px;text-align:left;">
+      <div style="color:#f1f5f9;font-size:0.92rem;line-height:1.6;font-style:italic;">"We found 3 broken links and a missing SSL redirect that had been hurting our chances of getting recommended by AI tools. Fixed them in an afternoon."</div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.85rem;">JM</div>
+        <div>
+          <div style="font-weight:600;font-size:0.85rem;color:var(--text);">Jake Morrison</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);">Owner, Morrison Dental</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:12px;padding:20px 24px;max-width:400px;text-align:left;">
+      <div style="color:#f1f5f9;font-size:0.92rem;line-height:1.6;font-style:italic;">"I use this before every client website launch. The security scan alone has saved me from embarrassing mistakes twice."</div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.85rem;">SP</div>
+        <div>
+          <div style="font-weight:600;font-size:0.85rem;color:var(--text);">Sarah Patel</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);">Freelance Web Developer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ── Features Section ─────────────────────────────────────── -->
+<div class="section-block fade-up">
+  <div class="section-header">
+    <h2>What We Check</h2>
+    <p>We check AI visibility, security, speed, and more — the things that shape how customers find and trust your business.</p>
+  </div>
+    <div class="landing-features">
+      <div class="landing-feature-card fade-up fade-up-delay-1" style="border-left:4px solid #3b82f6;">
+        <div class="feature-icon" style="background:rgba(59,130,246,0.12);color:#60a5fa;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </div>
+        <h3>AI Visibility</h3>
+        <p>See how your business shows up when people ask AI tools like ChatGPT or Perplexity for help. We check the signals AI models use to decide which businesses to recommend.</p>
+      </div>
+      <div class="landing-feature-card fade-up fade-up-delay-2" style="border-left:4px solid #10b981;">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.12);color:#34d399;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        </div>
+        <h3>Security Check</h3>
+        <p>Find out if your site is safe for visitors. We look for missing locks (SSL), exposed files, and common attack risks.</p>
+      </div>
+      <div class="landing-feature-card fade-up fade-up-delay-3" style="border-left:4px solid #ec4899;">
+        <div class="feature-icon" style="background:rgba(236,72,153,0.12);color:#f472b6;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+        </div>
+        <h3>Privacy Check</h3>
+        <p>We review your cookie settings and privacy setup so visitors trust your site and you stay on the right side of the rules.</p>
+      </div>
+      <div class="landing-feature-card fade-up fade-up-delay-1" style="border-left:4px solid #f59e0b;">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.12);color:#fbbf24;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3>Speed Test</h3>
+        <p>Slow sites lose customers. We measure how fast your pages load and show you what to fix first.</p>
+      </div>
+      <div class="landing-feature-card fade-up fade-up-delay-2" style="border-left:4px solid #ef4444;">
+        <div class="feature-icon" style="background:rgba(239,68,68,0.12);color:#f87171;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <h3>Clear Reports</h3>
+        <p>No jargon. You get a short list of what to fix, sorted by impact, with plain-language steps you can follow today.</p>
+      </div>
+      <div class="landing-feature-card fade-up fade-up-delay-3" style="border-left:4px solid #8b5cf6;">
+        <div class="feature-icon" style="background:rgba(139,92,246,0.12);color:#a78bfa;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <h3>Accessibility</h3>
+        <p>Make sure everyone can use your site, including people who rely on screen readers or keyboard navigation.</p>
+      </div>
+    </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ── How It Works ──────────────────────────────────────────── -->
+<div class="section-block fade-up" id="how-it-works">
+  <div class="section-header">
+    <h2>How It Works</h2>
+    <p>Get a complete website audit in four simple steps</p>
+  </div>
+  <div class="steps-grid">
+    <div class="step-card fade-up fade-up-delay-1">
+      <div class="step-number">01</div>
+      <h3>Paste Your URL</h3>
+      <p>Type or paste your website address into the box above. That is all you need to start.</p>
+    </div>
+    <div class="step-card fade-up fade-up-delay-2">
+      <div class="step-number">02</div>
+      <h3>We Scan Your Site</h3>
+      <p>We check every page for broken links, security issues, and slow load times. It takes about 30 seconds.</p>
+    </div>
+    <div class="step-card fade-up fade-up-delay-3">
+      <div class="step-number">03</div>
+      <h3>See What to Fix</h3>
+      <p>You get a report that shows your top issues first, with clear steps to fix each one.</p>
+    </div>
+    <div class="step-card fade-up">
+      <div class="step-number">04</div>
+      <h3>Fix and Retest</h3>
+      <p>Make the changes, then run another scan to see your score improve. It is free every time.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── FAQ Section ───────────────────────────────────────────── -->
+<div class="section-block fade-up" id="faq">
+  <div class="section-header">
+    <h2>Frequently Asked Questions</h2>
+    <p>Everything you need to know about our audit tool</p>
+  </div>
+  <div class="faq-list">
+    <details class="faq-item">
+      <summary>Is the website audit really free?</summary>
+      <div class="faq-answer">Yes, our website audit tool is completely free to use. There are no hidden charges, no premium tiers, and no credit card required. You can audit as many websites as you want.</div>
+    </details>
+    <details class="faq-item">
+      <summary>Do I need to create an account?</summary>
+      <div class="faq-answer">No account is needed. Simply enter your website URL and click "Check my site" to get your comprehensive report instantly. No signup, no email verification.</div>
+    </details>
+    <details class="faq-item">
+      <summary>What does the audit check?</summary>
+      <div class="faq-answer">Our audit checks AI visibility (how your business appears when people ask tools like ChatGPT, Perplexity, or Claude for recommendations), security (SSL, headers), performance (load speed), accessibility, forms, and broken links.</div>
+    </details>
+    <details class="faq-item">
+      <summary>How long does an audit take?</summary>
+      <div class="faq-answer">Most audits complete in under 30 seconds for small to medium websites. Larger sites with hundreds of pages may take a few minutes. You can monitor progress in real-time.</div>
+    </details>
+    <details class="faq-item">
+      <summary>Can I audit any website?</summary>
+      <div class="faq-answer">You can audit any publicly accessible website. For sites behind authentication, you can provide login credentials in the advanced options to audit protected pages as well.</div>
+    </details>
+    <details class="faq-item">
+      <summary>How often should I audit my website?</summary>
+      <div class="faq-answer">We recommend auditing your website at least once a month, or after making significant changes. Regular audits help catch issues before they hurt your AI visibility or push customers away.</div>
+    </details>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ── CTA Section ───────────────────────────────────────────── -->
+<div class="cta-section fade-up">
+  <div class="cta-label">Start improving your AI visibility today</div>
+  <h2>Ready to Improve Your Website?</h2>
+  <p>Get your free comprehensive audit report in seconds. No credit card required.</p>
+  <a href="#audit" class="btn btn-primary" style="padding:14px 36px;font-size:1.05rem;">Scan My Site Now</a>
+</div>
+
+<!-- ── API Access Upsell Banner (footer area) ──────────────────── -->
+<style>
+  .api-upsell-section { padding: 40px 0; }
+  .api-upsell-card { background: linear-gradient(to right, rgba(99,102,241,0.10) 0%, rgba(168,85,247,0.10) 50%, rgba(236,72,153,0.10) 100%); border: 1px solid rgba(99,102,241,0.20); border-radius: 16px; padding: 32px; }
+  .api-upsell-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+  .api-upsell-left { display: flex; align-items: center; gap: 16px; }
+  .api-upsell-icon { padding: 12px; background: rgba(99,102,241,0.20); border-radius: 8px; display: inline-flex; }
+  .api-upsell-icon svg { width: 32px; height: 32px; color: #818cf8; }
+  .api-upsell-title { margin: 0 0 4px; font-size: 24px; line-height: 32px; font-weight: 700; color: #ffffff; }
+  .api-upsell-subtitle { margin: 0; color: #94a3b8; font-size: 16px; }
+  .api-upsell-btn { display: inline-flex; align-items: center; background: #6366f1; color: #ffffff; font-weight: 500; padding: 10px 18px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font-size: 15px; transition: background 0.15s ease; }
+  .api-upsell-btn:hover { background: #4f46e5; }
+  .api-upsell-btn svg { width: 16px; height: 16px; margin-left: 8px; }
+</style>
+<section class="api-upsell-section fade-up">
+  <div class="api-upsell-card">
+    <div class="api-upsell-row">
+      <div class="api-upsell-left">
+        <div class="api-upsell-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="api-upsell-title">Need API access?</h3>
+          <p class="api-upsell-subtitle">Run 5 automated tests per day for just $10/month</p>
+        </div>
+      </div>
+      <a href="https://api.website-auditor.io/admin_portal/" target="_blank" rel="noopener" class="api-upsell-btn">
+        Start Free Trial
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4" defer></script>
+<script>
+/* ── Business name detection + city detection ────────────────────── */
+var _detectTimer = null;
+var _blurTimer = null;
+var _lastDetectedUrl = '';
+var _overrideListenerAdded = false;
+var _isMobile = /Mobi|Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || ('ontouchstart' in window);
+
+/* State tracking for business detection */
+var _detectedBizName = '';
+var _detectedCity = '';
+var _cityWasAutoDetected = false;
+
+function enableAuditBtn() {
+  var btn = document.getElementById('auditBtn');
+  if (!btn) return;
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.cursor = 'pointer';
+  var helper = document.getElementById('cta-helper');
+  if (helper) helper.style.opacity = '0';
+}
+
+function disableAuditBtn() {
+  var btn = document.getElementById('auditBtn');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.style.cursor = 'not-allowed';
+  var helper = document.getElementById('cta-helper');
+  if (helper) {
+    helper.style.opacity = '1';
+    var urlField = document.getElementById('base_url');
+    var hasUrl = urlField && urlField.value.trim();
+    var locHidden = document.getElementById('business_location');
+    var hasLoc = locHidden && locHidden.value.trim();
+    if (hasUrl && !hasLoc) {
+      helper.textContent = 'Add a city to start your audit';
+    } else if (!hasUrl) {
+      helper.textContent = 'Enter a URL above to scan your website';
+    }
+  }
+}
+
+/* ── Slide-panel helpers ─────────────────────────────────────────── */
+function slideDown(el) {
+  el.style.display = 'block';
+  void el.offsetHeight;
+  el.style.maxHeight = '300px';
+  el.style.opacity = '1';
+  el.style.marginTop = '16px';
+}
+
+function slideUp(el, cb) {
+  el.style.maxHeight = '0';
+  el.style.opacity = '0';
+  el.style.marginTop = '0';
+  setTimeout(function() {
+    el.style.display = 'none';
+    if (cb) cb();
+  }, 400);
+}
+
+/* ── Business name confirmation row ────────────────────────────── */
+function showBizConfirmed(name) {
+  var row = document.getElementById('biz-name-confirmed');
+  var display = document.getElementById('biz-name-display');
+  if (!row || !display) return;
+  display.textContent = name;
+  slideDown(row);
+}
+
+function hideBizConfirmed() {
+  var row = document.getElementById('biz-name-confirmed');
+  if (!row) return;
+  slideUp(row);
+}
+
+/* ── Business name override fields ─────────────────────────────── */
+function showBizOverride(showCity, hideConfirmed) {
+  var wrapper = document.getElementById('biz-name-override');
+  var cityWrap = document.getElementById('override-city-wrapper');
+  if (!wrapper) return;
+
+  /* Only hide the confirmation row if explicitly requested (e.g. from "Not the right business?" click) */
+  if (hideConfirmed !== false) {
+    var confirmedRow = document.getElementById('biz-name-confirmed');
+    if (confirmedRow) slideUp(confirmedRow);
+  } else {
+    /* Keep the green name visible but hide the "Not the right business?" button
+       since the override fields are already showing */
+    var wrongBtn = document.getElementById('biz-name-wrong-btn');
+    if (wrongBtn) wrongBtn.style.display = 'none';
+  }
+
+  cityWrap.style.display = showCity ? 'block' : 'none';
+  slideDown(wrapper);
+
+  /* After the override section becomes visible, try to attach Google
+     Places Autocomplete to the city field (it cannot attach while hidden). */
+  if (showCity && typeof window._tryInitPlacesAutocomplete === 'function') {
+    setTimeout(window._tryInitPlacesAutocomplete, 450);
+  }
+
+  /* Wire up listeners once */
+  if (!_overrideListenerAdded) {
+    _overrideListenerAdded = true;
+    var nameInput = document.getElementById('override_biz_name');
+    var cityInput = document.getElementById('override_biz_city');
+    var bizHidden = document.getElementById('business_name');
+    var locHidden = document.getElementById('business_location');
+
+    nameInput.addEventListener('input', function() {
+      bizHidden.value = nameInput.value;
+      syncAuditBtnState();
+    });
+    cityInput.addEventListener('input', function() {
+      locHidden.value = cityInput.value;
+      locHidden._userEdited = true;
+      syncAuditBtnState();
+    });
+  }
+
+  /* On desktop, focus the business name field */
+  if (!_isMobile) {
+    setTimeout(function() {
+      var urlField = document.getElementById('base_url');
+      if (document.activeElement !== urlField) {
+        document.getElementById('override_biz_name').focus();
+      }
+    }, 100);
+  }
+}
+
+function hideBizOverride() {
+  var wrapper = document.getElementById('biz-name-override');
+  if (!wrapper) return;
+  slideUp(wrapper);
+}
+
+/* ── Reset all business-related state ──────────────────────────── */
+function resetBusinessState() {
+  _detectedBizName = '';
+  _detectedCity = '';
+  _cityWasAutoDetected = false;
+  document.getElementById('business_name').value = '';
+  var locInput = document.getElementById('business_location');
+  locInput.value = '';
+  locInput._userEdited = false;
+  document.getElementById('override_biz_name').value = '';
+  document.getElementById('override_biz_city').value = '';
+  var detectedLabel = document.getElementById('detected-biz-label');
+  if (detectedLabel) {
+    detectedLabel.style.display = 'none';
+    detectedLabel.textContent = '';
+  }
+  /* Restore the "Not the right business?" button visibility for next detection */
+  var wrongBtn = document.getElementById('biz-name-wrong-btn');
+  if (wrongBtn) wrongBtn.style.display = '';
+  hideBizConfirmed();
+  hideBizOverride();
+}
+
+/* ── Enable/disable audit button based on current state ────────── */
+function syncAuditBtnState() {
+  var bizHidden = document.getElementById('business_name');
+  var locHidden = document.getElementById('business_location');
+  var hasBiz = bizHidden && bizHidden.value.trim();
+  var hasLoc = locHidden && locHidden.value.trim();
+
+  /* If we have both business name and location, enable */
+  if (hasBiz && hasLoc) {
+    enableAuditBtn();
+    return;
+  }
+
+  /* If confirmed row is visible (business name set, city auto-detected), enable */
+  var confirmedRow = document.getElementById('biz-name-confirmed');
+  if (confirmedRow && confirmedRow.style.display !== 'none' && confirmedRow.style.opacity !== '0' && hasBiz && hasLoc) {
+    enableAuditBtn();
+    return;
+  }
+
+  /* If override is showing, require name + city from visible fields */
+  var overrideWrap = document.getElementById('biz-name-override');
+  if (overrideWrap && overrideWrap.style.display !== 'none' && overrideWrap.style.opacity !== '0') {
+    var overrideName = document.getElementById('override_biz_name').value.trim();
+    var cityWrap = document.getElementById('override-city-wrapper');
+    var needsCity = cityWrap && cityWrap.style.display !== 'none';
+    var overrideCity = document.getElementById('override_biz_city').value.trim();
+    if (overrideName && (!needsCity || overrideCity)) {
+      enableAuditBtn();
+      return;
+    }
+  }
+
+  disableAuditBtn();
+}
+
+/* ── "Not the right business?" click handler ──────────────────── */
+document.getElementById('biz-name-wrong-btn').addEventListener('click', function() {
+  /* Hide the confirmation row */
+  hideBizConfirmed();
+
+  /* Show override fields: city field only if city was NOT auto-detected */
+  var needCityField = !_cityWasAutoDetected;
+  showBizOverride(needCityField, true);
+
+  /* Show the detected name as green text above the Business Name input */
+  var detectedLabel = document.getElementById('detected-biz-label');
+  if (detectedLabel && _detectedBizName) {
+    detectedLabel.textContent = 'Detected: ' + _detectedBizName;
+    detectedLabel.style.display = 'block';
+  }
+
+  /* Pre-fill the Business Name input with the detected name so user can edit */
+  var overrideNameInput = document.getElementById('override_biz_name');
+  if (overrideNameInput && _detectedBizName) {
+    overrideNameInput.value = _detectedBizName;
+    document.getElementById('business_name').value = _detectedBizName;
+  } else {
+    document.getElementById('business_name').value = '';
+  }
+
+  disableAuditBtn();
+});
+
+/* ── Auto-detect on blur -- debounced for mobile ─────────────── */
+document.getElementById('base_url').addEventListener('blur', function() {
+  var urlField = this;
+  var url = urlField.value.trim();
+  clearTimeout(_blurTimer);
+  if (url && url !== _lastDetectedUrl) {
+    var delay = _isMobile ? 400 : 150;
+    _blurTimer = setTimeout(function() {
+      if (document.activeElement === urlField) return;
+      clearTimeout(_detectTimer);
+      detectBusiness();
+    }, delay);
+  }
+});
+
+/* Auto-detect when user changes the URL field (debounced 600ms) */
+document.getElementById('base_url').addEventListener('input', function() {
+  clearTimeout(_detectTimer);
+  clearTimeout(_blurTimer);
+  _lastDetectedUrl = '';
+  resetBusinessState();
+  disableAuditBtn();
+  _detectTimer = setTimeout(function() { detectBusiness(); }, 600);
+});
+
+/* Cancel blur detection if user returns to URL field */
+document.getElementById('base_url').addEventListener('focus', function() {
+  clearTimeout(_blurTimer);
+});
+
+/* Detect on page load if URL is already filled */
+(function() {
+  var url = document.getElementById('base_url').value.trim();
+  if (url) {
+    setTimeout(function() { detectBusiness(); }, 300);
+  }
+})();
+
+function showAuditSpinner() {
+  var btn = document.getElementById('auditBtn');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.style.cursor = 'not-allowed';
+  btn.innerHTML = '<span class="btn-spinner"></span>';
+}
+
+function hideAuditSpinner() {
+  var btn = document.getElementById('auditBtn');
+  if (!btn) return;
+  btn.innerHTML = 'Check my site';
+}
+
+function detectBusiness() {
+  var url = document.getElementById('base_url').value.trim();
+  if (!url || url === _lastDetectedUrl) return;
+  _lastDetectedUrl = url;
+
+  disableAuditBtn();
+  resetBusinessState();
+  showAuditSpinner();
+
+  fetch('/api/detect-business', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({ url: url })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    hideAuditSpinner();
+    var bizHidden = document.getElementById('business_name');
+    var locHidden = document.getElementById('business_location');
+    var detectedName = (data.business_name || '').trim();
+    var detectedLoc = (data.location || '').trim();
+
+    _detectedBizName = detectedName;
+    _detectedCity = detectedLoc;
+    _cityWasAutoDetected = !!detectedLoc;
+
+    if (detectedName) {
+      /* Business name was detected -- show confirmation row */
+      bizHidden.value = detectedName;
+
+      if (detectedLoc) {
+        /* Both name and city detected -- just show confirmed name, enable button */
+        locHidden.value = detectedLoc;
+        showBizConfirmed(detectedName);
+        enableAuditBtn();
+      } else {
+        /* Name detected but no city -- show override with city field, green label on top */
+        showBizConfirmed(detectedName);
+        showBizOverride(true, false);
+        /* Pre-fill detected name in override so user only needs to add city */
+        document.getElementById('override_biz_name').value = detectedName;
+        /* Show green detected label above the override fields */
+        var detectedLabel = document.getElementById('detected-biz-label');
+        if (detectedLabel) {
+          detectedLabel.textContent = 'Detected: ' + detectedName;
+          detectedLabel.style.display = 'block';
+        }
+      }
+    } else {
+      /* No business name detected -- skip confirmation, show override fields directly */
+      if (detectedLoc) {
+        locHidden.value = detectedLoc;
+        _cityWasAutoDetected = true;
+        showBizOverride(false); /* no city field needed */
+      } else {
+        showBizOverride(true); /* show both name and city fields */
+      }
+    }
+  })
+  .catch(function(err) {
+    console.error('Detect failed:', err);
+    hideAuditSpinner();
+    /* Show override fields so user can enter both manually */
+    showBizOverride(true);
+  });
+}
+
+/* NOTE: URL normalization (auto-adding https://) and city validation are
+   handled in the dashboard.js submit handler to avoid conflicts. */
+</script>
+
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255, 255, 255, 0.25);
+    border-top-color: var(--accent, #3b82f6);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+  }
+  #biz-name-wrong-btn:hover {
+    color: var(--text);
+  }
+
+  /* Ensure city input renders as plain text */
+  #override_biz_city {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    -webkit-appearance: none !important;
+  }
+</style>
+
+<script>
+/* ── City suggestions using Google AutocompleteService with custom dropdown ── */
+(function() {
+  var _serviceReady = false;
+  var _autocompleteService = null;
+  var _debounceTimer = null;
+
+  function initService() {
+    if (_serviceReady) return;
+    if (typeof google === 'undefined' || !google.maps || !google.maps.places) return;
+    _autocompleteService = new google.maps.places.AutocompleteService();
+    _serviceReady = true;
+    attachListener();
+  }
+
+  function attachListener() {
+    var cityInput = document.getElementById('override_biz_city');
+    if (!cityInput || cityInput._suggestionsAttached) return;
+    cityInput._suggestionsAttached = true;
+
+    cityInput.addEventListener('input', function() {
+      var query = cityInput.value.trim();
+      clearTimeout(_debounceTimer);
+      if (query.length < 2) {
+        hideDropdown();
+        return;
+      }
+      _debounceTimer = setTimeout(function() { fetchSuggestions(query); }, 250);
+    });
+
+    /* Hide dropdown when input loses focus (with delay for click) */
+    cityInput.addEventListener('blur', function() {
+      setTimeout(hideDropdown, 200);
+      /* Sync to hidden field */
+      var locHidden = document.getElementById('business_location');
+      if (locHidden) {
+        locHidden.value = cityInput.value;
+        locHidden._userEdited = true;
+      }
+      syncAuditBtnState();
+    });
+  }
+
+  function fetchSuggestions(query) {
+    if (!_autocompleteService) return;
+    _autocompleteService.getPlacePredictions(
+      { input: query, types: ['(cities)'] },
+      function(predictions, status) {
+        var dropdown = document.getElementById('city-dropdown');
+        if (!dropdown) return;
+        dropdown.innerHTML = '';
+        if (status === google.maps.places.PlacesServiceStatus.OK && predictions && predictions.length > 0) {
+          for (var i = 0; i < Math.min(predictions.length, 5); i++) {
+            var item = document.createElement('div');
+            item.textContent = predictions[i].description;
+            item.style.cssText = 'padding:10px 14px;color:#e0e0e0;cursor:pointer;font-size:0.9rem;line-height:1.4;border-bottom:1px solid rgba(255,255,255,0.06);';
+            item.setAttribute('data-value', predictions[i].description);
+            item.addEventListener('mousedown', function(e) {
+              e.preventDefault(); /* prevent blur from firing first */
+              var cityInput = document.getElementById('override_biz_city');
+              cityInput.value = this.getAttribute('data-value');
+              var locHidden = document.getElementById('business_location');
+              if (locHidden) {
+                locHidden.value = cityInput.value;
+                locHidden._userEdited = true;
+              }
+              hideDropdown();
+              syncAuditBtnState();
+            });
+            item.addEventListener('mouseover', function() {
+              this.style.backgroundColor = 'rgba(59,130,246,0.15)';
+            });
+            item.addEventListener('mouseout', function() {
+              this.style.backgroundColor = 'transparent';
+            });
+            /* Touch support */
+            item.addEventListener('touchstart', function(e) {
+              e.preventDefault();
+              var cityInput = document.getElementById('override_biz_city');
+              cityInput.value = this.getAttribute('data-value');
+              var locHidden = document.getElementById('business_location');
+              if (locHidden) {
+                locHidden.value = cityInput.value;
+                locHidden._userEdited = true;
+              }
+              hideDropdown();
+              syncAuditBtnState();
+            });
+            dropdown.appendChild(item);
+          }
+          dropdown.style.display = 'block';
+        } else {
+          hideDropdown();
+        }
+      }
+    );
+  }
+
+  function hideDropdown() {
+    var dropdown = document.getElementById('city-dropdown');
+    if (dropdown) {
+      dropdown.style.display = 'none';
+      dropdown.innerHTML = '';
+    }
+  }
+
+  /* Expose for showBizOverride to call after city field becomes visible */
+  window._tryInitPlacesAutocomplete = function() {
+    if (_serviceReady) {
+      attachListener();
+    } else {
+      initService();
+    }
+  };
+
+  /* Wait for Google Maps API to load */
+  function waitForGoogleMaps() {
+    if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+      initService();
+    } else {
+      var attempts = 0;
+      var checkInterval = setInterval(function() {
+        attempts++;
+        if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+          clearInterval(checkInterval);
+          initService();
+        } else if (attempts > 50) {
+          clearInterval(checkInterval);
+        }
+      }, 200);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', waitForGoogleMaps);
+  } else {
+    waitForGoogleMaps();
+  }
+})();
+
+/* -- Show loading indicator on form submit ---- */
+document.getElementById('runForm').addEventListener('submit', function() {
+  var indicator = document.getElementById('loading-indicator');
+  var btn = document.getElementById('submitBtn');
+  if (indicator && btn) {
+    indicator.style.display = 'block';
+    btn.disabled = true;
+  }
+});
+</script>
+{% endblock %}
