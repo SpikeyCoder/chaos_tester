@@ -918,8 +918,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     .hamburger { display: flex; }
     header nav {
         display: none; position: absolute; top: 100%; left: 0; right: 0;
-        background: rgba(15,23,42,0.95); backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
+        background: #0f172a;
         border-bottom: 1px solid var(--border);
         flex-direction: column; padding: 12px 20px; gap: 12px;
     }
@@ -1102,9 +1101,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
             </button>
             <nav id="mainNav" aria-label="Main navigation">
                 <a href="/#how-it-works" onclick="if(window.location.pathname==='/'){event.preventDefault();document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'});}">How It Works</a>
+                <a href="/features">Features</a>
                 <a href="/sample-report">Sample Report</a>
                 <a href="/#faq" onclick="if(window.location.pathname==='/'){event.preventDefault();document.getElementById('faq').scrollIntoView({behavior:'smooth'});}">FAQ</a>
                 <a href="/api">API</a>
+                <a href="/contact">Contact</a>
                 <a href="/#audit" class="nav-cta">Run Free Audit</a>
             </nav>
         </div>
