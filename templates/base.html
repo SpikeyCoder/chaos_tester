@@ -108,6 +108,8 @@ body {
 }
 a { color: var(--accent); text-decoration: none; transition: color .2s; }
 a:hover { color: var(--accent-hover); }
+/* Links within text blocks must be distinguishable (WCAG 1.4.1) */
+p a:not(.btn), li a:not(.btn) { text-decoration: underline; text-underline-offset: 2px; }
 
 /* -- Grid overlay background ------------------------------ */
 body::before {
@@ -531,7 +533,7 @@ tr:hover td { background: rgba(56,189,248,0.04); }
     box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     transform: translateY(-2px);
 }
-.feature-card h3 { margin-top: 0; font-size: 1rem; }
+.feature-card h2, .feature-card h3 { margin-top: 0; font-size: 1rem; }
 .feature-card p { font-size: 0.9rem; }
 
 /* -- Footer ----------------------------------------------- */
@@ -1094,7 +1096,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="container inner">
-            <div class="site-title"><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><img src="/static/logo.svg" alt="Website Auditor" class="site-logo" aria-hidden="true" fetchpriority="high"> Website Auditor</a></div>
+            <div class="site-title"><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><img src="/static/logo.svg" alt="" class="site-logo" aria-hidden="true" fetchpriority="high"> Website Auditor</a></div>
             <button type="button" class="hamburger" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" onclick="document.getElementById('mainNav').classList.toggle('open');this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');">
                 <span></span><span></span><span></span>
             </button>
@@ -1285,6 +1287,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
             <p class="subtitle">We'll capture page details automatically</p>
 
             <form id="bugForm" onsubmit="bugReport.submit(event)">
+                <label for="bugDesc" class="sr-only">Bug or feature description</label>
                 <textarea id="bugDesc" placeholder="Describe the bug or issue you experienced..." maxlength="1000" required></textarea>
                 <div class="char-count"><span id="bugCharCount">0</span>/1000</div>
 
