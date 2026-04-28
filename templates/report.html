@@ -491,6 +491,8 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </div>
   </form>
+  {# Show first 10 issue rows by default; remainder revealed by "Show All" button #}
+  {% set _issue_counter = namespace(n=0) %}
   <div id="detailed-results-wrapper" style="overflow-x:auto;max-height:none;">
     <table id="resultsTable">
       <thead>
@@ -508,7 +510,10 @@ document.addEventListener('DOMContentLoaded', function() {
         {% for r in report.results %}
         {# Default "Business View": hide passed and info-level items #}
         {% set is_issue = r.status in ['failed', 'error', 'warning'] %}
-        <tr class="result-row" id="result-row-{{ loop.index }}" data-status="{{ r.status }}" data-module="{{ r.module }}" data-severity="{{ r.severity }}" onclick="toggleResultDetail(this)" style="cursor:pointer;{% if not is_issue %}display:none;{% endif %}">
+        {% if is_issue %}{% set _issue_counter.n = _issue_counter.n + 1 %}{% endif %}
+        {% set issue_idx = _issue_counter.n if is_issue else 0 %}
+        {% set hide_initial = (not is_issue) or (is_issue and issue_idx > 10) %}
+        <tr class="result-row{% if is_issue and issue_idx > 10 %} result-row-overflow{% endif %}" id="result-row-{{ loop.index }}" data-status="{{ r.status }}" data-module="{{ r.module }}" data-severity="{{ r.severity }}" data-is-issue="{{ 'true' if is_issue else 'false' }}" data-issue-index="{{ issue_idx }}" onclick="toggleResultDetail(this)" style="cursor:pointer;{% if hide_initial %}display:none;{% endif %}">
           <td class="text-muted mono text-sm cell-index">{{ loop.index }}</td>
           <td data-label="Status"><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
           <td data-label="Severity"><span class="badge badge-{{ r.severity }}">{{ r.severity }}</span></td>
@@ -538,9 +543,9 @@ document.addEventListener('DOMContentLoaded', function() {
       </tbody>
     </table>
   </div>
-  <div style="text-align:center;padding:12px 0;">
-    <button type="button" class="btn btn-secondary text-sm" onclick="filterResults('all', document.querySelector('[data-filter=all]'))" id="show-all-toggle-btn">
-      Show All {{ report.results|length }} Results
+  <div style="text-align:center;padding:12px 0;" id="show-all-results-wrap"{% if total_issues <= 10 %} hidden{% endif %}>
+    <button type="button" class="btn btn-secondary text-sm" onclick="toggleShowAllResults(this)" id="show-all-toggle-btn" data-issue-total="{{ total_issues }}" aria-expanded="false">
+      Show All {{ total_issues }} Results
     </button>
   </div>
 </div>
@@ -1164,6 +1169,8 @@ function fallbackCopy(text, btn) {
 <script>
 let currentStatus = 'issues';
 let currentModule = 'all';
+const RESULTS_VISIBLE_LIMIT = 10;
+let _resultsExpanded = false;
 
 /* F-05: Expand/collapse result row details */
 function toggleResultDetail(row) {
@@ -1213,6 +1220,8 @@ function applyFilters() {
   } else if (!_detailedExpanded) {
     container.classList.remove('scrollable-table');
   }
+  var shownCount = 0;
+  var matchedTotal = 0;
   document.querySelectorAll('.result-row').forEach(function(row, i) {
     var st = row.dataset.status;
     var matchStatus;
@@ -1224,8 +1233,36 @@ function applyFilters() {
       matchStatus = (st === currentStatus);
     }
     var matchModule = currentModule === 'all' || row.dataset.module === currentModule;
-    row.style.display = (matchStatus && matchModule) ? '' : 'none';
+    var matches = matchStatus && matchModule;
+    if (matches) matchedTotal++;
+    if (matches && (_resultsExpanded || shownCount < RESULTS_VISIBLE_LIMIT)) {
+      row.style.display = '';
+      if (!_resultsExpanded) shownCount++;
+    } else {
+      row.style.display = 'none';
+    }
   });
+  updateShowAllButton(matchedTotal);
+}
+
+function updateShowAllButton(matchedTotal) {
+  var wrap = document.getElementById('show-all-results-wrap');
+  var btn = document.getElementById('show-all-toggle-btn');
+  if (!wrap || !btn) return;
+  if (matchedTotal > RESULTS_VISIBLE_LIMIT) {
+    wrap.hidden = false;
+    btn.textContent = _resultsExpanded
+      ? 'Show First ' + RESULTS_VISIBLE_LIMIT + ' Results'
+      : 'Show All ' + matchedTotal + ' Results';
+    btn.setAttribute('aria-expanded', _resultsExpanded ? 'true' : 'false');
+  } else {
+    wrap.hidden = true;
+  }
+}
+
+function toggleShowAllResults(btn) {
+  _resultsExpanded = !_resultsExpanded;
+  applyFilters();
 }
 </script>
 
