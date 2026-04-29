@@ -11,6 +11,7 @@ Tests:
 """
 
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List
 from urllib.parse import urljoin, urlparse
 
@@ -54,6 +55,7 @@ class AuthTester(BaseModule):
         import requests
         unauth_session = requests.Session()
         unauth_session.headers.update({"User-Agent": self.config.user_agent})
+        probe_timeout = 5
 
         # Combine known protected paths + any discovered paths
         test_paths = set(PROTECTED_PATHS)
@@ -63,79 +65,89 @@ class AuthTester(BaseModule):
             if any(kw in path for kw in ("admin", "dashboard", "settings", "account", "profile", "manage", "internal")):
                 test_paths.add(parsed.path)
 
-        for path in sorted(test_paths):
-            url = urljoin(self.config.base_url.rstrip("/") + "/", path.lstrip("/"))
-            try:
-                resp = unauth_session.get(url, timeout=self.config.request_timeout, allow_redirects=False)
-                status = resp.status_code
+        sorted_paths = sorted(test_paths)
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [
+                executor.submit(self._probe_unauthenticated_path, unauth_session, path, probe_timeout)
+                for path in sorted_paths
+            ]
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as e:
+                    logger.debug(f"[auth] probe error: {e}")
 
-                if status in (401, 403):
+    def _probe_unauthenticated_path(self, unauth_session, path: str, probe_timeout: int):
+        """Probe a single path without auth and record a result."""
+        url = urljoin(self.config.base_url.rstrip("/") + "/", path.lstrip("/"))
+        try:
+            resp = unauth_session.get(url, timeout=probe_timeout, allow_redirects=False)
+            status = resp.status_code
+
+            if status in (401, 403):
+                self.add_result(
+                    name=f"Auth enforced: {path}",
+                    description=f"Unauthenticated request correctly blocked ({status})",
+                    status=TestStatus.PASSED,
+                    severity=Severity.INFO,
+                    url=url,
+                    details=f"HTTP {status} -- access denied without credentials.",
+                )
+            elif 300 <= status < 400:
+                location = resp.headers.get("Location", "")
+                if "login" in location.lower() or "auth" in location.lower() or "signin" in location.lower():
                     self.add_result(
-                        name=f"Auth enforced: {path}",
-                        description=f"Unauthenticated request correctly blocked ({status})",
+                        name=f"Auth redirect: {path}",
+                        description=f"Redirects to login ({status} → {location})",
                         status=TestStatus.PASSED,
                         severity=Severity.INFO,
                         url=url,
-                        details=f"HTTP {status} -- access denied without credentials.",
+                        details=f"Redirect to auth page: {location}",
                     )
-                elif 300 <= status < 400:
-                    location = resp.headers.get("Location", "")
-                    if "login" in location.lower() or "auth" in location.lower() or "signin" in location.lower():
-                        self.add_result(
-                            name=f"Auth redirect: {path}",
-                            description=f"Redirects to login ({status} → {location})",
-                            status=TestStatus.PASSED,
-                            severity=Severity.INFO,
-                            url=url,
-                            details=f"Redirect to auth page: {location}",
-                        )
-                    else:
-                        self.add_result(
-                            name=f"Redirect (no auth?): {path}",
-                            description=f"Redirects but not to login page",
-                            status=TestStatus.WARNING,
-                            severity=Severity.MEDIUM,
-                            url=url,
-                            details=f"Redirect to: {location} -- may not be auth-gated.",
-                            recommendation="Verify this redirect is intentional and not bypassing auth.",
-                        )
-                elif status == 200:
-                    # 200 on a "protected" path without auth is suspicious
-                    body = resp.text[:2000].lower()
-                    # Check if it's just a public page that happens to share a path name
-                    is_public = any(kw in body for kw in ("sign in", "log in", "login", "register"))
-                    if is_public:
-                        self.add_result(
-                            name=f"Public login page: {path}",
-                            description=f"Path returns a login/registration page (OK)",
-                            status=TestStatus.PASSED,
-                            severity=Severity.INFO,
-                            url=url,
-                        )
-                    else:
-                        self.add_result(
-                            name=f"Unprotected route: {path}",
-                            description=f"Protected path accessible without auth (HTTP 200)",
-                            status=TestStatus.FAILED,
-                            severity=Severity.CRITICAL,
-                            url=url,
-                            details="This path returned content without requiring authentication.",
-                            recommendation="Add authentication middleware to protect this route.",
-                        )
-                elif status == 404:
-                    pass  # path doesn't exist, skip
                 else:
                     self.add_result(
-                        name=f"Unexpected status: {path}",
-                        description=f"HTTP {status} on protected path",
+                        name=f"Redirect (no auth?): {path}",
+                        description=f"Redirects but not to login page",
                         status=TestStatus.WARNING,
-                        severity=Severity.LOW,
+                        severity=Severity.MEDIUM,
                         url=url,
-                        details=f"Unexpected status code {status} for unauthenticated request.",
+                        details=f"Redirect to: {location} -- may not be auth-gated.",
+                        recommendation="Verify this redirect is intentional and not bypassing auth.",
                     )
-
-            except Exception as e:
-                logger.debug(f"[auth] Error testing {url}: {e}")
+            elif status == 200:
+                body = resp.text[:2000].lower()
+                is_public = any(kw in body for kw in ("sign in", "log in", "login", "register"))
+                if is_public:
+                    self.add_result(
+                        name=f"Public login page: {path}",
+                        description=f"Path returns a login/registration page (OK)",
+                        status=TestStatus.PASSED,
+                        severity=Severity.INFO,
+                        url=url,
+                    )
+                else:
+                    self.add_result(
+                        name=f"Unprotected route: {path}",
+                        description=f"Protected path accessible without auth (HTTP 200)",
+                        status=TestStatus.FAILED,
+                        severity=Severity.CRITICAL,
+                        url=url,
+                        details="This path returned content without requiring authentication.",
+                        recommendation="Add authentication middleware to protect this route.",
+                    )
+            elif status == 404:
+                pass
+            else:
+                self.add_result(
+                    name=f"Unexpected status: {path}",
+                    description=f"HTTP {status} on protected path",
+                    status=TestStatus.WARNING,
+                    severity=Severity.LOW,
+                    url=url,
+                    details=f"Unexpected status code {status} for unauthenticated request.",
+                )
+        except Exception as e:
+            logger.debug(f"[auth] Error testing {url}: {e}")
 
     # -- Cookie Security Flags -------------------------------------
 
@@ -211,6 +223,7 @@ class AuthTester(BaseModule):
     def _test_session_manipulation(self):
         """Test if the server handles tampered session tokens safely."""
         url = self.config.base_url
+        probe_timeout = 5
         tampered_values = [
             ("empty", ""),
             ("garbage", "not-a-real-session-XXXXXX"),
@@ -218,11 +231,12 @@ class AuthTester(BaseModule):
             ("admin_attempt", "admin"),
         ]
 
-        for label, value in tampered_values:
+        def probe(label_value):
+            label, value = label_value
             cookies = {self.config.auth_cookie_name: value}
             resp, err, dt = self._safe_request(
                 "get", url, cookies=cookies,
-                timeout=self.config.request_timeout,
+                timeout=probe_timeout,
             )
             if resp:
                 if resp.status_code >= 500:
@@ -246,6 +260,14 @@ class AuthTester(BaseModule):
                         duration_ms=dt,
                     )
 
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = [executor.submit(probe, lv) for lv in tampered_values]
+            for f in as_completed(futures):
+                try:
+                    f.result()
+                except Exception as e:
+                    logger.debug(f"[auth] session probe error: {e}")
+
     # -- HTTP Method Testing ---------------------------------------
 
     def _test_http_methods(self):
@@ -253,54 +275,68 @@ class AuthTester(BaseModule):
         base = self.config.base_url.rstrip("/")
         sensitive_paths = ["/api/users", "/api/admin", "/admin", "/settings"]
         dangerous_methods = ["DELETE", "PUT", "PATCH"]
+        probe_timeout = 5
 
-        for path in sensitive_paths:
+        jobs = [(path, method) for path in sensitive_paths for method in dangerous_methods]
+
+        def probe(path_method):
+            path, method = path_method
             url = base + path
-            for method in dangerous_methods:
-                try:
-                    resp = self.session.request(
-                        method, url,
-                        timeout=self.config.request_timeout,
-                        allow_redirects=False,
+            try:
+                resp = self.session.request(
+                    method, url,
+                    timeout=probe_timeout,
+                    allow_redirects=False,
+                )
+                if resp.status_code in (200, 201, 204):
+                    self.add_result(
+                        name=f"{method} accepted: {path}",
+                        description=f"{method} request accepted on {path}",
+                        status=TestStatus.FAILED,
+                        severity=Severity.HIGH,
+                        url=url,
+                        details=f"{method} {path} returned {resp.status_code} -- may allow unintended modifications.",
+                        recommendation=f"Restrict {method} on {path} or require authentication.",
                     )
-                    if resp.status_code in (200, 201, 204):
-                        self.add_result(
-                            name=f"{method} accepted: {path}",
-                            description=f"{method} request accepted on {path}",
-                            status=TestStatus.FAILED,
-                            severity=Severity.HIGH,
-                            url=url,
-                            details=f"{method} {path} returned {resp.status_code} -- may allow unintended modifications.",
-                            recommendation=f"Restrict {method} on {path} or require authentication.",
-                        )
-                    elif resp.status_code == 405:
-                        self.add_result(
-                            name=f"{method} blocked: {path}",
-                            description=f"{method} correctly rejected with 405",
-                            status=TestStatus.PASSED,
-                            severity=Severity.INFO,
-                            url=url,
-                        )
-                except Exception:
-                    pass  # endpoint doesn't exist
+                elif resp.status_code == 405:
+                    self.add_result(
+                        name=f"{method} blocked: {path}",
+                        description=f"{method} correctly rejected with 405",
+                        status=TestStatus.PASSED,
+                        severity=Severity.INFO,
+                        url=url,
+                    )
+            except Exception:
+                pass
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            futures = [executor.submit(probe, j) for j in jobs]
+            for f in as_completed(futures):
+                try:
+                    f.result()
+                except Exception as e:
+                    logger.debug(f"[auth] http method probe error: {e}")
 
     # -- Auth Header Tests -----------------------------------------
 
     def _test_auth_headers(self):
         """Send malformed Authorization headers."""
         url = self.config.base_url
+        probe_timeout = 5
         bad_headers = [
             ("Bearer invalid-token", "invalid_bearer"),
             ("Bearer ", "empty_bearer"),
             ("Basic dGVzdDp0ZXN0", "basic_test_test"),
             ("Negotiate AAAA", "negotiate_garbage"),
         ]
-        for header_val, label in bad_headers:
+
+        def probe(hv_label):
+            header_val, label = hv_label
             try:
                 resp = self.session.get(
                     url,
                     headers={"Authorization": header_val},
-                    timeout=self.config.request_timeout,
+                    timeout=probe_timeout,
                 )
                 if resp.status_code >= 500:
                     self.add_result(
@@ -314,3 +350,11 @@ class AuthTester(BaseModule):
                     )
             except Exception:
                 pass
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = [executor.submit(probe, h) for h in bad_headers]
+            for f in as_completed(futures):
+                try:
+                    f.result()
+                except Exception as e:
+                    logger.debug(f"[auth] auth header probe error: {e}")

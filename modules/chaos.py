@@ -14,6 +14,7 @@ Simulates failure conditions to test resilience:
 import logging
 import time
 import random
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List
 from urllib.parse import urljoin
 
@@ -43,12 +44,20 @@ class ChaosInjector(BaseModule):
 
         sample_pages = pages[:20]  # cap pages for chaos tests
 
-        for target in targets:
+        def run_target(target):
             method = getattr(self, f"_chaos_{target}", None)
             if method:
                 method(sample_pages, intensity)
             else:
                 logger.warning(f"[chaos] Unknown target: {target}")
+
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(run_target, t) for t in targets]
+            for f in as_completed(futures):
+                try:
+                    f.result()
+                except Exception as e:
+                    logger.warning(f"[chaos] target failed: {e}")
 
         return self.results
 
@@ -90,43 +99,64 @@ class ChaosInjector(BaseModule):
     def _chaos_api_error_500(self, pages: list, intensity: dict):
         """Check if the site has custom error pages for 5xx codes."""
         base = self.config.base_url.rstrip("/")
+        probe_timeout = 5
 
-        for code in intensity["error_codes"]:
-            # Try common error-page URLs
-            for path in [f"/{code}", f"/error/{code}", f"/error?code={code}"]:
-                test_url = base + path
-                resp, err, dt = self._safe_request("get", test_url, timeout=self.config.request_timeout)
+        def probe(code_path):
+            code, path = code_path
+            test_url = base + path
+            resp, err, dt = self._safe_request("get", test_url, timeout=probe_timeout)
+            if resp and resp.status_code == code:
+                return (code, test_url, resp, dt)
+            return None
 
-                if resp and resp.status_code == code:
-                    # Check for custom vs default error page
-                    body = resp.text.lower()
-                    has_custom = any(kw in body for kw in ["sorry", "oops", "go back", "home", "contact"])
-                    if has_custom:
-                        self.add_result(
-                            name=f"Custom {code} page exists",
-                            description=f"Custom error page found for HTTP {code}",
-                            status=TestStatus.PASSED,
-                            severity=Severity.INFO,
-                            url=test_url,
-                            details=f"Site has a user-friendly {code} error page.",
-                            duration_ms=dt,
-                        )
-                    else:
-                        self.add_result(
-                            name=f"Generic {code} page",
-                            description=f"Error page for {code} appears generic or default",
-                            status=TestStatus.WARNING,
-                            severity=Severity.LOW,
-                            url=test_url,
-                            details=f"The {code} page lacks user-friendly messaging.",
-                            recommendation=f"Create a custom {code} error page with navigation back to the site.",
-                            duration_ms=dt,
-                        )
-                    break
+        jobs = [
+            (code, path)
+            for code in intensity["error_codes"]
+            for path in [f"/{code}", f"/error/{code}", f"/error?code={code}"]
+        ]
+
+        # Probe in parallel; for each code, record the first matching response
+        results_by_code = {}
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            future_to_job = {executor.submit(probe, j): j for j in jobs}
+            for future in as_completed(future_to_job):
+                try:
+                    res = future.result()
+                except Exception:
+                    continue
+                if res:
+                    code, test_url, resp, dt = res
+                    if code not in results_by_code:
+                        results_by_code[code] = (test_url, resp, dt)
+
+        for code, (test_url, resp, dt) in results_by_code.items():
+            body = resp.text.lower()
+            has_custom = any(kw in body for kw in ["sorry", "oops", "go back", "home", "contact"])
+            if has_custom:
+                self.add_result(
+                    name=f"Custom {code} page exists",
+                    description=f"Custom error page found for HTTP {code}",
+                    status=TestStatus.PASSED,
+                    severity=Severity.INFO,
+                    url=test_url,
+                    details=f"Site has a user-friendly {code} error page.",
+                    duration_ms=dt,
+                )
+            else:
+                self.add_result(
+                    name=f"Generic {code} page",
+                    description=f"Error page for {code} appears generic or default",
+                    status=TestStatus.WARNING,
+                    severity=Severity.LOW,
+                    url=test_url,
+                    details=f"The {code} page lacks user-friendly messaging.",
+                    recommendation=f"Create a custom {code} error page with navigation back to the site.",
+                    duration_ms=dt,
+                )
 
         # Test that a clearly invalid URL returns 404 not 500
         junk_url = base + f"/chaos-test-{random.randint(10000,99999)}-nonexistent"
-        resp, err, dt = self._safe_request("get", junk_url, timeout=self.config.request_timeout)
+        resp, err, dt = self._safe_request("get", junk_url, timeout=probe_timeout)
         if resp:
             if resp.status_code == 404:
                 self.add_result(
@@ -183,6 +213,7 @@ class ChaosInjector(BaseModule):
     def _chaos_missing_assets(self, pages: list, intensity: dict):
         """Request known-bad asset paths to test fallback behavior."""
         base = self.config.base_url.rstrip("/")
+        probe_timeout = 5
         fake_assets = [
             "/static/nonexistent.js",
             "/css/deleted-file.css",
@@ -190,9 +221,10 @@ class ChaosInjector(BaseModule):
             "/api/v1/nonexistent-endpoint",
             "/favicon.ico.bak",
         ]
-        for path in fake_assets:
+
+        def probe(path):
             url = base + path
-            resp, err, dt = self._safe_request("get", url, timeout=self.config.request_timeout)
+            resp, err, dt = self._safe_request("get", url, timeout=probe_timeout)
             if resp:
                 if resp.status_code == 404:
                     self.add_result(
@@ -215,11 +247,20 @@ class ChaosInjector(BaseModule):
                         duration_ms=dt,
                     )
 
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(probe, p) for p in fake_assets]
+            for f in as_completed(futures):
+                try:
+                    f.result()
+                except Exception as e:
+                    logger.debug(f"[chaos] missing asset probe error: {e}")
+
     # -- Scenario: Corrupted Cookies -------------------------------
 
     def _chaos_corrupted_cookies(self, pages: list, intensity: dict):
         """Send garbage cookies and see how the server handles them."""
         test_page = pages[0] if pages else self.config.base_url
+        probe_timeout = 5
 
         corrupted_cookies = {
             "sessionid": "AAAA" * 100,
@@ -228,12 +269,13 @@ class ChaosInjector(BaseModule):
             self.config.auth_cookie_name: "corrupted_value_" + "X" * 200,
         }
 
-        for cookie_name, cookie_value in corrupted_cookies.items():
+        def probe(item):
+            cookie_name, cookie_value = item
             jar = {cookie_name: cookie_value}
             resp, err, dt = self._safe_request(
                 "get", test_page,
                 cookies=jar,
-                timeout=self.config.request_timeout,
+                timeout=probe_timeout,
             )
             if resp:
                 if resp.status_code >= 500:
@@ -266,3 +308,11 @@ class ChaosInjector(BaseModule):
                     details=err,
                     recommendation="Verify server doesn't crash on malformed cookies.",
                 )
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = [executor.submit(probe, item) for item in corrupted_cookies.items()]
+            for f in as_completed(futures):
+                try:
+                    f.result()
+                except Exception as e:
+                    logger.debug(f"[chaos] corrupted cookie probe error: {e}")

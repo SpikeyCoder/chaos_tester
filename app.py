@@ -309,7 +309,7 @@ def start_run():
         allow_production=_bool("allow_production"),
         max_pages=_clamp_int(_get("max_pages"), 100, 1, 1000),
         crawl_depth=_clamp_int(_get("crawl_depth"), 3, 1, 10),
-        request_timeout=_clamp_int(_get("request_timeout"), 15, 1, 120),
+        request_timeout=_clamp_int(_get("request_timeout"), 8, 1, 120),
         run_availability=_bool("run_availability"),
         run_links=_bool("run_links"),
         run_forms=_bool("run_forms"),
