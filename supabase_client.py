@@ -60,6 +60,9 @@ def _write_headers() -> dict:
 
 # -- Helpers -----------------------------------------------------------
 
+_DOMAIN_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,63}$")
+
+
 def normalize_domain(url: str) -> str:
     """Extract and normalize the domain from a URL."""
     parsed = urlparse(url if "://" in url else f"https://{url}")
@@ -67,6 +70,10 @@ def normalize_domain(url: str) -> str:
     # Strip leading "www."
     if domain.startswith("www."):
         domain = domain[4:]
+    # Validate domain format to prevent PostgREST injection
+    if domain and not _DOMAIN_RE.match(domain):
+        logger.warning("Invalid domain rejected: %s", domain[:100])
+        return ""
     return domain
 
 
