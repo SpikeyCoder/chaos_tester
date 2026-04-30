@@ -133,9 +133,16 @@ def _set_security_headers(response):
         "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app https://website-auditor.goatcounter.com https://maps.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com;"
     )
-    # CORS headers for cross-origin SPA (GitHub Pages → localhost backend)
+    # CORS headers for cross-origin SPA (GitHub Pages → backend).
+    # The allowlist is read from CORS_ALLOWED_ORIGINS so production deploys
+    # can ship without the localhost dev origin baked in. Default keeps
+    # production behaviour for the public site if the env var is unset.
     origin = request.headers.get("Origin", "")
-    allowed = ["https://website-auditor.io", "https://spikeycoder.github.io", "http://localhost:5000"]
+    allowed_env = os.environ.get(
+        "CORS_ALLOWED_ORIGINS",
+        "https://website-auditor.io,https://spikeycoder.github.io",
+    )
+    allowed = [o.strip() for o in allowed_env.split(",") if o.strip()]
     if origin in allowed:
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
