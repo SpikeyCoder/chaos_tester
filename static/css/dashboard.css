@@ -1,0 +1,113 @@
+/* Dashboard toggles styling */
+#module-toggles summary::-webkit-details-marker {
+  display: none;
+}
+#module-toggles[open] > summary .module-chevron {
+  transform: rotate(180deg);
+}
+
+/* Audit button hover/active states */
+.btn-audit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+}
+.btn-audit:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn-audit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* API upsell section */
+.api-upsell-section { padding: 40px 0; }
+.api-upsell-card {
+  background: linear-gradient(to right, rgba(99,102,241,0.10) 0%, rgba(168,85,247,0.10) 50%, rgba(236,72,153,0.10) 100%);
+  border: 1px solid rgba(99,102,241,0.20);
+  border-radius: 16px;
+  padding: 32px;
+}
+.api-upsell-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+.api-upsell-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.api-upsell-icon {
+  padding: 12px;
+  background: rgba(99,102,241,0.20);
+  border-radius: 8px;
+  display: inline-flex;
+}
+.api-upsell-icon svg {
+  width: 32px;
+  height: 32px;
+  color: #818cf8;
+}
+.api-upsell-title {
+  margin: 0 0 4px;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.api-upsell-subtitle {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 16px;
+}
+.api-upsell-btn {
+  display: inline-flex;
+  align-items: center;
+  background: #6366f1;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 10px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.15s ease;
+}
+.api-upsell-btn:hover {
+  background: #4f46e5;
+}
+.api-upsell-btn svg {
+  width: 16px;
+  height: 16px;
+  margin-left: 8px;
+}
+
+/* City input override styling */
+#override_biz_city {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  -webkit-appearance: none !important;
+}
+
+/* Spinner for audit button */
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.25);
+  border-top-color: var(--accent, #3b82f6);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+#biz-name-wrong-btn:hover {
+  color: var(--text);
+}

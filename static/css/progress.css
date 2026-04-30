@@ -1,0 +1,50 @@
+/* Spinner animation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.retry-badge {
+  display: inline-block;
+  background: var(--yellow);
+  color: #000;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+}
+
+/* Pulse animation for progress stepper */
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(59,130,246,0); }
+}
+
+.pulse-dot {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Shimmer animation for progress bar */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none !important; border-top-color: var(--accent); }
+  .pulse-dot { animation: none !important; }
+  #progressBar { animation: none !important; }
+}
