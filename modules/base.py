@@ -6,6 +6,8 @@ import time
 import logging
 import requests
 from urllib.parse import urljoin, urlparse
+
+from ..safe_http import SafeSession
 from typing import List
 from ..models import TestResult, TestStatus, Severity
 from ..config import ChaosConfig
@@ -24,7 +26,9 @@ class BaseModule:
         self.results: List[TestResult] = []
 
     def _build_session(self) -> requests.Session:
-        s = requests.Session()
+        # SafeSession enforces an SSRF deny-list on every request including
+        # redirect targets — see chaos_tester/safe_http.py.
+        s = SafeSession()
         s.headers.update({"User-Agent": self.config.user_agent})
         if self.config.auth_header:
             s.headers["Authorization"] = self.config.auth_header

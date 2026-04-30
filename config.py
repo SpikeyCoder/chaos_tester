@@ -14,7 +14,15 @@ def _is_private_or_reserved(hostname: str) -> bool:
     """Return True if *hostname* resolves to a private, loopback, or
     link-local address -- or to a well-known cloud metadata endpoint.
     This provides SSRF protection by blocking requests to internal services."""
-    BLOCKED_HOSTS = {"metadata.google.internal", "169.254.169.254"}
+    # Cloud metadata endpoints (GCP, AWS IMDSv1/v2, Azure, Oracle, etc.)
+    # plus their IPv6 forms.
+    BLOCKED_HOSTS = {
+        "metadata.google.internal",
+        "169.254.169.254",
+        "metadata",
+        "fd00:ec2::254",
+        "100.100.100.200",
+    }
     if hostname.lower() in BLOCKED_HOSTS:
         return True
     try:
