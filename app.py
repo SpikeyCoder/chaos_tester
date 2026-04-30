@@ -521,7 +521,10 @@ def latest_report():
 
 @app.route("/api/domain-history/<path:domain>")
 def api_domain_history(domain):
-    """Get audit history for a domain (public, no auth)."""
+    """Get audit history for a domain (rate-limited, validated)."""
+    # Validate domain format to prevent injection
+    if not re.match(r"^[a-zA-Z0-9][a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", domain):
+        return jsonify({"error": "Invalid domain format"}), 400
     history = supa.get_domain_history(domain, limit=10)
     return jsonify(history)
 
@@ -538,6 +541,9 @@ def api_status():
 
 @app.route("/api/runs")
 def api_runs():
+    # Require X-Requested-With to prevent cross-origin abuse
+    if request.headers.get("X-Requested-With") != "XMLHttpRequest":
+        abort(403, "Missing X-Requested-With header.")
     with _lock:
         runs = [{
             "run_id": r["run_id"],
