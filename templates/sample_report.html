@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Sample Report -- Website Auditor{% endblock %}
 {% block robots %}index, follow{% endblock %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sample-report.css') }}">
 {% block content %}
-<link rel="stylesheet" href="/static/css/sample-report.css">
-<script src="/static/js/sample-report.js"></script>
 <!-- -- Report Top Bar -------------------------------------- -->
 <div class="report-top-bar fade-up">
-  <div class="u-5b868e">
+  <div style="display:flex;align-items:center;gap:16px;">
     <a href="/" class="back-link" aria-label="Back to Dashboard">← Back</a>
     <div class="report-title-group">
       <h1>Audit Report</h1>
@@ -33,12 +32,12 @@
 </div>
 
 <!-- Banner indicating this is sample data -->
-<div class="card u-2533c8"u-2533c8">
-  <div class="u-d8fffd">
-    <div class="u-40a550">&#x2139;&#xFE0F;</div>
+<div class="card" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.4);border-left:4px solid #3b82f6;padding:16px 20px;margin-bottom:24px;">
+  <div style="display:flex;align-items:flex-start;gap:12px;">
+    <div style="font-size:1.4rem;">&#x2139;&#xFE0F;</div>
     <div>
-      <div class="u-a75094">Sample Data</div>
-      <div class="u-57d2fa">This report demonstrates realistic audit findings for illustrative purposes. The website, findings, and metrics shown are fictional but representative of typical audits.</div>
+      <div style="font-weight:600;color:var(--text);margin-bottom:4px;">Sample Data</div>
+      <div style="color:var(--text-muted);font-size:0.9rem;">This report demonstrates realistic audit findings for illustrative purposes. The website, findings, and metrics shown are fictional but representative of typical audits.</div>
     </div>
   </div>
 </div>
@@ -51,7 +50,7 @@
       <div class="exec-subtitle">Overall website health and critical findings</div>
     </div>
     <div class="exec-score">
-      <div class="score-number u-4bfd80"u-4bfd80">93</div>
+      <div class="score-number" style="color:var(--green)">93</div>
       <div class="score-label">Overall Score</div>
     </div>
   </div>
@@ -65,28 +64,28 @@
   </div>
 
   <div class="exec-metrics">
-    <div class="exec-metric-card u-58aba5"u-58aba5" 
+    <div class="exec-metric-card" style="cursor:pointer;" title="View all issues">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-warn">&#x26A0;</div>
       </div>
       <div class="exec-metric-value">7</div>
       <div class="exec-metric-label">Total Issues Found</div>
     </div>
-    <div class="exec-metric-card u-58aba5"u-58aba5" 
+    <div class="exec-metric-card" style="cursor:pointer;" title="View critical issues">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-crit">&#x2715;</div>
       </div>
       <div class="exec-metric-value">4</div>
       <div class="exec-metric-label">Critical Issues</div>
     </div>
-    <div class="exec-metric-card u-58aba5"u-58aba5" 
+    <div class="exec-metric-card" style="cursor:pointer;" title="View passed checks">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-pass">&#x2713;</div>
       </div>
       <div class="exec-metric-value">87</div>
       <div class="exec-metric-label">Checks Passed</div>
     </div>
-    <div class="exec-metric-card u-58aba5"u-58aba5" 
+    <div class="exec-metric-card" style="cursor:pointer;" title="View detailed results">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-time">&#x26A1;</div>
       </div>
@@ -97,14 +96,14 @@
 </div>
 
 <!-- -- Snapshot Summary (circular gauges) -------------------- -->
-<div class="section-summary card fade-up u-7afe40"u-7afe40" 
-  <div class="u-6b86a7">
-    <div class="u-ebe295">
+<div class="section-summary card fade-up" style="margin-bottom:24px;" role="region" aria-label="Section summary scores">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+    <div style="width:40px;height:40px;border-radius:10px;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2a10 10 0 0 1 7.07 2.93"/></svg>
     </div>
     <div>
-      <h2 class="u-88f9b9">Snapshot Summary</h2>
-      <p class="u-d11456">Core Web Vitals and performance metrics</p>
+      <h2 style="margin:0;font-size:1.2rem;font-weight:700;color:#fff;">Snapshot Summary</h2>
+      <p style="margin:0;font-size:0.82rem;color:var(--text-muted);">Core Web Vitals and performance metrics</p>
     </div>
   </div>
   <div class="section-gauges" id="sectionGauges">
@@ -114,20 +113,20 @@
 
 
 <!-- -- Performance Dashboard -------------------------------- -->
-<div id="perf-dashboard" class="card u-37d30b"u-37d30b">
-  <h2 class="u-d3747d">&#x26A1; Performance Metrics</h2>
+<div id="perf-dashboard" class="card" style="margin-bottom:24px">
+  <h2 style="margin:0 0 16px">&#x26A1; Performance Metrics</h2>
   <div class="perf-tabs" role="tablist" aria-label="Performance strategy">
     <button type="button" role="tab" class="perf-tab active" id="tab-mobile" aria-selected="true" aria-controls="panel-mobile" tabindex="0">&#x1F4F1; Mobile</button>
     <button type="button" role="tab" class="perf-tab" id="tab-desktop" aria-selected="false" aria-controls="panel-desktop" tabindex="-1">&#x1F5A5; Desktop</button>
   </div>
   <!-- Mobile panel -->
   <div class="perf-panel" id="panel-mobile">
-    <div class="u-c3f2e8">
+    <div style="text-align:center;margin-bottom:20px">
       <div class="gauge-container gauge-main"
            data-type="overall"
            data-value="96"
            data-display="96"></div>
-      <div class="u-415c93">Overall Score</div>
+      <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Overall Score</div>
     </div>
     <div class="perf-grid">
       <div class="gauge-card">
@@ -173,30 +172,30 @@
         <div class="gauge-label">Total Blocking Time</div>
       </div>
     </div>
-    <div class="u-ff3ea0">
-      <h3 class="u-18f8d0">&#x1F4A1; Top Recommendations</h3>
-      <div class="u-8087ed">
-        <div class="u-e6f0a0">Render-blocking requests</div>
-        <div class="u-34b05b">Requests are blocking the page's initial render, which may delay LCP. Deferring or inlining can move these network requests out of the critical path.</div>
+    <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+      <h3 style="font-size:1rem;font-weight:600;margin:0 0 12px;">&#x1F4A1; Top Recommendations</h3>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid var(--yellow);">
+        <div style="font-weight:600;font-size:0.9rem;">Render-blocking requests</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Requests are blocking the page's initial render, which may delay LCP. Deferring or inlining can move these network requests out of the critical path.</div>
       </div>
-      <div class="u-8087ed">
-        <div class="u-e6f0a0">Network dependency tree</div>
-        <div class="u-34b05b">Avoid chaining critical requests by reducing the length of chains, reducing the download size of resources, or deferring the download of unnecessary resources to improve page load.</div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid var(--yellow);">
+        <div style="font-weight:600;font-size:0.9rem;">Network dependency tree</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Avoid chaining critical requests by reducing the length of chains, reducing the download size of resources, or deferring the download of unnecessary resources to improve page load.</div>
       </div>
-      <div class="u-083888">
-        <div class="u-e6f0a0">Use efficient cache lifetimes</div>
-        <div class="u-34b05b">A long cache lifetime can speed up repeat visits to your page. Learn more about efficient caching.</div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid var(--green);">
+        <div style="font-weight:600;font-size:0.9rem;">Use efficient cache lifetimes</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">A long cache lifetime can speed up repeat visits to your page. Learn more about efficient caching.</div>
       </div>
     </div>
   </div>
   <!-- Desktop panel (hidden by default) -->
-  <div class="perf-panel u-93b8ea"u-93b8ea" 
-    <div class="u-c3f2e8">
+  <div class="perf-panel" id="panel-desktop" style="display:none;">
+    <div style="text-align:center;margin-bottom:20px">
       <div class="gauge-container gauge-main"
            data-type="overall"
            data-value="99"
            data-display="99"></div>
-      <div class="u-415c93">Overall Score</div>
+      <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Overall Score</div>
     </div>
     <div class="perf-grid">
       <div class="gauge-card">
@@ -254,17 +253,17 @@
 <div class="card" id="detailed-results-card">
   <h2 id="detailed-results-heading">&#x1F4DD; Detailed Results (94)</h2>
   <!-- Filter bar -->
-  <form class="u-5534b3">
-    <div class="filter-bar u-438073"u-438073">
+  <form style="margin-bottom:16px;">
+    <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
       <div class="filter-group">
-        <span class="text-muted text-sm u-63dc25"u-63dc25">Filter:</span>
+        <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
         <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="all" aria-pressed="true">All</button>
         <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" aria-pressed="false">Failed</button>
         <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="warning" aria-pressed="false">Warnings</button>
         <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" aria-pressed="false">Passed</button>
       </div>
       <div class="filter-group">
-        <span class="text-muted text-sm u-63dc25"u-63dc25">Module:</span>
+        <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
         <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" aria-pressed="true">All</button>
         <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" aria-pressed="false">Avail</button>
         <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" aria-pressed="false">Links</button>
@@ -275,186 +274,186 @@
       </div>
     </div>
   </form>
-  <div class="u-5ba8d9" id="detailed-results-wrapper">
+  <div id="detailed-results-wrapper" style="overflow-x:auto;max-height:none;">
     <table id="resultsTable">
       <thead>
         <tr>
-          <th class="u-9ab095">#</th>
+          <th style="width:50px">#</th>
           <th>Status</th>
           <th>Severity</th>
           <th>Module</th>
           <th>Test</th>
           <th>Details</th>
-          <th class="u-8db8d8">Time</th>
+          <th style="width:80px">Time</th>
         </tr>
       </thead>
       <tbody>
         <!-- 1: Page load / availability -->
-        <tr class="result-row u-58aba5"u-58aba5" 
+        <tr class="result-row" data-status="passed" data-module="availability" style="cursor:pointer;">
           <td class="text-muted mono text-sm cell-index">1</td>
           <td data-label="Status"><span class="badge badge-passed">passed</span></td>
           <td data-label="Severity"><span class="badge badge-low">low</span></td>
-          <td data-label="Module" class="text-sm"><span class="u-1c9e3e">availability</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
           <td data-label="Test">
-            <div class="u-43a2fa"><span class="expand-chevron u-b5fab2"u-b5fab2">&#x25B6;</span> Page load /</div>
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /</div>
             <div class="text-muted text-sm">GET https://bestlocalbakery.com/</div>
           </td>
-          <td data-label="" class="text-sm cell-details result-detail-cell u-93b8ea"u-93b8ea">
-            <div class="u-29cb11">Homepage loads in 680ms with HTTP 200 status.</div>
-            <div class="text-muted u-8230d6"u-8230d6">https://bestlocalbakery.com/</div>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Homepage loads in 680ms with HTTP 200 status.</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">29ms</td>
         </tr>
 
         <!-- 2: Page load /menu -->
-        <tr class="result-row u-58aba5"u-58aba5" 
+        <tr class="result-row" data-status="passed" data-module="availability" style="cursor:pointer;">
           <td class="text-muted mono text-sm cell-index">2</td>
           <td data-label="Status"><span class="badge badge-passed">passed</span></td>
           <td data-label="Severity"><span class="badge badge-low">low</span></td>
-          <td data-label="Module" class="text-sm"><span class="u-1c9e3e">availability</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
           <td data-label="Test">
-            <div class="u-43a2fa"><span class="expand-chevron u-b5fab2"u-b5fab2">&#x25B6;</span> Page load /menu</div>
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /menu</div>
             <div class="text-muted text-sm">GET https://bestlocalbakery.com/menu</div>
           </td>
-          <td data-label="" class="text-sm cell-details result-detail-cell u-93b8ea"u-93b8ea">
-            <div class="u-29cb11">Menu page loads correctly with HTTP 200.</div>
-            <div class="text-muted u-8230d6"u-8230d6">https://bestlocalbakery.com/menu</div>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Menu page loads correctly with HTTP 200.</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/menu</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">24ms</td>
         </tr>
 
         <!-- 3: Page load /blog/spring-menu -->
-        <tr class="result-row u-58aba5"u-58aba5" 
+        <tr class="result-row" data-status="passed" data-module="availability" style="cursor:pointer;">
           <td class="text-muted mono text-sm cell-index">3</td>
           <td data-label="Status"><span class="badge badge-passed">passed</span></td>
           <td data-label="Severity"><span class="badge badge-low">low</span></td>
-          <td data-label="Module" class="text-sm"><span class="u-1c9e3e">availability</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
           <td data-label="Test">
-            <div class="u-43a2fa"><span class="expand-chevron u-b5fab2"u-b5fab2">&#x25B6;</span> Page load /blog/spring-menu-update</div>
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /blog/spring-menu-update</div>
             <div class="text-muted text-sm">https://bestlocalbakery.com/blog/spring-menu-update</div>
           </td>
-          <td data-label="" class="text-sm cell-details result-detail-cell u-93b8ea"u-93b8ea">
-            <div class="u-29cb11">Blog page loads correctly.</div>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Blog page loads correctly.</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">54ms</td>
         </tr>
 
         <!-- 4: ethical-robots-txt-compliance -->
-        <tr class="result-row u-58aba5"u-58aba5" 
+        <tr class="result-row" data-status="passed" data-module="availability" style="cursor:pointer;">
           <td class="text-muted mono text-sm cell-index">4</td>
           <td data-label="Status"><span class="badge badge-passed">passed</span></td>
           <td data-label="Severity"><span class="badge badge-low">low</span></td>
-          <td data-label="Module" class="text-sm"><span class="u-1c9e3e">availability</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
           <td data-label="Test">
-            <div class="u-43a2fa"><span class="expand-chevron u-b5fab2"u-b5fab2">&#x25B6;</span> ethical-robots-txt-compliance</div>
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> ethical-robots-txt-compliance</div>
             <div class="text-muted text-sm">Verified robots.txt allows crawling of key pages</div>
           </td>
-          <td data-label="" class="text-sm cell-details result-detail-cell u-93b8ea"u-93b8ea">
-            <div class="u-29cb11">Robots.txt present and properly configured. All important pages are crawlable.</div>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Robots.txt present and properly configured. All important pages are crawlable.</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">12ms</td>
         </tr>
 
         <!-- 5: Page load /blog/the-psycho... (long title truncated) -->
-        <tr class="result-row u-58aba5"u-58aba5" 
+        <tr class="result-row" data-status="passed" data-module="availability" style="cursor:pointer;">
           <td class="text-muted mono text-sm cell-index">5</td>
           <td data-label="Status"><span class="badge badge-passed">passed</span></td>
           <td data-label="Severity"><span class="badge badge-low">low</span></td>
-          <td data-label="Module" class="text-sm"><span class="u-1c9e3e">availability</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#3b82f6;font-weight:600;">availability</span></td>
           <td data-label="Test">
-            <div class="u-43a2fa"><span class="expand-chevron u-b5fab2"u-b5fab2">&#x25B6;</span> Page load /blog/the-psychology...</div>
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Page load /blog/the-psychology...</div>
             <div class="text-muted text-sm">https://bestlocalbakery.com/blog/the-psychology-of-bread-aroma</div>
           </td>
-          <td data-label="" class="text-sm cell-details result-detail-cell u-93b8ea"u-93b8ea">
-            <div class="u-29cb11">Blog article loads correctly with HTTP 200.</div>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Blog article loads correctly with HTTP 200.</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">67ms</td>
         </tr>
 
         <!-- Hidden rows: additional sample findings -->
-        <tr class="result-row u-175046"u-175046" 
+        <tr class="result-row" data-status="failed" data-module="links" style="cursor:pointer;display:none;">
           <td class="text-muted mono text-sm cell-index">6</td>
           <td data-label="Status"><span class="badge badge-failed">failed</span></td>
           <td data-label="Severity"><span class="badge badge-high">high</span></td>
-          <td data-label="Module" class="text-sm"><span class="u-b5a1e1">links</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#a855f7;font-weight:600;">links</span></td>
           <td data-label="Test">
-            <div class="u-43a2fa"><span class="expand-chevron u-b5fab2"u-b5fab2">&#x25B6;</span> Broken Link: /menu-old</div>
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Broken Link: /menu-old</div>
             <div class="text-muted text-sm">HTTP 404 on legacy menu page</div>
           </td>
-          <td data-label="" class="text-sm cell-details result-detail-cell u-93b8ea"u-93b8ea">
-            <div class="u-29cb11">Page returns 404 Not Found. This link is still referenced from the main navigation.</div>
-            <div class="u-993e35">&#x1F4A1; Remove the link or restore the /menu-old page</div>
-            <div class="text-muted u-8230d6"u-8230d6">https://bestlocalbakery.com/menu-old</div>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">Page returns 404 Not Found. This link is still referenced from the main navigation.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Remove the link or restore the /menu-old page</div>
+            <div class="text-muted" style="font-size:0.78rem;word-break:break-all;">https://bestlocalbakery.com/menu-old</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">245ms</td>
         </tr>
 
-        <tr class="result-row u-175046"u-175046" 
+        <tr class="result-row" data-status="warning" data-module="security" style="cursor:pointer;display:none;">
           <td class="text-muted mono text-sm cell-index">7</td>
           <td data-label="Status"><span class="badge badge-warning">warning</span></td>
           <td data-label="Severity"><span class="badge badge-high">high</span></td>
-          <td data-label="Module" class="text-sm"><span class="u-bad7fc">security</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#ef4444;font-weight:600;">security</span></td>
           <td data-label="Test">
-            <div class="u-43a2fa"><span class="expand-chevron u-b5fab2"u-b5fab2">&#x25B6;</span> Missing Content-Security-Policy Header</div>
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Missing Content-Security-Policy Header</div>
             <div class="text-muted text-sm">CSP header not found in response</div>
           </td>
-          <td data-label="" class="text-sm cell-details result-detail-cell u-93b8ea"u-93b8ea">
-            <div class="u-29cb11">The Content-Security-Policy header is missing, leaving the site vulnerable to XSS and injection attacks.</div>
-            <div class="u-993e35">&#x1F4A1; Add CSP header with restrictive defaults: default-src 'self'; script-src 'self' 'unsafe-inline'</div>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">The Content-Security-Policy header is missing, leaving the site vulnerable to XSS and injection attacks.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Add CSP header with restrictive defaults: default-src 'self'; script-src 'self' 'unsafe-inline'</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">42ms</td>
         </tr>
 
-        <tr class="result-row u-175046"u-175046" 
+        <tr class="result-row" data-status="failed" data-module="security" style="cursor:pointer;display:none;">
           <td class="text-muted mono text-sm cell-index">8</td>
           <td data-label="Status"><span class="badge badge-failed">failed</span></td>
           <td data-label="Severity"><span class="badge badge-high">high</span></td>
-          <td data-label="Module" class="text-sm"><span class="u-bad7fc">security</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#ef4444;font-weight:600;">security</span></td>
           <td data-label="Test">
-            <div class="u-43a2fa"><span class="expand-chevron u-b5fab2"u-b5fab2">&#x25B6;</span> Session Cookie Missing Secure Flag</div>
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Session Cookie Missing Secure Flag</div>
             <div class="text-muted text-sm">Cookie transmitted over plain HTTP</div>
           </td>
-          <td data-label="" class="text-sm cell-details result-detail-cell u-93b8ea"u-93b8ea">
-            <div class="u-29cb11">The session_id cookie is transmitted over insecure HTTP connections. Attackers on the same network could intercept it.</div>
-            <div class="u-993e35">&#x1F4A1; Add Secure flag to session cookies and enforce HTTPS only</div>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">The session_id cookie is transmitted over insecure HTTP connections. Attackers on the same network could intercept it.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Add Secure flag to session cookies and enforce HTTPS only</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">38ms</td>
         </tr>
 
-        <tr class="result-row u-175046"u-175046" 
+        <tr class="result-row" data-status="failed" data-module="forms" style="cursor:pointer;display:none;">
           <td class="text-muted mono text-sm cell-index">9</td>
           <td data-label="Status"><span class="badge badge-failed">failed</span></td>
           <td data-label="Severity"><span class="badge badge-medium">medium</span></td>
-          <td data-label="Module" class="text-sm"><span class="u-d35f98">forms</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#06b6d4;font-weight:600;">forms</span></td>
           <td data-label="Test">
-            <div class="u-43a2fa"><span class="expand-chevron u-b5fab2"u-b5fab2">&#x25B6;</span> Contact Form: Missing Label on Email Field</div>
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> Contact Form: Missing Label on Email Field</div>
             <div class="text-muted text-sm">Email input lacks associated label element</div>
           </td>
-          <td data-label="" class="text-sm cell-details result-detail-cell u-93b8ea"u-93b8ea">
-            <div class="u-29cb11">The email input field on the contact form has no &lt;label&gt; element. Screen readers cannot identify the field purpose.</div>
-            <div class="u-993e35">&#x1F4A1; Add &lt;label for="email"&gt;Email Address&lt;/label&gt; and link with id attribute</div>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">The email input field on the contact form has no &lt;label&gt; element. Screen readers cannot identify the field purpose.</div>
+            <div style="color:var(--accent);font-size:0.8rem;">&#x1F4A1; Add &lt;label for="email"&gt;Email Address&lt;/label&gt; and link with id attribute</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">156ms</td>
         </tr>
 
-        <tr class="result-row u-175046"u-175046" 
+        <tr class="result-row" data-status="passed" data-module="security" style="cursor:pointer;display:none;">
           <td class="text-muted mono text-sm cell-index">10</td>
           <td data-label="Status"><span class="badge badge-passed">passed</span></td>
           <td data-label="Severity"><span class="badge badge-low">low</span></td>
-          <td data-label="Module" class="text-sm"><span class="u-bad7fc">security</span></td>
+          <td data-label="Module" class="text-sm"><span style="color:#ef4444;font-weight:600;">security</span></td>
           <td data-label="Test">
-            <div class="u-43a2fa"><span class="expand-chevron u-b5fab2"u-b5fab2">&#x25B6;</span> HTTPS Enabled Everywhere</div>
+            <div style="font-weight:500;display:flex;align-items:center;gap:6px;"><span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#x25B6;</span> HTTPS Enabled Everywhere</div>
             <div class="text-muted text-sm">All pages serve over secure connection</div>
           </td>
-          <td data-label="" class="text-sm cell-details result-detail-cell u-93b8ea"u-93b8ea">
-            <div class="u-29cb11">All pages are served via HTTPS with a valid certificate from Let's Encrypt.</div>
+          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
+            <div style="margin-bottom:4px;">All pages are served via HTTPS with a valid certificate from Let's Encrypt.</div>
           </td>
           <td data-label="Time" class="mono text-sm text-muted">35ms</td>
         </tr>
       </tbody>
     </table>
   </div>
-  <div class="u-5afce9">
+  <div style="text-align:center;padding:12px 0;">
     <button type="button" class="btn btn-secondary text-sm" id="detailed-toggle-btn" aria-expanded="false" aria-controls="resultsTable">
       Show All 94 Results &#x25BC;
     </button>
@@ -466,96 +465,96 @@
   <h2>&#x1F916; AI Visibility Dashboard</h2>
 
   <!-- Summary Score -->
-  <div class="u-edef1d">
-    <div class="u-017752">
-      <div class="u-702620">0%</div>
-      <div class="u-8421e3">Overall AI Visibility</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:2.5rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Overall AI Visibility</div>
     </div>
-    <div class="u-017752">
-      <div class="u-842882">0/32</div>
-      <div class="u-8421e3">Appearances in AI Results</div>
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:2.5rem;font-weight:700;">0/32</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Appearances in AI Results</div>
     </div>
-    <div class="u-017752">
-      <div class="u-bc0a55">BEST LOCAL BAKERY</div>
-      <div class="u-8421e3">Bakery &mdash; Seattle</div>
+    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:1.1rem;font-weight:600;">BEST LOCAL BAKERY</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Bakery &mdash; Seattle</div>
     </div>
   </div>
 
   <!-- Platform Scores -->
-  <div class="u-2641dc">
-    <div class="u-441fd6">
-      <div class="u-21e3fb">
-        <img class="u-2138fa" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2310a37f%22%20d%3D%22M22.282%209.821a6%206%200%200%200-.516-4.91a6.05%206.05%200%200%200-6.51-2.9A6.065%206.065%200%200%200%204.981%204.18a6%206%200%200%200-3.998%202.9a6.05%206.05%200%200%200%20.743%207.097a5.98%205.98%200%200%200%20.51%204.911a6.05%206.05%200%200%200%206.515%202.9A6%206%200%200%200%2013.26%2024a6.06%206.06%200%200%200%205.772-4.206a6%206%200%200%200%203.997-2.9a6.06%206.06%200%200%200-.747-7.073M13.26%2022.43a4.48%204.48%200%200%201-2.876-1.04l.141-.081l4.779-2.758a.8.8%200%200%200%20.392-.681v-6.737l2.02%201.168a.07.07%200%200%201%20.038.052v5.583a4.504%204.504%200%200%201-4.494%204.494M3.6%2018.304a4.47%204.47%200%200%201-.535-3.014l.142.085l4.783%202.759a.77.77%200%200%200%20.78%200l5.843-3.369v2.332a.08.08%200%200%201-.033.062L9.74%2019.95a4.5%204.5%200%200%201-6.14-1.646M2.34%207.896a4.5%204.5%200%200%201%202.366-1.973V11.6a.77.77%200%200%200%20.388.677l5.815%203.354l-2.02%201.168a.08.08%200%200%201-.071%200l-4.83-2.786A4.504%204.504%200%200%201%202.34%207.872zm16.597%203.855l-5.833-3.387L15.119%207.2a.08.08%200%200%201%20.071%200l4.83%202.791a4.494%204.494%200%200%201-.676%208.105v-5.678a.79.79%200%200%200-.407-.667m2.01-3.023l-.141-.085l-4.774-2.782a.78.78%200%200%200-.785%200L9.409%209.23V6.897a.07.07%200%200%201%20.028-.061l4.83-2.787a4.5%204.5%200%200%201%206.68%204.66zm-12.64%204.135l-2.02-1.164a.08.08%200%200%201-.038-.057V6.075a4.5%204.5%200%200%201%207.375-3.453l-.142.08L8.704%205.46a.8.8%200%200%200-.393.681zm1.097-2.365l2.602-1.5l2.607%201.5v2.999l-2.597%201.5l-2.607-1.5Z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt=""> ChatGPT
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;margin-bottom:24px;">
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #10a37f;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2310a37f%22%20d%3D%22M22.282%209.821a6%206%200%200%200-.516-4.91a6.05%206.05%200%200%200-6.51-2.9A6.065%206.065%200%200%200%204.981%204.18a6%206%200%200%200-3.998%202.9a6.05%206.05%200%200%200%20.743%207.097a5.98%205.98%200%200%200%20.51%204.911a6.05%206.05%200%200%200%206.515%202.9A6%206%200%200%200%2013.26%2024a6.06%206.06%200%200%200%205.772-4.206a6%206%200%200%200%203.997-2.9a6.06%206.06%200%200%200-.747-7.073M13.26%2022.43a4.48%204.48%200%200%201-2.876-1.04l.141-.081l4.779-2.758a.8.8%200%200%200%20.392-.681v-6.737l2.02%201.168a.07.07%200%200%201%20.038.052v5.583a4.504%204.504%200%200%201-4.494%204.494M3.6%2018.304a4.47%204.47%200%200%201-.535-3.014l.142.085l4.783%202.759a.77.77%200%200%200%20.78%200l5.843-3.369v2.332a.08.08%200%200%201-.033.062L9.74%2019.95a4.5%204.5%200%200%201-6.14-1.646M2.34%207.896a4.5%204.5%200%200%201%202.366-1.973V11.6a.77.77%200%200%200%20.388.677l5.815%203.354l-2.02%201.168a.08.08%200%200%201-.071%200l-4.83-2.786A4.504%204.504%200%200%201%202.34%207.872zm16.597%203.855l-5.833-3.387L15.119%207.2a.08.08%200%200%201%20.071%200l4.83%202.791a4.494%204.494%200%200%201-.676%208.105v-5.678a.79.79%200%200%200-.407-.667m2.01-3.023l-.141-.085l-4.774-2.782a.78.78%200%200%200-.785%200L9.409%209.23V6.897a.07.07%200%200%201%20.028-.061l4.83-2.787a4.5%204.5%200%200%201%206.68%204.66zm-12.64%204.135l-2.02-1.164a.08.08%200%200%201-.038-.057V6.075a4.5%204.5%200%200%201%207.375-3.453l-.142.08L8.704%205.46a.8.8%200%200%200-.393.681zm1.097-2.365l2.602-1.5l2.607%201.5v2.999l-2.597%201.5l-2.607-1.5Z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt="" style="vertical-align:middle;"> ChatGPT
       </div>
-      <div class="u-0025e2">0%</div>
-      <div class="u-e91b5f">0/8 queries</div>
-      <div class="progress-bar-bg mt-1 u-890242"u-890242">
-        <div class="progress-bar-fill u-e15774"u-e15774"></div>
-      </div>
-    </div>
-    <div class="u-9b9a15">
-      <div class="u-21e3fb">
-        <img class="u-2138fa" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2320808d%22%20d%3D%22M22.398%207.09h-2.31V.068l-7.51%206.354V.158h-1.156v6.196L4.49%200v7.09H1.602v10.397H4.49V24l6.933-6.36v6.201h1.155v-6.047l6.932%206.181v-6.488h2.888zm-3.466-4.531v4.53h-5.355zm-13.286.067l4.869%204.464h-4.87zM2.758%2016.332V8.245h7.847L4.49%2014.36v1.972zm2.888%205.04v-6.534l5.776-5.776v7.011zm12.708.025l-5.776-5.15V9.061l5.776%205.776zm2.889-5.065H19.51V14.36l-6.115-6.115h7.848z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt=""> Perplexity
-      </div>
-      <div class="u-0025e2">0%</div>
-      <div class="u-e91b5f">0/8 queries</div>
-      <div class="progress-bar-bg mt-1 u-890242"u-890242">
-        <div class="progress-bar-fill u-ab0f70"u-ab0f70"></div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#10a37f;"></div>
       </div>
     </div>
-    <div class="u-4c6bc1">
-      <div class="u-21e3fb">
-        <img class="u-2138fa" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23cc785c%22%20d%3D%22M17.304%203.541h-3.672l6.696%2016.918H24Zm-10.608%200L0%2020.459h3.744l1.37-3.553h7.005l1.369%203.553h3.744L10.536%203.541Zm-.371%2010.223L8.616%207.82l2.291%205.945Z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt=""> Claude
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #1e88e5;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2320808d%22%20d%3D%22M22.398%207.09h-2.31V.068l-7.51%206.354V.158h-1.156v6.196L4.49%200v7.09H1.602v10.397H4.49V24l6.933-6.36v6.201h1.155v-6.047l6.932%206.181v-6.488h2.888zm-3.466-4.531v4.53h-5.355zm-13.286.067l4.869%204.464h-4.87zM2.758%2016.332V8.245h7.847L4.49%2014.36v1.972zm2.888%205.04v-6.534l5.776-5.776v7.011zm12.708.025l-5.776-5.15V9.061l5.776%205.776zm2.889-5.065H19.51V14.36l-6.115-6.115h7.848z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt="" style="vertical-align:middle;"> Perplexity
       </div>
-      <div class="u-0025e2">0%</div>
-      <div class="u-e91b5f">0/8 queries</div>
-      <div class="progress-bar-bg mt-1 u-890242"u-890242">
-        <div class="progress-bar-fill u-215464"u-215464"></div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#1e88e5;"></div>
       </div>
     </div>
-    <div class="u-3dae96">
-      <div class="u-21e3fb">
-        <img class="u-2138fa" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%234285f4%22%20d%3D%22M11.04%2019.32Q12%2021.51%2012%2024q0-2.49.93-4.68q.96-2.19%202.58-3.81t3.81-2.55Q21.51%2012%2024%2012q-2.49%200-4.68-.93a12.3%2012.3%200%200%201-3.81-2.58a12.3%2012.3%200%200%201-2.58-3.81Q12%202.49%2012%200q0%202.49-.96%204.68q-.93%202.19-2.55%203.81a12.3%2012.3%200%200%201-3.81%202.58Q2.49%2012%200%2012q2.49%200%204.68.96q2.19.93%203.81%202.55t2.55%203.81%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt=""> Gemini
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #d97706;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23cc785c%22%20d%3D%22M17.304%203.541h-3.672l6.696%2016.918H24Zm-10.608%200L0%2020.459h3.744l1.37-3.553h7.005l1.369%203.553h3.744L10.536%203.541Zm-.371%2010.223L8.616%207.82l2.291%205.945Z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt="" style="vertical-align:middle;"> Claude
       </div>
-      <div class="u-0025e2">0%</div>
-      <div class="u-e91b5f">0/8 queries</div>
-      <div class="progress-bar-bg mt-1 u-890242"u-890242">
-        <div class="progress-bar-fill u-8d3e4b"u-8d3e4b"></div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#d97706;"></div>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid #6366f1;">
+      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%234285f4%22%20d%3D%22M11.04%2019.32Q12%2021.51%2012%2024q0-2.49.93-4.68q.96-2.19%202.58-3.81t3.81-2.55Q21.51%2012%2024%2012q-2.49%200-4.68-.93a12.3%2012.3%200%200%201-3.81-2.58a12.3%2012.3%200%200%201-2.58-3.81Q12%202.49%2012%200q0%202.49-.96%204.68q-.93%202.19-2.55%203.81a12.3%2012.3%200%200%201-3.81%202.58Q2.49%2012%200%2012q2.49%200%204.68.96q2.19.93%203.81%202.55t2.55%203.81%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt="" style="vertical-align:middle;"> Gemini
+      </div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--red);">0%</div>
+      <div style="color:var(--text-muted);font-size:0.8rem;">0/8 queries</div>
+      <div class="progress-bar-bg mt-1" style="height:6px;">
+        <div class="progress-bar-fill" style="width:0%;background:#6366f1;"></div>
       </div>
     </div>
   </div>
 
   <!-- AI Visibility Recommendations -->
-  <div class="u-9b60a6">
-    <h3 class="u-cf5ca1">&#x1F4A1; Top Actions to Improve AI Visibility</h3>
-    <div class="u-ba2469">
-      <div class="u-e6f0a0">&#x1F4AA; Strengthen Your Online Presence</div>
-      <div class="u-34b05b">Your business appears in only 0% of AI queries. Focus on building authoritative content, earning quality backlinks, and maintaining consistent NAP (Name, Address, Phone) across directories.</div>
+  <div style="margin-bottom:24px;border:1px solid var(--border);border-radius:12px;padding:20px;background:linear-gradient(135deg, rgba(99,102,241,0.05), rgba(16,185,129,0.05));">
+    <h3 style="font-size:1rem;font-weight:700;margin:0 0 12px;">&#x1F4A1; Top Actions to Improve AI Visibility</h3>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid #f97316;">
+      <div style="font-weight:600;font-size:0.9rem;">&#x1F4AA; Strengthen Your Online Presence</div>
+      <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Your business appears in only 0% of AI queries. Focus on building authoritative content, earning quality backlinks, and maintaining consistent NAP (Name, Address, Phone) across directories.</div>
     </div>
-    <div class="u-ba2469">
-      <div class="u-e6f0a0">&#x1F50D; Improve Visibility on ChatGPT & Claude & Gemini & Perplexity</div>
-      <div class="u-34b05b">Your business wasn't found on ChatGPT, Claude, Gemini, Perplexity. Ensure your Google Business Profile is complete, encourage customer reviews, and add structured data (schema.org) to your website.</div>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid #f97316;">
+      <div style="font-weight:600;font-size:0.9rem;">&#x1F50D; Improve Visibility on ChatGPT & Claude & Gemini & Perplexity</div>
+      <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">Your business wasn't found on ChatGPT, Claude, Gemini, Perplexity. Ensure your Google Business Profile is complete, encourage customer reviews, and add structured data (schema.org) to your website.</div>
     </div>
-    <div class="u-ba2469">
-      <div class="u-e6f0a0">&#x1F4DD; Create Sector-Specific Content</div>
-      <div class="u-34b05b">AI models aren't recommending your business for 32 out of 32 queries. Publish authoritative blog posts, case studies, and FAQs targeting the exact phrases customers use.</div>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid #f97316;">
+      <div style="font-weight:600;font-size:0.9rem;">&#x1F4DD; Create Sector-Specific Content</div>
+      <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;">AI models aren't recommending your business for 32 out of 32 queries. Publish authoritative blog posts, case studies, and FAQs targeting the exact phrases customers use.</div>
     </div>
   </div>
 
   <!-- Custom AI Query -->
-  <div class="u-c85643">
-    <h3 class="u-b5137a">&#x1F50D; Run a Custom Query</h3>
-    <p class="u-d35a2e">Enter any search query to see how AI platforms respond. The query runs against all 4 AI models.</p>
-    <div class="u-2bf6cd">
-      <input class="u-9678fc" type="text" id="custom-ai-query" placeholder="e.g. best plumber in Seattle" disabled>
-      <button type="button" class="btn btn-primary u-8b2da0"u-8b2da0" Run Query</button>
+  <div style="margin-bottom:24px;background:var(--surface2);border-radius:12px;padding:20px;">
+    <h3 style="font-size:1rem;font-weight:700;margin:0 0 4px;">&#x1F50D; Run a Custom Query</h3>
+    <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 12px;">Enter any search query to see how AI platforms respond. The query runs against all 4 AI models.</p>
+    <div style="display:flex;gap:8px;align-items:stretch;">
+      <input type="text" id="custom-ai-query" placeholder="e.g. best plumber in Seattle" style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:0.9rem;" disabled>
+      <button type="button" class="btn btn-primary" style="white-space:nowrap;" disabled>Run Query</button>
     </div>
-    <div class="u-5c1ca0">Custom queries are available on real audit reports.</div>
+    <div style="margin-top:8px;color:var(--text-muted);font-size:0.8rem;font-style:italic;">Custom queries are available on real audit reports.</div>
   </div>
 
   <!-- AI Results Table -->
-  <div class="u-4cb8ce">
-    <div class="u-5ba8d9" id="ai-results-table">
+  <div style="position:relative;">
+    <div id="ai-results-table" style="overflow-x:auto;max-height:none;">
       <table id="aiResultsTable">
         <thead>
           <tr>
@@ -570,80 +569,80 @@
         </thead>
         <tbody>
           <tr class="ai-result-row">
-            <td data-label="Platform"><span class="u-62e9d0"><img class="u-2138fa" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2310a37f%22%20d%3D%22M22.282%209.821a6%206%200%200%200-.516-4.91a6.05%206.05%200%200%200-6.51-2.9A6.065%206.065%200%200%200%204.981%204.18a6%206%200%200%200-3.998%202.9a6.05%206.05%200%200%200%20.743%207.097a5.98%205.98%200%200%200%20.51%204.911a6.05%206.05%200%200%200%206.515%202.9A6%206%200%200%200%2013.26%2024a6.06%206.06%200%200%200%205.772-4.206a6%206%200%200%200%203.997-2.9a6.06%206.06%200%200%200-.747-7.073M13.26%2022.43a4.48%204.48%200%200%201-2.876-1.04l.141-.081l4.779-2.758a.8.8%200%200%200%20.392-.681v-6.737l2.02%201.168a.07.07%200%200%201%20.038.052v5.583a4.504%204.504%200%200%201-4.494%204.494M3.6%2018.304a4.47%204.47%200%200%201-.535-3.014l.142.085l4.783%202.759a.77.77%200%200%200%20.78%200l5.843-3.369v2.332a.08.08%200%200%201-.033.062L9.74%2019.95a4.5%204.5%200%200%201-6.14-1.646M2.34%207.896a4.5%204.5%200%200%201%202.366-1.973V11.6a.77.77%200%200%200%20.388.677l5.815%203.354l-2.02%201.168a.08.08%200%200%201-.071%200l-4.83-2.786A4.504%204.504%200%200%201%202.34%207.872zm16.597%203.855l-5.833-3.387L15.119%207.2a.08.08%200%200%201%20.071%200l4.83%202.791a4.494%204.494%200%200%201-.676%208.105v-5.678a.79.79%200%200%200-.407-.667m2.01-3.023l-.141-.085l-4.774-2.782a.78.78%200%200%200-.785%200L9.409%209.23V6.897a.07.07%200%200%201%20.028-.061l4.83-2.787a4.5%204.5%200%200%201%206.68%204.66zm-12.64%204.135l-2.02-1.164a.08.08%200%200%201-.038-.057V6.075a4.5%204.5%200%200%201%207.375-3.453l-.142.08L8.704%205.46a.8.8%200%200%200-.393.681zm1.097-2.365l2.602-1.5l2.607%201.5v2.999l-2.597%201.5l-2.607-1.5Z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt=""> ChatGPT</span></td>
-            <td class="u-5c9975" data-label="Query">recommended bakery in Seattle</td>
-            <td class="u-37deb5" data-label="Recommended">Macrina Bakery, Bakery Nouveau, Columbia City Bakery, Tall Grass Bakery</td>
+            <td data-label="Platform"><span style="color:#10a37f;font-weight:600;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2310a37f%22%20d%3D%22M22.282%209.821a6%206%200%200%200-.516-4.91a6.05%206.05%200%200%200-6.51-2.9A6.065%206.065%200%200%200%204.981%204.18a6%206%200%200%200-3.998%202.9a6.05%206.05%200%200%200%20.743%207.097a5.98%205.98%200%200%200%20.51%204.911a6.05%206.05%200%200%200%206.515%202.9A6%206%200%200%200%2013.26%2024a6.06%206.06%200%200%200%205.772-4.206a6%206%200%200%200%203.997-2.9a6.06%206.06%200%200%200-.747-7.073M13.26%2022.43a4.48%204.48%200%200%201-2.876-1.04l.141-.081l4.779-2.758a.8.8%200%200%200%20.392-.681v-6.737l2.02%201.168a.07.07%200%200%201%20.038.052v5.583a4.504%204.504%200%200%201-4.494%204.494M3.6%2018.304a4.47%204.47%200%200%201-.535-3.014l.142.085l4.783%202.759a.77.77%200%200%200%20.78%200l5.843-3.369v2.332a.08.08%200%200%201-.033.062L9.74%2019.95a4.5%204.5%200%200%201-6.14-1.646M2.34%207.896a4.5%204.5%200%200%201%202.366-1.973V11.6a.77.77%200%200%200%20.388.677l5.815%203.354l-2.02%201.168a.08.08%200%200%201-.071%200l-4.83-2.786A4.504%204.504%200%200%201%202.34%207.872zm16.597%203.855l-5.833-3.387L15.119%207.2a.08.08%200%200%201%20.071%200l4.83%202.791a4.494%204.494%200%200%201-.676%208.105v-5.678a.79.79%200%200%200-.407-.667m2.01-3.023l-.141-.085l-4.774-2.782a.78.78%200%200%200-.785%200L9.409%209.23V6.897a.07.07%200%200%201%20.028-.061l4.83-2.787a4.5%204.5%200%200%201%206.68%204.66zm-12.64%204.135l-2.02-1.164a.08.08%200%200%201-.038-.057V6.075a4.5%204.5%200%200%201%207.375-3.453l-.142.08L8.704%205.46a.8.8%200%200%200-.393.681zm1.097-2.365l2.602-1.5l2.607%201.5v2.999l-2.597%201.5l-2.607-1.5Z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt="" style="vertical-align:middle;"> ChatGPT</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">recommended bakery in Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Macrina Bakery, Bakery Nouveau, Columbia City Bakery, Tall Grass Bakery</td>
             <td data-label="Found"><span class="badge badge-failed">No</span></td>
             <td data-label="Position">N/A</td>
-            <td class="u-37deb5" data-label="Competitors">Macrina Bakery, Bakery Nouveau, Columbia City Bakery</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Macrina Bakery, Bakery Nouveau, Columbia City Bakery</td>
             <td data-label="Score">
-              <div class="u-4ca747">
-                <div class="progress-bar-bg u-d66797"u-d66797">
-                  <div class="progress-bar-fill u-eda19b"u-eda19b"></div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
                 </div>
                 <span>0%</span>
               </div>
             </td>
           </tr>
           <tr class="ai-result-row">
-            <td data-label="Platform"><span class="u-6a9043"><img class="u-2138fa" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2320808d%22%20d%3D%22M22.398%207.09h-2.31V.068l-7.51%206.354V.158h-1.156v6.196L4.49%200v7.09H1.602v10.397H4.49V24l6.933-6.36v6.201h1.155v-6.047l6.932%206.181v-6.488h2.888zm-3.466-4.531v4.53h-5.355zm-13.286.067l4.869%204.464h-4.87zM2.758%2016.332V8.245h7.847L4.49%2014.36v1.972zm2.888%205.04v-6.534l5.776-5.776v7.011zm12.708.025l-5.776-5.15V9.061l5.776%205.776zm2.889-5.065H19.51V14.36l-6.115-6.115h7.848z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt=""> Perplexity</span></td>
-            <td class="u-5c9975" data-label="Query">recommended bakery in Seattle</td>
-            <td class="u-37deb5" data-label="Recommended">Bakery Nouveau, Macrina Bakery, Essential Baking Company</td>
+            <td data-label="Platform"><span style="color:#1e88e5;font-weight:600;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2320808d%22%20d%3D%22M22.398%207.09h-2.31V.068l-7.51%206.354V.158h-1.156v6.196L4.49%200v7.09H1.602v10.397H4.49V24l6.933-6.36v6.201h1.155v-6.047l6.932%206.181v-6.488h2.888zm-3.466-4.531v4.53h-5.355zm-13.286.067l4.869%204.464h-4.87zM2.758%2016.332V8.245h7.847L4.49%2014.36v1.972zm2.888%205.04v-6.534l5.776-5.776v7.011zm12.708.025l-5.776-5.15V9.061l5.776%205.776zm2.889-5.065H19.51V14.36l-6.115-6.115h7.848z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt="" style="vertical-align:middle;"> Perplexity</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">recommended bakery in Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Bakery Nouveau, Macrina Bakery, Essential Baking Company</td>
             <td data-label="Found"><span class="badge badge-failed">No</span></td>
             <td data-label="Position">N/A</td>
-            <td class="u-37deb5" data-label="Competitors">Bakery Nouveau, Macrina Bakery</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Bakery Nouveau, Macrina Bakery</td>
             <td data-label="Score">
-              <div class="u-4ca747">
-                <div class="progress-bar-bg u-d66797"u-d66797">
-                  <div class="progress-bar-fill u-eda19b"u-eda19b"></div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
                 </div>
                 <span>0%</span>
               </div>
             </td>
           </tr>
           <tr class="ai-result-row">
-            <td data-label="Platform"><span class="u-5c4b1a"><img class="u-2138fa" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23cc785c%22%20d%3D%22M17.304%203.541h-3.672l6.696%2016.918H24Zm-10.608%200L0%2020.459h3.744l1.37-3.553h7.005l1.369%203.553h3.744L10.536%203.541Zm-.371%2010.223L8.616%207.82l2.291%205.945Z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt=""> Claude</span></td>
-            <td class="u-5c9975" data-label="Query">best artisan bread near Seattle</td>
-            <td class="u-37deb5" data-label="Recommended">Columbia City Bakery, Tall Grass Bakery, Bakery Nouveau</td>
+            <td data-label="Platform"><span style="color:#d97706;font-weight:600;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23cc785c%22%20d%3D%22M17.304%203.541h-3.672l6.696%2016.918H24Zm-10.608%200L0%2020.459h3.744l1.37-3.553h7.005l1.369%203.553h3.744L10.536%203.541Zm-.371%2010.223L8.616%207.82l2.291%205.945Z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt="" style="vertical-align:middle;"> Claude</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">best artisan bread near Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Columbia City Bakery, Tall Grass Bakery, Bakery Nouveau</td>
             <td data-label="Found"><span class="badge badge-failed">No</span></td>
             <td data-label="Position">N/A</td>
-            <td class="u-37deb5" data-label="Competitors">Columbia City Bakery, Tall Grass Bakery</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Columbia City Bakery, Tall Grass Bakery</td>
             <td data-label="Score">
-              <div class="u-4ca747">
-                <div class="progress-bar-bg u-d66797"u-d66797">
-                  <div class="progress-bar-fill u-eda19b"u-eda19b"></div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
                 </div>
                 <span>0%</span>
               </div>
             </td>
           </tr>
           <tr class="ai-result-row">
-            <td data-label="Platform"><span class="u-d29399"><img class="u-2138fa" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%234285f4%22%20d%3D%22M11.04%2019.32Q12%2021.51%2012%2024q0-2.49.93-4.68q.96-2.19%202.58-3.81t3.81-2.55Q21.51%2012%2024%2012q-2.49%200-4.68-.93a12.3%2012.3%200%200%201-3.81-2.58a12.3%2012.3%200%200%201-2.58-3.81Q12%202.49%2012%200q0%202.49-.96%204.68q-.93%202.19-2.55%203.81a12.3%2012.3%200%200%201-3.81%202.58Q2.49%2012%200%2012q2.49%200%204.68.96q2.19.93%203.81%202.55t2.55%203.81%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt=""> Gemini</span></td>
-            <td class="u-5c9975" data-label="Query">top rated bakery near Seattle</td>
-            <td class="u-37deb5" data-label="Recommended">Essential Baking Company, Macrina Bakery, Bakery Nouveau</td>
+            <td data-label="Platform"><span style="color:#818CF8;font-weight:600;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%234285f4%22%20d%3D%22M11.04%2019.32Q12%2021.51%2012%2024q0-2.49.93-4.68q.96-2.19%202.58-3.81t3.81-2.55Q21.51%2012%2024%2012q-2.49%200-4.68-.93a12.3%2012.3%200%200%201-3.81-2.58a12.3%2012.3%200%200%201-2.58-3.81Q12%202.49%2012%200q0%202.49-.96%204.68q-.93%202.19-2.55%203.81a12.3%2012.3%200%200%201-3.81%202.58Q2.49%2012%200%2012q2.49%200%204.68.96q2.19.93%203.81%202.55t2.55%203.81%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt="" style="vertical-align:middle;"> Gemini</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">top rated bakery near Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Essential Baking Company, Macrina Bakery, Bakery Nouveau</td>
             <td data-label="Found"><span class="badge badge-failed">No</span></td>
             <td data-label="Position">N/A</td>
-            <td class="u-37deb5" data-label="Competitors">Essential Baking Company, Macrina Bakery</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Essential Baking Company, Macrina Bakery</td>
             <td data-label="Score">
-              <div class="u-4ca747">
-                <div class="progress-bar-bg u-d66797"u-d66797">
-                  <div class="progress-bar-fill u-eda19b"u-eda19b"></div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
                 </div>
                 <span>0%</span>
               </div>
             </td>
           </tr>
-          <tr class="ai-result-row u-93b8ea"u-93b8ea">
-            <td data-label="Platform"><span class="u-62e9d0"><img class="u-2138fa" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2310a37f%22%20d%3D%22M22.282%209.821a6%206%200%200%200-.516-4.91a6.05%206.05%200%200%200-6.51-2.9A6.065%206.065%200%200%200%204.981%204.18a6%206%200%200%200-3.998%202.9a6.05%206.05%200%200%200%20.743%207.097a5.98%205.98%200%200%200%20.51%204.911a6.05%206.05%200%200%200%206.515%202.9A6%206%200%200%200%2013.26%2024a6.06%206.06%200%200%200%205.772-4.206a6%206%200%200%200%203.997-2.9a6.06%206.06%200%200%200-.747-7.073M13.26%2022.43a4.48%204.48%200%200%201-2.876-1.04l.141-.081l4.779-2.758a.8.8%200%200%200%20.392-.681v-6.737l2.02%201.168a.07.07%200%200%201%20.038.052v5.583a4.504%204.504%200%200%201-4.494%204.494M3.6%2018.304a4.47%204.47%200%200%201-.535-3.014l.142.085l4.783%202.759a.77.77%200%200%200%20.78%200l5.843-3.369v2.332a.08.08%200%200%201-.033.062L9.74%2019.95a4.5%204.5%200%200%201-6.14-1.646M2.34%207.896a4.5%204.5%200%200%201%202.366-1.973V11.6a.77.77%200%200%200%20.388.677l5.815%203.354l-2.02%201.168a.08.08%200%200%201-.071%200l-4.83-2.786A4.504%204.504%200%200%201%202.34%207.872zm16.597%203.855l-5.833-3.387L15.119%207.2a.08.08%200%200%201%20.071%200l4.83%202.791a4.494%204.494%200%200%201-.676%208.105v-5.678a.79.79%200%200%200-.407-.667m2.01-3.023l-.141-.085l-4.774-2.782a.78.78%200%200%200-.785%200L9.409%209.23V6.897a.07.07%200%200%201%20.028-.061l4.83-2.787a4.5%204.5%200%200%201%206.68%204.66zm-12.64%204.135l-2.02-1.164a.08.08%200%200%201-.038-.057V6.075a4.5%204.5%200%200%201%207.375-3.453l-.142.08L8.704%205.46a.8.8%200%200%200-.393.681zm1.097-2.365l2.602-1.5l2.607%201.5v2.999l-2.597%201.5l-2.607-1.5Z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt=""> ChatGPT</span></td>
-            <td class="u-5c9975" data-label="Query">best custom cakes in Seattle</td>
-            <td class="u-37deb5" data-label="Recommended">Trophy Cupcakes, Bakery Nouveau, Macrina Bakery</td>
+          <tr class="ai-result-row" style="display:none;">
+            <td data-label="Platform"><span style="color:#10a37f;font-weight:600;"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2310a37f%22%20d%3D%22M22.282%209.821a6%206%200%200%200-.516-4.91a6.05%206.05%200%200%200-6.51-2.9A6.065%206.065%200%200%200%204.981%204.18a6%206%200%200%200-3.998%202.9a6.05%206.05%200%200%200%20.743%207.097a5.98%205.98%200%200%200%20.51%204.911a6.05%206.05%200%200%200%206.515%202.9A6%206%200%200%200%2013.26%2024a6.06%206.06%200%200%200%205.772-4.206a6%206%200%200%200%203.997-2.9a6.06%206.06%200%200%200-.747-7.073M13.26%2022.43a4.48%204.48%200%200%201-2.876-1.04l.141-.081l4.779-2.758a.8.8%200%200%200%20.392-.681v-6.737l2.02%201.168a.07.07%200%200%201%20.038.052v5.583a4.504%204.504%200%200%201-4.494%204.494M3.6%2018.304a4.47%204.47%200%200%201-.535-3.014l.142.085l4.783%202.759a.77.77%200%200%200%20.78%200l5.843-3.369v2.332a.08.08%200%200%201-.033.062L9.74%2019.95a4.5%204.5%200%200%201-6.14-1.646M2.34%207.896a4.5%204.5%200%200%201%202.366-1.973V11.6a.77.77%200%200%200%20.388.677l5.815%203.354l-2.02%201.168a.08.08%200%200%201-.071%200l-4.83-2.786A4.504%204.504%200%200%201%202.34%207.872zm16.597%203.855l-5.833-3.387L15.119%207.2a.08.08%200%200%201%20.071%200l4.83%202.791a4.494%204.494%200%200%201-.676%208.105v-5.678a.79.79%200%200%200-.407-.667m2.01-3.023l-.141-.085l-4.774-2.782a.78.78%200%200%200-.785%200L9.409%209.23V6.897a.07.07%200%200%201%20.028-.061l4.83-2.787a4.5%204.5%200%200%201%206.68%204.66zm-12.64%204.135l-2.02-1.164a.08.08%200%200%201-.038-.057V6.075a4.5%204.5%200%200%201%207.375-3.453l-.142.08L8.704%205.46a.8.8%200%200%200-.393.681zm1.097-2.365l2.602-1.5l2.607%201.5v2.999l-2.597%201.5l-2.607-1.5Z%22%2F%3E%3C%2Fsvg%3E" width="18" height="18" alt="" style="vertical-align:middle;"> ChatGPT</span></td>
+            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">best custom cakes in Seattle</td>
+            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">Trophy Cupcakes, Bakery Nouveau, Macrina Bakery</td>
             <td data-label="Found"><span class="badge badge-failed">No</span></td>
             <td data-label="Position">N/A</td>
-            <td class="u-37deb5" data-label="Competitors">Trophy Cupcakes, Bakery Nouveau</td>
+            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">Trophy Cupcakes, Bakery Nouveau</td>
             <td data-label="Score">
-              <div class="u-4ca747">
-                <div class="progress-bar-bg u-d66797"u-d66797">
-                  <div class="progress-bar-fill u-eda19b"u-eda19b"></div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="progress-bar-bg" style="height:8px;width:60px;">
+                  <div class="progress-bar-fill" style="width:0%;background:var(--red);"></div>
                 </div>
                 <span>0%</span>
               </div>
@@ -652,7 +651,7 @@
         </tbody>
       </table>
     </div>
-    <div class="u-5afce9" id="ai-show-more-bar">
+    <div id="ai-show-more-bar" style="text-align:center;padding:12px 0;">
       <button type="button" class="btn btn-secondary text-sm" id="ai-toggle-btn">
         Show All 32 Results &#x25BC;
       </button>
@@ -662,6 +661,5 @@
 
 
 
-
-
+<script src="{{ url_for('static', filename='js/sample-report-full.js') }}"></script>
 {% endblock %}

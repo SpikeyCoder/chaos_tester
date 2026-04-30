@@ -39,6 +39,7 @@
 </script>
 {% endblock %}
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/features.css') }}">
 {% block content %}
 <div class="hero-section fade-up">
     <h1>Powerful <span class="gradient-text">Audit Features</span></h1>
@@ -60,7 +61,7 @@
     </div>
     <div class="feature-card fade-up fade-up-delay-1">
         <h2>Security Analysis</h2>
-        <p>Check that your site is safe for visitors. We look for missing SSL, exposed files, weak headers, and <span class="u-85b199" title="How your site stores small pieces of data in the visitor's browser">cookie security settings</span>.</p>
+        <p>Check that your site is safe for visitors. We look for missing SSL, exposed files, weak headers, and <span title="How your site stores small pieces of data in the visitor's browser" style="border-bottom:1px dotted var(--text-muted);cursor:help;">cookie security settings</span>.</p>
     </div>
     <div class="feature-card fade-up fade-up-delay-2">
         <h2>Error Handling</h2>
@@ -94,18 +95,18 @@
     <h2>What Small Business Owners Say</h2>
     <div class="feature-grid">
         <div class="feature-card">
-            <p class="u-21b669">"Website Auditor found 47 broken links on our bakery site that were killing our ChatGPT ranking. After fixing them, our traffic jumped 35% in just two weeks."</p>
-            <p class="u-a368c1">— Sarah Martinez, Owner</p>
+            <p style="font-style:italic; color:var(--text); margin-bottom:12px;">"Website Auditor found 47 broken links on our bakery site that were killing our ChatGPT ranking. After fixing them, our traffic jumped 35% in just two weeks."</p>
+            <p style="font-weight:600; color:var(--accent-hover); font-size:0.9rem;">— Sarah Martinez, Owner</p>
             <p class="text-muted text-sm">Artisan Bakery & Café</p>
         </div>
         <div class="feature-card">
-            <p class="u-21b669">"As a law firm, security is everything. Website Auditor caught missing security headers we didn't know about. We immediately fixed them before a client noticed."</p>
-            <p class="u-a368c1">— David Chen, IT Director</p>
+            <p style="font-style:italic; color:var(--text); margin-bottom:12px;">"As a law firm, security is everything. Website Auditor caught missing security headers we didn't know about. We immediately fixed them before a client noticed."</p>
+            <p style="font-weight:600; color:var(--accent-hover); font-size:0.9rem;">— David Chen, IT Director</p>
             <p class="text-muted text-sm">Chen & Associates Legal</p>
         </div>
         <div class="feature-card">
-            <p class="u-21b669">"We discovered critical form validation issues that were preventing customers from completing orders. Website Auditor helped us catch bugs before they cost us sales."</p>
-            <p class="u-a368c1">— Jessica Liu, E-Commerce Manager</p>
+            <p style="font-style:italic; color:var(--text); margin-bottom:12px;">"We discovered critical form validation issues that were preventing customers from completing orders. Website Auditor helped us catch bugs before they cost us sales."</p>
+            <p style="font-weight:600; color:var(--accent-hover); font-size:0.9rem;">— Jessica Liu, E-Commerce Manager</p>
             <p class="text-muted text-sm">Modern Home Goods Store</p>
         </div>
     </div>
@@ -113,7 +114,7 @@
 
 <div class="card mt-3 fade-up">
     <h2>Frequently Asked Questions</h2>
-    <div class="u-a81293">
+    <div style="margin-top: 16px;">
         <details class="faq-item">
             <summary>What does Website Auditor check?</summary>
             <p class="text-muted">Website Auditor checks page availability, broken links, forms and interactions, security headers, authentication flows, and overall site performance across your entire website.</p>
@@ -132,14 +133,13 @@
         </details>
         <details class="faq-item">
             <summary>How is this different from Semrush or Ahrefs?</summary>
-            <p class="text-muted">Unlike Semrush ($140/mo) or Ahrefs ($99/mo) <span class="u-bc5215">(as of early 2025)</span>, Website Auditor is completely free. It focuses specifically on comprehensive site auditing with error resilience testing capabilities that most SEO tools lack.</p>
+            <p class="text-muted">Unlike Semrush ($140/mo) or Ahrefs ($99/mo) <span style="color:var(--text-muted);font-size:0.85em;">(as of early 2025)</span>, Website Auditor is completely free. It focuses specifically on comprehensive site auditing with error resilience testing capabilities that most SEO tools lack.</p>
         </details>
     </div>
 </div>
 
-<div class="u-906489">
-    <a href="/" class="btn btn-primary u-2116d7"u-2116d7">Start Your Free Audit</a>
+<div style="text-align:center; margin-top:32px;">
+    <a href="/" class="btn btn-primary" style="font-size:1.05rem; padding: 12px 28px;">Start Your Free Audit</a>
 </div>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/features.css') }}">
 {% endblock %}

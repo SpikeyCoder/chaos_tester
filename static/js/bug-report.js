@@ -1,159 +1,152 @@
+/* ── Bug Report Module ──────────────────────────────────────── */
 var bugReport = (function() {
-  var overlay, form, desc, charCount, errorBanner, formView, successView;
-  var featureCheckbox, screenshotCheckbox;
+    var recentErrors = [];
 
-  function init() {
-    overlay = document.getElementById('bugOverlay');
-    form = document.getElementById('bugForm');
-    desc = document.getElementById('bugDesc');
-    charCount = document.getElementById('bugCharCount');
-    errorBanner = document.getElementById('bugError');
-    formView = document.getElementById('bugFormView');
-    featureCheckbox = document.getElementById('bugIsFeature');
-    screenshotCheckbox = document.getElementById('bugScreenshot');
-
-    if (!overlay) return;
-
-    // Bind open button
-    var openBtn = document.querySelector('.bug-btn');
-    if (openBtn) openBtn.addEventListener('click', open);
-
-    // Bind overlay backdrop click
-    overlay.addEventListener('click', function(e) {
-      if (e.target === overlay) close();
+    /* Capture console errors */
+    var origError = console.error;
+    console.error = function() {
+        origError.apply(console, arguments);
+        var msg = Array.prototype.slice.call(arguments).map(function(a) {
+            return typeof a === 'string' ? a : JSON.stringify(a);
+        }).join(' ');
+        recentErrors.push({ message: msg.slice(0, 500), ts: Date.now() });
+        if (recentErrors.length > 5) recentErrors.shift();
+    };
+    window.addEventListener('error', function(e) {
+        recentErrors.push({ message: (e.message || '') + ' at ' + (e.filename || '') + ':' + (e.lineno || ''), ts: Date.now() });
+        if (recentErrors.length > 5) recentErrors.shift();
     });
 
-    // Bind close button
-    var closeBtn = overlay.querySelector('.bug-modal-close');
-    if (closeBtn) closeBtn.addEventListener('click', close);
-
-    // Bind form submit
-    if (form) form.addEventListener('submit', submit);
-
-    // Bind feature toggle
-    if (featureCheckbox) featureCheckbox.addEventListener('change', toggleType);
-
-    // Bind char counter
-    if (desc) {
-      desc.addEventListener('input', function() {
-        if (charCount) charCount.textContent = desc.value.length;
-      });
+    function getTechContext() {
+        var touch = navigator.maxTouchPoints > 0;
+        return {
+            url: window.location.href,
+            pageName: document.title,
+            deviceType: touch ? 'Touch / Mobile' : 'Desktop',
+            userAgent: navigator.userAgent,
+            platform: navigator.platform || 'Unknown',
+            viewportSize: window.innerWidth + '\u00d7' + window.innerHeight,
+            screenSize: screen.width + '\u00d7' + screen.height,
+            timestamp: new Date().toISOString(),
+            recentErrors: recentErrors.map(function(e) {
+                return '[' + new Date(e.ts).toISOString() + '] ' + e.message;
+            })
+        };
     }
-  }
 
-  // Capture console errors
-  var recentErrors = [];
-  var origError = console.error;
-  console.error = function() {
-    recentErrors.push(Array.from(arguments).join(' '));
-    if (recentErrors.length > 5) recentErrors.shift();
-    origError.apply(console, arguments);
-  };
-
-  function open() {
-    if (overlay) overlay.classList.add('open');
-  }
-
-  function close() {
-    if (overlay) overlay.classList.remove('open');
-    // Reset form
-    if (form) form.reset();
-    if (charCount) charCount.textContent = '0';
-    if (errorBanner) errorBanner.style.display = 'none';
-  }
-
-  function toggleType() {
-    var icon = document.getElementById('bugIcon');
-    var title = document.getElementById('bugTitle');
-    if (featureCheckbox && featureCheckbox.checked) {
-      if (icon) icon.textContent = 'Feature';
-      if (title) title.textContent = 'Request a Feature';
-      if (desc) desc.placeholder = 'Describe the feature you would like...';
-    } else {
-      if (icon) icon.textContent = 'Bug';
-      if (title) title.textContent = 'Report a Bug';
-      if (desc) desc.placeholder = 'Describe the bug or issue you experienced...';
-    }
-  }
-
-  function submit(e) {
-    e.preventDefault();
-    if (!desc || !desc.value.trim()) return;
-
-    var submitBtn = form.querySelector('.submit-btn');
-    if (submitBtn) submitBtn.disabled = true;
-
-    var techCtx = {
-      url: window.location.href,
-      pageName: document.title,
-      deviceType: window.innerWidth < 768 ? 'mobile' : 'desktop',
-      userAgent: navigator.userAgent,
-      platform: navigator.platform || '',
-      viewportSize: window.innerWidth + 'x' + window.innerHeight,
-      screenSize: screen.width + 'x' + screen.height,
-      timestamp: new Date().toISOString(),
-      recentErrors: recentErrors.slice(-5)
-    };
-
-    var payload = {
-      description: desc.value.trim(),
-      isFeatureRequest: featureCheckbox ? featureCheckbox.checked : false,
-      technicalContext: techCtx,
-      screenshotData: null
-    };
-
-    function send(data) {
-      fetch('/api/bug-report', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify(data)
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(resp) {
-        if (resp.ok) {
-          if (formView) formView.innerHTML = '<div class="status-msg success">Thanks! Your report has been submitted.</div>';
-          setTimeout(close, 2000);
-        } else {
-          showError(resp.error || 'Submission failed');
+    async function captureScreenshot() {
+        try {
+            if (typeof html2canvas === 'undefined') {
+                /* dynamically load html2canvas */
+                await new Promise(function(resolve, reject) {
+                    var s = document.createElement('script');
+                    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                    s.onload = resolve;
+                    s.onerror = reject;
+                    document.head.appendChild(s);
+                });
+            }
+            /* Hide bug overlay + button so screenshot captures the page behind */
+            var overlay = document.getElementById('bugOverlay');
+            var bugBtn = document.querySelector('.bug-btn');
+            overlay.style.display = 'none';
+            if (bugBtn) bugBtn.style.display = 'none';
+            /* Small delay to let the browser repaint */
+            await new Promise(function(r) { setTimeout(r, 50); });
+            var canvas = await html2canvas(document.body, { useCORS: true, scale: 1, logging: false, backgroundColor: '#0f172a' });
+            /* Restore bug overlay + button */
+            overlay.style.display = '';
+            if (bugBtn) bugBtn.style.display = '';
+            return canvas.toDataURL('image/png', 0.85);
+        } catch (e) {
+            console.warn('Screenshot capture failed:', e);
+            /* Restore in case of error */
+            var ov = document.getElementById('bugOverlay');
+            var bb = document.querySelector('.bug-btn');
+            if (ov) ov.style.display = '';
+            if (bb) bb.style.display = '';
+            return null;
         }
-      })
-      .catch(function(err) {
-        showError('Network error: ' + err.message);
-      })
-      .finally(function() {
-        if (submitBtn) submitBtn.disabled = false;
-      });
     }
 
-    // Capture screenshot if requested
-    if (screenshotCheckbox && screenshotCheckbox.checked && typeof html2canvas !== 'undefined') {
-      overlay.style.display = 'none';
-      html2canvas(document.body, { scale: 0.5, logging: false }).then(function(canvas) {
-        payload.screenshotData = canvas.toDataURL('image/png', 0.6);
-        overlay.style.display = '';
-        overlay.classList.add('open');
-        send(payload);
-      }).catch(function() {
-        overlay.style.display = '';
-        overlay.classList.add('open');
-        send(payload);
-      });
-    } else {
-      send(payload);
-    }
-  }
+    return {
+        open: function() {
+            document.getElementById('bugOverlay').classList.add('open');
+            document.getElementById('bugFormView').style.display = '';
+            document.getElementById('bugSuccessView').style.display = 'none';
+            document.getElementById('bugError').style.display = 'none';
+            document.getElementById('bugSubmitBtn').disabled = false;
+        },
+        close: function() {
+            document.getElementById('bugOverlay').classList.remove('open');
+            setTimeout(function() {
+                document.getElementById('bugDesc').value = '';
+                document.getElementById('bugCharCount').textContent = '0';
+                document.getElementById('bugIsFeature').checked = false;
+                document.getElementById('bugScreenshot').checked = true;
+                bugReport.toggleType();
+            }, 200);
+        },
+        toggleType: function() {
+            var isFeature = document.getElementById('bugIsFeature').checked;
+            document.getElementById('bugIcon').textContent = isFeature ? 'Idea' : 'Bug';
+            document.getElementById('bugTitle').textContent = isFeature ? 'Feature Request' : 'Report a Bug';
+            document.getElementById('bugDesc').placeholder = isFeature
+                ? "Describe the feature you'd like to see..."
+                : 'Describe the bug or issue you experienced...';
+        },
+        submit: async function(e) {
+            e.preventDefault();
+            var desc = document.getElementById('bugDesc').value.trim();
+            if (!desc) return;
 
-  function showError(msg) {
-    if (errorBanner) {
-      errorBanner.textContent = msg;
-      errorBanner.style.display = 'block';
-    }
-  }
+            var btn = document.getElementById('bugSubmitBtn');
+            var errDiv = document.getElementById('bugError');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="bug-spinner"></span> ' +
+                (document.getElementById('bugScreenshot').checked ? 'Capturing & submitting...' : 'Submitting...');
+            errDiv.style.display = 'none';
 
-  document.addEventListener('DOMContentLoaded', init);
+            try {
+                var screenshotData = null;
+                if (document.getElementById('bugScreenshot').checked) {
+                    screenshotData = await captureScreenshot();
+                }
 
-  return { open: open, close: close, submit: submit, toggleType: toggleType };
+                var resp = await fetch('/api/bug-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({
+                        description: desc,
+                        isFeatureRequest: document.getElementById('bugIsFeature').checked,
+                        screenshotData: screenshotData,
+                        technicalContext: getTechContext()
+                    })
+                });
+
+                if (!resp.ok) {
+                    var body = await resp.json().catch(function() { return {}; });
+                    throw new Error(body.error || 'Server error (' + resp.status + ')');
+                }
+
+                document.getElementById('bugFormView').style.display = 'none';
+                document.getElementById('bugSuccessView').style.display = '';
+                var msg = document.createElement('div');
+                msg.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--success);color:var(--bg);padding:14px 20px;border-radius:8px;font-size:0.9rem;z-index:1000;animation:slideUp .3s ease-out;';
+                msg.textContent = 'Report submitted successfully!';
+                document.body.appendChild(msg);
+                setTimeout(function() { bugReport.close(); }, 2000);
+            } catch (err) {
+                errDiv.textContent = err.message || 'Failed to submit. Please try again.';
+                errDiv.style.display = '';
+                btn.disabled = false;
+                btn.innerHTML = 'Submit Report';
+            }
+        }
+    };
 })();
+
+/* Character counter */
+document.getElementById('bugDesc').addEventListener('input', function() {
+    document.getElementById('bugCharCount').textContent = this.value.length;
+});

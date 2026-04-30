@@ -1,72 +1,27 @@
-/* SAMPLE-REPORT.CSS - Extracted inline styles from sample_report.html */
-
-/* Active Filter and Module Buttons */
 .filter-btn.active, .module-btn.active {
-    border-color: var(--accent) !important;
-    color: #6BA0FF;
+  border-color: var(--accent) !important;
+  color: #6BA0FF;
 }
-
-/* Performance Dashboard */
-.perf-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-}
-
+.perf-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
 .perf-tab {
-    padding: 8px 20px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text);
-    cursor: pointer;
-    font-size: 14px;
-    transition: all .2s;
+  padding: 8px 20px; border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--text);
+  cursor: pointer; font-size: 14px; transition: all .2s;
 }
-
-.perf-tab.active {
-    background: #1d4ed8;
-    color: #fff;
-    border-color: #1d4ed8;
-}
-
-.perf-tab:hover:not(.active) {
-    background: rgba(99,102,241,.15);
-}
-
+.perf-tab.active { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+.perf-tab:hover:not(.active) { background: rgba(99,102,241,.15); }
 .perf-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
-
-@media (max-width: 900px) {
-    .perf-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 600px) {
-    .perf-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
+@media (max-width: 900px) { .perf-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .perf-grid { grid-template-columns: 1fr; } }
 .gauge-card {
-    text-align: center;
-    padding: 16px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: rgba(255,255,255,.03);
+  text-align: center; padding: 16px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: rgba(255,255,255,.03);
 }
-
-.gauge-container {
-    display: flex;
-    justify-content: center;
-}
-
-.gauge-label {
-    color: var(--text-muted);
-    font-size: 12px;
-    margin-top: 4px;
-}
+.gauge-container { display: flex; justify-content: center; }
+.gauge-label { color: var(--text-muted); font-size: 12px; margin-top: 4px; }

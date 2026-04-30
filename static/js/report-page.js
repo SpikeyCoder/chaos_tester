@@ -1,7 +1,3 @@
-var reportData = JSON.parse(document.getElementById("report-data").textContent);
-
-// ── Report page scripts (extracted for CSP) ──
-
 // Scroll to a specific result row and auto-expand its detail panel
   function openResultById(idx) {
     setTimeout(function() {
@@ -80,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var r = 44, stroke = 7, circ = 2 * Math.PI * r;
     var offset = circ - (score / 100) * circ;
     var html = '<div class="section-gauge-item">' +
-      '<div class="gauge-ring u-33975c"u-33975c">' +
+      '<div class="gauge-ring" style="position:relative;width:110px;height:110px;">' +
         '<svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true" focusable="false">' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
@@ -88,8 +84,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
             'style="transition:stroke-dashoffset 1s ease;"/>' +
         '</svg>' +
-        '<div class="u-0a898d">' +
-          '<span class="u-1f3ad7">' + score + '</span>' +
+        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
+          '<span style="font-size:1.6rem;font-weight:700;color:' + color + ';">' + score + '</span>' +
         '</div>' +
       '</div>' +
       '<div class="gauge-label-text">' + sec.label + '</div>' +
@@ -543,10 +539,10 @@ function toggleDetailedResults() {
   var html = '';
   for (var j = 0; j < Math.min(recs.length, 3); j++) {
     var r = recs[j];
-    html += '<div class="u-3922d6">';
-    html += '<span class="u-b86d40">' + r.icon + '</span>';
-    html += '<div><div class="u-e6f0a0">' + r.title + '</div>';
-    html += '<div class="u-912e7c">' + r.text + '</div></div></div>';
+    html += '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;padding:12px;background:var(--surface);border-radius:8px;">';
+    html += '<span style="font-size:1.3rem;flex-shrink:0;">' + r.icon + '</span>';
+    html += '<div><div style="font-weight:600;font-size:0.9rem;">' + r.title + '</div>';
+    html += '<div style="color:var(--text-muted);font-size:0.82rem;margin-top:2px;">' + r.text + '</div></div></div>';
   }
   container.innerHTML = html;
 })();
@@ -611,20 +607,20 @@ function runCustomAIQuery() {
     }
 
     // Build results cards
-    var html = '<div class="u-86a9f6">';
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:12px;">';
     data.results.forEach(function(r) {
       var color = r.client_appears ? 'var(--green)' : 'var(--red)';
-      html += '<div class="u-d4ac60">';
-      html += '<div class="u-21e3fb">';
+      html += '<div style="background:var(--surface);border-radius:10px;padding:16px;border-left:4px solid ' + r.platform_color + ';">';
+      html += '<div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">';
       html += '<img src="' + r.platform_logo_url + '" width="18" height="18" alt="' + r.platform + '"> ' + r.platform + '</div>';
-      html += '<div class="u-32f230">';
+      html += '<div style="font-size:0.85rem;margin-bottom:6px;">';
       if (r.client_appears) {
         html += '<span class="badge badge-passed">Found at #' + r.position + '</span>';
       } else {
         html += '<span class="badge badge-failed">Not found</span>';
       }
       html += '</div>';
-      html += '<div class="u-e91b5f"><strong>Recommended:</strong> ' + r.recommended + '</div>';
+      html += '<div style="color:var(--text-muted);font-size:0.8rem;"><strong>Recommended:</strong> ' + r.recommended + '</div>';
       html += '</div>';
     });
     html += '</div>';
@@ -741,10 +737,10 @@ function initializeFindingGuidance() {
       wrapper.className = 'finding-guidance-wrapper';
       wrapper.id = 'guidance-' + idx;
 
-      var html = '<button type="button" class="guidance-toggle">';
+      var html = '<button type="button" class="guidance-toggle" onclick="toggleGuidance(\'guidance-' + idx + '\')">';
       html += '<span class="guidance-icon">ℹ️</span> What this means';
       html += '</button>';
-      html += '<div class="guidance-content u-93b8ea"u-93b8ea">';
+      html += '<div class="guidance-content" style="display:none;">';
       html += '<div class="guidance-section">';
       html += '<span class="guidance-label">What This Means</span>';
       html += '<div class="guidance-text">' + guidance.meaning + '</div>';
@@ -843,3 +839,393 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 })();
+
+var reportData = JSON.parse(document.getElementById("reportData-data").textContent);
+
+function downloadJSON() {
+  var b = new Blob([JSON.stringify(reportData, null, 2)], {type: 'application/json'});
+  var u = URL.createObjectURL(b);
+  var a = document.createElement('a');
+  a.href = u; a.download = 'audit_' + reportData.run_id + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(u);
+}
+
+function downloadCSV() {
+  var r = reportData.results || [];
+  if (!r.length) { alert('No results'); return; }
+  var h = ['module','check','status','detail'];
+  var c = h.join(',') + '\n';
+  r.forEach(function(x) {
+    var row = h.map(function(k) {
+      return '"' + ((x[k] || '') + '').replace(/"/g, '""') + '"';
+    });
+    c += row.join(',') + '\n';
+  });
+  var b = new Blob([c], {type: 'text/csv'});
+  var u = URL.createObjectURL(b);
+  var a = document.createElement('a');
+  a.href = u; a.download = 'audit_' + reportData.run_id + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(u);
+}
+
+async function downloadPDF() {
+  var btn = document.querySelector('.pill-btn.pill-pdf');
+  var origText = btn ? btn.innerHTML : '';
+  if (btn) { btn.innerHTML = '⏳ Generating PDF…'; btn.disabled = true; }
+
+  try {
+    /* Dynamically load jsPDF + autoTable if not present */
+    if (typeof window.jspdf === 'undefined') {
+      await new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    if (typeof window.jspdf.jsPDF.API.autoTable === 'undefined') {
+      await new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    var pageW = doc.internal.pageSize.getWidth();
+    var margin = 16;
+    var usable = pageW - margin * 2;
+    var y = 16;
+
+    /* ── Color palette ─────────────────────────────── */
+    var colors = {
+      brand:    [59, 130, 246],
+      darkBg:   [15, 23, 42],
+      cardBg:   [30, 41, 59],
+      white:    [255, 255, 255],
+      muted:    [148, 163, 184],
+      green:    [74, 222, 128],
+      red:      [239, 68, 68],
+      yellow:   [234, 179, 8],
+      orange:   [249, 115, 22],
+      border:   [51, 65, 85]
+    };
+
+    /* ── Helper: draw rounded rect ────────────────── */
+    function roundRect(x, y, w, h, r, fill, stroke) {
+      doc.setFillColor.apply(doc, fill || colors.cardBg);
+      if (stroke) doc.setDrawColor.apply(doc, stroke);
+      doc.roundedRect(x, y, w, h, r, r, stroke ? 'FD' : 'F');
+    }
+
+    /* ── Page background ──────────────────────────── */
+    function drawPageBg() {
+      doc.setFillColor.apply(doc, colors.darkBg);
+      doc.rect(0, 0, pageW, doc.internal.pageSize.getHeight(), 'F');
+    }
+    drawPageBg();
+
+    /* ── Header bar ───────────────────────────────── */
+    roundRect(margin, y, usable, 20, 3, colors.cardBg);
+    doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+    doc.setTextColor.apply(doc, colors.white);
+    doc.text('Audit Report', margin + 6, y + 9);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.setTextColor.apply(doc, colors.muted);
+    var domain = (reportData.base_url || '').replace(/^https?:\/\//, '');
+    doc.text(domain + '  •  ' + (reportData.started_at || '').slice(0, 19) + '  •  ' + reportData.duration_s + 's', margin + 6, y + 15);
+    y += 26;
+
+    /* ── Executive Summary card ───────────────────── */
+    var s = reportData.summary || {};
+    var totalIssues = (s.failed || 0) + (s.errors || 0) + (s.warnings || 0);
+    var critIssues = (s.failed || 0) + (s.errors || 0);
+    var score = Math.round(s.pass_rate || 0);
+    var scoreColor = score >= 90 ? colors.green : (score >= 70 ? colors.orange : colors.red);
+
+    roundRect(margin, y, usable, 48, 3, colors.cardBg);
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+    doc.setTextColor.apply(doc, colors.white);
+    doc.text('Executive Summary', margin + 6, y + 10);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.setTextColor.apply(doc, colors.muted);
+    doc.text('Overall website health and critical findings', margin + 6, y + 16);
+
+    /* Score */
+    doc.setFontSize(32); doc.setFont('helvetica', 'bold');
+    doc.setTextColor.apply(doc, scoreColor);
+    doc.text(score.toString(), pageW - margin - 6, y + 14, { align: 'right' });
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.setTextColor.apply(doc, colors.muted);
+    doc.text('Overall Score', pageW - margin - 6, y + 19, { align: 'right' });
+
+    /* Metric boxes inside the card */
+    var metricsY = y + 24;
+    var mw = (usable - 24) / 4;
+    var metrics = [
+      { label: 'Total Issues', value: totalIssues.toString(), color: colors.yellow },
+      { label: 'Critical Issues', value: critIssues.toString(), color: colors.red },
+      { label: 'Checks Passed', value: (s.passed || 0).toString(), color: colors.green },
+      { label: 'Scan Duration', value: reportData.duration_s + 's', color: colors.brand }
+    ];
+    metrics.forEach(function(m, i) {
+      var mx = margin + 6 + i * (mw + 4);
+      roundRect(mx, metricsY, mw, 18, 2, colors.darkBg);
+      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+      doc.setTextColor.apply(doc, m.color);
+      doc.text(m.value, mx + 4, metricsY + 8);
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+      doc.setTextColor.apply(doc, colors.muted);
+      doc.text(m.label, mx + 4, metricsY + 14);
+    });
+    y += 54;
+
+    /* ── Alert banner (if critical issues) ────────── */
+    if (critIssues > 0) {
+      roundRect(margin, y, usable, 12, 2, [50, 20, 20], colors.red);
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+      doc.setTextColor.apply(doc, colors.red);
+      doc.text('⚠  ' + critIssues + ' Critical Issue' + (critIssues !== 1 ? 's' : '') + ' Require Immediate Attention', margin + 6, y + 7.5);
+      y += 16;
+    }
+
+    /* ── Snapshot Summary (ring gauges in PDF) ──────── */
+    var pdfResults = reportData.results || [];
+    var pdfModules = {};
+    pdfResults.forEach(function(r) {
+      var m = r.module || 'other';
+      if (!pdfModules[m]) pdfModules[m] = { total: 0, passed: 0 };
+      pdfModules[m].total++;
+      if (r.status === 'passed') pdfModules[m].passed++;
+    });
+    function pdfRate(m) { return pdfModules[m] ? Math.round((pdfModules[m].passed / pdfModules[m].total) * 100) : null; }
+    function pdfCombine() {
+      var t = 0, p = 0;
+      for (var i = 0; i < arguments.length; i++) { var m = pdfModules[arguments[i]]; if (m) { t += m.total; p += m.passed; } }
+      return t > 0 ? Math.round((p / t) * 100) : null;
+    }
+    var pdfPerf = reportData.performance_metrics || {};
+    var pdfPerfScore = null;
+    if (pdfPerf.mobile && pdfPerf.mobile.score != null) pdfPerfScore = Math.round(pdfPerf.mobile.score * 100);
+    else if (pdfPerf.desktop && pdfPerf.desktop.score != null) pdfPerfScore = Math.round(pdfPerf.desktop.score * 100);
+
+    var pdfSections = [];
+    if (pdfPerfScore !== null) pdfSections.push({ label: 'Performance', score: pdfPerfScore });
+    var pdfSec = pdfCombine('security', 'auth');
+    if (pdfSec !== null) pdfSections.push({ label: 'Security', score: pdfSec });
+    var pdfAvail = pdfRate('availability');
+    if (pdfAvail !== null) pdfSections.push({ label: 'Availability', score: pdfAvail });
+    var pdfLf = pdfCombine('links', 'forms');
+    if (pdfLf !== null) pdfSections.push({ label: 'Links & Forms', score: pdfLf });
+    var pdfCh = pdfRate('chaos');
+    if (pdfCh !== null) pdfSections.push({ label: 'Resilience', score: pdfCh });
+
+    if (pdfSections.length > 0) {
+      var gaugeCardH = 34;
+      roundRect(margin, y, usable, gaugeCardH, 3, colors.cardBg);
+      doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+      doc.setTextColor.apply(doc, colors.white);
+      doc.text('Snapshot Summary', margin + 6, y + 8);
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+      doc.setTextColor.apply(doc, colors.muted);
+      doc.text('Core Web Vitals and performance metrics', margin + 6, y + 13);
+
+      var gCount = pdfSections.length;
+      var gSpacing = usable / (gCount + 1);
+      pdfSections.forEach(function(sec, i) {
+        var gx = margin + gSpacing * (i + 1);
+        var gy = y + 22;
+        var gr = 6; // radius in mm
+        var gScore = sec.score;
+        var gColor = gScore >= 90 ? colors.green : (gScore >= 70 ? colors.orange : colors.red);
+        var gBgColor = colors.border;
+
+        /* Background circle */
+        doc.setDrawColor.apply(doc, gBgColor);
+        doc.setLineWidth(1.8);
+        doc.circle(gx, gy, gr, 'S');
+
+        /* Score arc — approximate with a thick colored arc */
+        doc.setDrawColor.apply(doc, gColor);
+        doc.setLineWidth(1.8);
+        var startAngle = -90 * (Math.PI / 180);
+        var endAngle = startAngle + (gScore / 100) * 2 * Math.PI;
+        /* Draw arc as small line segments */
+        var steps = Math.max(Math.round(gScore / 2), 1);
+        for (var st = 0; st < steps; st++) {
+          var a1 = startAngle + (st / steps) * (endAngle - startAngle);
+          var a2 = startAngle + ((st + 1) / steps) * (endAngle - startAngle);
+          var x1 = gx + gr * Math.cos(a1), y1 = gy + gr * Math.sin(a1);
+          var x2 = gx + gr * Math.cos(a2), y2 = gy + gr * Math.sin(a2);
+          doc.line(x1, y1, x2, y2);
+        }
+
+        /* Score text */
+        doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+        doc.setTextColor.apply(doc, gColor);
+        doc.text(gScore.toString(), gx, gy + 3, { align: 'center' });
+
+        /* Label */
+        doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+        doc.setTextColor.apply(doc, colors.muted);
+        doc.text(sec.label, gx, gy + gr + 6, { align: 'center' });
+      });
+      y += gaugeCardH + 6;
+    }
+
+    /* ── Results Table ────────────────────────────── */
+    var results = reportData.results || [];
+    if (results.length > 0) {
+      doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+      doc.setTextColor.apply(doc, colors.white);
+      doc.text('Detailed Results (' + results.length + ' tests)', margin, y + 6);
+      y += 12;
+
+      /* Sort: failed/error first, then warning, then passed */
+      var order = { failed: 0, error: 1, warning: 2, passed: 3, skipped: 4 };
+      var sorted = results.slice().sort(function(a, b) {
+        return (order[a.status] || 9) - (order[b.status] || 9);
+      });
+
+      var statusColors = {
+        passed:  colors.green,
+        failed:  colors.red,
+        error:   colors.red,
+        warning: colors.yellow,
+        skipped: colors.muted
+      };
+
+      var tableBody = sorted.map(function(r) {
+        return [
+          (r.status || '').toUpperCase(),
+          r.severity || '',
+          r.module || '',
+          r.name || '',
+          (r.details || r.description || '').substring(0, 120) + ((r.details || r.description || '').length > 120 ? '…' : ''),
+          r.recommendation ? r.recommendation.substring(0, 100) + (r.recommendation.length > 100 ? '…' : '') : '—'
+        ];
+      });
+
+      doc.autoTable({
+        startY: y,
+        margin: { left: margin, right: margin },
+        head: [['Status', 'Severity', 'Module', 'Check', 'Details', 'Recommendation']],
+        body: tableBody,
+        theme: 'plain',
+        styles: {
+          fontSize: 7,
+          cellPadding: 2.5,
+          textColor: [203, 213, 225],
+          lineColor: colors.border,
+          lineWidth: 0.2,
+          overflow: 'linebreak',
+          font: 'helvetica'
+        },
+        headStyles: {
+          fillColor: colors.cardBg,
+          textColor: colors.white,
+          fontStyle: 'bold',
+          fontSize: 7.5,
+          halign: 'left'
+        },
+        alternateRowStyles: {
+          fillColor: [20, 30, 48]
+        },
+        bodyStyles: {
+          fillColor: colors.darkBg
+        },
+        columnStyles: {
+          0: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+          1: { cellWidth: 14, halign: 'center' },
+          2: { cellWidth: 18 },
+          3: { cellWidth: 30 },
+          4: { cellWidth: 50 },
+          5: { cellWidth: usable - 14 - 14 - 18 - 30 - 50 }
+        },
+        didParseCell: function(data) {
+          if (data.section === 'body' && data.column.index === 0) {
+            var st = (data.cell.raw || '').toLowerCase();
+            var c = statusColors[st] || colors.muted;
+            data.cell.styles.textColor = c;
+          }
+          if (data.section === 'body' && data.column.index === 1) {
+            var sev = (data.cell.raw || '').toLowerCase();
+            if (sev === 'critical') data.cell.styles.textColor = colors.red;
+            else if (sev === 'high') data.cell.styles.textColor = colors.orange;
+            else if (sev === 'medium') data.cell.styles.textColor = colors.yellow;
+          }
+        },
+        didDrawPage: function() {
+          /* Dark background on every new page */
+          drawPageBg();
+        },
+        willDrawPage: function() {
+          drawPageBg();
+        }
+      });
+
+      y = doc.lastAutoTable.finalY + 8;
+    }
+
+    /* ── Footer on last page ──────────────────────── */
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+    doc.setTextColor.apply(doc, colors.muted);
+    var footY = doc.internal.pageSize.getHeight() - 8;
+    doc.text('Generated by Website Auditor  •  ' + window.location.href, margin, footY);
+    doc.text('Page ' + doc.internal.getNumberOfPages() + ' of ' + doc.internal.getNumberOfPages(), pageW - margin, footY, { align: 'right' });
+
+    /* ── Add page numbers to all pages ────────────── */
+    var totalPages = doc.internal.getNumberOfPages();
+    for (var i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+      doc.setTextColor.apply(doc, colors.muted);
+      doc.text('Page ' + i + ' of ' + totalPages, pageW - margin, footY, { align: 'right' });
+      if (i < totalPages) {
+        doc.text('Generated by Website Auditor', margin, footY);
+      }
+    }
+
+    doc.save('audit_' + reportData.run_id + '.pdf');
+  } catch (e) {
+    console.error('PDF generation failed:', e);
+    alert('PDF generation failed. Please try again.');
+  } finally {
+    if (btn) { btn.innerHTML = origText; btn.disabled = false; }
+  }
+}
+
+function copyShareLink() {
+  var url = window.location.href;
+  var btn = document.getElementById('share-link-btn');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function() {
+      btn.textContent = '✓ Copied!';
+      setTimeout(function() { btn.textContent = 'Copy Link'; }, 2000);
+    }).catch(function() {
+      fallbackCopy(url, btn);
+    });
+  } else {
+    fallbackCopy(url, btn);
+  }
+}
+
+function fallbackCopy(text, btn) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;left:-9999px;';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    btn.textContent = '✓ Copied!';
+    setTimeout(function() { btn.textContent = 'Copy Link'; }, 2000);
+  } catch(e) {
+    prompt('Copy this link:', text);
+  }
+  document.body.removeChild(ta);
+}

@@ -1,4 +1,3 @@
-/* ── Timezone-aware timestamp formatting (site-wide) ──────── */
 var WATime = (function() {
   /* Detect if user is in the US via timezone name or locale */
   var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';

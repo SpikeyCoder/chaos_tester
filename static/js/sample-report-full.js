@@ -1,5 +1,3 @@
-// ── Sample report page scripts ──
-
 document.addEventListener('DOMContentLoaded', function() {
   var sections = [
     { label: 'Performance', score: 96 },
@@ -16,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var r = 44, stroke = 7, circ = 2 * Math.PI * r;
     var offset = circ - (score / 100) * circ;
     var html = '<div class="section-gauge-item">' +
-      '<div class="gauge-ring u-33975c"u-33975c">' +
+      '<div class="gauge-ring" style="position:relative;width:110px;height:110px;">' +
         '<svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true" focusable="false">' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
@@ -24,8 +22,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
             'style="transition:stroke-dashoffset 1s ease;"/>' +
         '</svg>' +
-        '<div class="u-0a898d">' +
-          '<span class="u-1f3ad7">' + score + '</span>' +
+        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
+          '<span style="font-size:1.6rem;font-weight:700;color:' + color + ';">' + score + '</span>' +
         '</div>' +
       '</div>' +
       '<div class="gauge-label-text">' + sec.label + '</div>' +

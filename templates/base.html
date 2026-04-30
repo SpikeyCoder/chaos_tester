@@ -57,39 +57,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/utilities.css') }}">
 
 {% block extra_head %}{% endblock %}
 <!-- Google Maps JavaScript API with Places library
      NOTE: Replace YOUR_GOOGLE_PLACES_API_KEY with a valid key,
      or set the GOOGLE_PLACES_API_KEY environment variable.
      Enable "Places API" and "Maps JavaScript API" in Google Cloud Console. -->
-<script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
+
 </head>
 <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="container inner">
-            <div class="site-title"><a class="u-c1ce87" href="/"><img src="/static/logo.svg" alt="" class="site-logo" aria-hidden="true" fetchpriority="high"> Website Auditor</a></div>
-            <button type="button" class="hamburger" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" >
+            <div class="site-title"><a href="/" style="color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;"><img src="/static/logo.svg" alt="" class="site-logo" aria-hidden="true" fetchpriority="high"> Website Auditor</a></div>
+            <button type="button" class="hamburger" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" id="navToggle">
                 <span></span><span></span><span></span>
             </button>
             <nav id="mainNav" aria-label="Main navigation">
-                <a href="/#how-it-works" data-scroll-target="how-it-works">How It Works</a>
+                <a href="/#how-it-works">How It Works</a>
                 <a href="/features">Features</a>
                 <a href="/sample-report">Sample Report</a>
-                <a href="/#faq" data-scroll-target="faq">FAQ</a>
+                <a href="/#faq">FAQ</a>
                 <a href="/api">API</a>
                 <a href="/contact">Contact</a>
                 <a href="/#audit" class="nav-cta">Run Free Audit</a>
             </nav>
         </div>
     </header>
-    <main id="main-content" class="container u-efae94"u-efae94">
+    <main id="main-content" class="container" style="padding-top: 80px; padding-bottom: 48px;">
         {%- with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
-        <div class="u-0d3df1">
+        <div style="background:{% if category == 'warning' %}#7f1d1d{% else %}#1a3a2a{% endif %};padding:12px 16px;border-radius:8px;margin-bottom:16px;color:{% if category == 'warning' %}#fca5a5{% else %}#86efac{% endif %};font-size:0.9rem;">
             {{ message }}
         </div>
         {% endfor %}
@@ -104,12 +103,12 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <div class="u-4a663d">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
                         <img src="/static/logo.svg" alt="" width="24" height="24" aria-hidden="true">
-                        <span class="u-6273d6">Website Auditor</span>
+                        <span style="font-weight:700;font-size:1.05rem;color:#fff;">Website Auditor</span>
                     </div>
-                    <p class="u-b03544">Free, instant website audits for AI visibility, security, and performance. Built for small business owners who want to show up when customers ask AI tools for help.</p>
-                    <a href="/#audit" class="btn btn-primary u-f1bc8e"u-f1bc8e">Run Free Audit →</a>
+                    <p style="color:var(--text-muted);font-size:0.88rem;line-height:1.6;max-width:280px;">Free, instant website audits for AI visibility, security, and performance. Built for small business owners who want to show up when customers ask AI tools for help.</p>
+                    <a href="/#audit" class="btn btn-primary" style="margin-top:16px;padding:10px 24px;font-size:0.9rem;">Run Free Audit →</a>
                 </div>
                 <div class="footer-col">
                     <div class="footer-col-title">Product</div>
@@ -143,7 +142,7 @@
 
 
 <!-- Floating button -->
-<button type="button" class="bug-btn"  title="Report a bug or request a feature" aria-label="Report a bug">
+<button type="button" class="bug-btn" title="Report a bug or request a feature" aria-label="Report a bug">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
         <path d="M8 2l1.88 1.88M14.12 3.88L16 2M9 7.13v-1a3.003 3.003 0 116 0v1"/>
         <path d="M12 20c-3.3 0-6-2.7-6-6v-3a6 6 0 0112 0v3c0 3.3-2.7 6-6 6z"/>
@@ -152,28 +151,28 @@
 </button>
 
 <!-- Modal -->
-<div class="bug-overlay" id="bugOverlay" >
+<div class="bug-overlay" id="bugOverlay">
     <div class="bug-modal" id="bugModal">
-        <button type="button" class="bug-modal-close"  aria-label="Close">
+        <button type="button" class="bug-modal-close" aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
 
         <!-- Form state -->
         <div id="bugFormView">
             <h3>
-                <span class="u-380ac8" id="bugIcon">Bug</span>
+                <span id="bugIcon" style="font-size:1.3rem;">Bug</span>
                 <span id="bugTitle">Report a Bug</span>
             </h3>
             <p class="subtitle">We'll capture page details automatically</p>
 
-            <form id="bugForm" >
+            <form id="bugForm">
                 <label for="bugDesc" class="sr-only">Bug or feature description</label>
                 <textarea id="bugDesc" placeholder="Describe the bug or issue you experienced..." maxlength="1000" required></textarea>
                 <div class="char-count"><span id="bugCharCount">0</span>/1000</div>
 
                 <div class="options">
                     <label>
-                        <input type="checkbox" id="bugIsFeature" >
+                        <input type="checkbox" id="bugIsFeature">
                         This is a feature request
                     </label>
                     <label>
@@ -182,7 +181,7 @@
                     </label>
                 </div>
 
-                <div id="bugError" class="error-banner u-93b8ea"u-93b8ea"></div>
+                <div id="bugError" class="error-banner" style="display:none;"></div>
 
                 <button type="submit" class="submit-btn" id="bugSubmitBtn">
                     Submit Report
@@ -191,24 +190,28 @@
         </div>
 
         <!-- Success state -->
-        <div class="u-93b8ea" id="bugSuccessView">
+        <div id="bugSuccessView" style="display:none;">
             <div class="status-msg success">
-                <div class="u-6dbc3b">Done</div>
+                <div style="font-size:2.2rem;margin-bottom:10px;">Done</div>
                 <strong>Report submitted!</strong><br>
-                <span class="u-1e8514">Thank you for helping us improve.</span>
+                <span style="font-size:0.85rem;color:var(--text-muted);">Thank you for helping us improve.</span>
             </div>
         </div>
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/bug-report.js') }}"></script>
+
 <!-- ── Timezone-aware timestamp formatting (site-wide) ──────── -->
-<script src="{{ url_for('static', filename='js/wa-time.js') }}"></script>
+
 
 <!-- ── Scroll animations & fixed header shadow ──────────── -->
-<script src="{{ url_for('static', filename='js/scroll-effects.js') }}"></script>
+
 
 <!-- GoatCounter analytics -->
 <script data-goatcounter="https://website-auditor.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    <script src="{{ url_for('static', filename='js/scroll-effects.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bug-report.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/wa-time.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
 </body>
 </html>
