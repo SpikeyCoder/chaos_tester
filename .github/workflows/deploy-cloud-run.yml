@@ -49,5 +49,5 @@ jobs:
         run: |
           gcloud run services update ${{ env.SERVICE }} \
             --region ${{ env.REGION }} \
-            --update-env-vars "CORS_ALLOWED_ORIGINS=https://website-auditor.io,https://spikeycoder.github.io" \
+            --update-env-vars "^@^CORS_ALLOWED_ORIGINS=https://website-auditor.io,https://spikeycoder.github.io" \
             --quiet
