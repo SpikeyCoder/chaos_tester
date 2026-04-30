@@ -26,10 +26,12 @@ SUPABASE_URL = os.environ.get(
     "SUPABASE_URL", "https://psunubqeuopyzgjdytrn.supabase.co"
 )
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
-SUPABASE_ANON_KEY = os.environ.get(
-    "SUPABASE_ANON_KEY",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzdW51YnFldW9weXpnamR5dHJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDk1MzMsImV4cCI6MjA5MDMyNTUzM30.Gh_INivkDi_8MdkWd8SCdrRTCAaQGXGV9epjf-Fk9Pg",
-)
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
+if not SUPABASE_ANON_KEY:
+    logging.getLogger("chaos_tester.supabase").warning(
+        "SUPABASE_ANON_KEY not set — anonymous reads will fail. "
+        "Set this env var to enable public report access."
+    )
 
 _REST_URL = f"{SUPABASE_URL}/rest/v1"
 
