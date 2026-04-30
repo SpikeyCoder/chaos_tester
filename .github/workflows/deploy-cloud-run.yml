@@ -6,6 +6,10 @@ on:
     paths-ignore: ['frontend/**', '*.md', 'LICENSE']
   workflow_dispatch:
 
+concurrency:
+  group: deploy-cloud-run
+  cancel-in-progress: true
+
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   SERVICE: chaos-tester
