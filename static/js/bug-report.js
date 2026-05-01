@@ -84,6 +84,10 @@ var bugReport = (function() {
                 document.getElementById('bugCharCount').textContent = '0';
                 document.getElementById('bugIsFeature').checked = false;
                 document.getElementById('bugScreenshot').checked = true;
+                document.getElementById('bugSubmitBtn').disabled = false;
+                document.getElementById('bugSubmitBtn').innerHTML = 'Submit Report';
+                document.getElementById('bugFormView').style.display = '';
+                document.getElementById('bugSuccessView').style.display = 'none';
                 bugReport.toggleType();
             }, 200);
         },
@@ -135,6 +139,7 @@ var bugReport = (function() {
                 msg.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--success);color:var(--bg);padding:14px 20px;border-radius:8px;font-size:0.9rem;z-index:1000;animation:slideUp .3s ease-out;';
                 msg.textContent = 'Report submitted successfully!';
                 document.body.appendChild(msg);
+                setTimeout(function() { msg.remove(); }, 3500);
                 setTimeout(function() { bugReport.close(); }, 2000);
             } catch (err) {
                 errDiv.textContent = err.message || 'Failed to submit. Please try again.';
