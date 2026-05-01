@@ -39,6 +39,9 @@
 </script>
 {% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/features.css') }}">
+{% endblock %}
 {% block content %}
 <div class="hero-section fade-up">
     <h1>Powerful <span class="gradient-text">Audit Features</span></h1>
@@ -141,22 +144,4 @@
     <a href="/" class="btn btn-primary" style="font-size:1.05rem; padding: 12px 28px;">Start Your Free Audit</a>
 </div>
 
-<style>
-.faq-item {
-    background: var(--surface); backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border); border-radius: var(--radius-md);
-    padding: 16px 20px; margin-bottom: 12px;
-    transition: border-color .3s;
-}
-.faq-item[open] { border-color: rgba(59,130,246,0.5); }
-.faq-item summary {
-    color: var(--text); font-weight: 600; font-size: 1rem;
-    cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between;
-}
-.faq-item summary::-webkit-details-marker { display: none; }
-.faq-item summary::after { content: "+"; font-size: 1.4rem; color: var(--accent); transition: transform .2s; }
-.faq-item[open] summary::after { content: "−"; }
-.faq-item p { margin-top: 10px; }
-</style>
 {% endblock %}

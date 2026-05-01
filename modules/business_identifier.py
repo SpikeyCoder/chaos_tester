@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Business Identifier Module
 Extracts the correct business name, headquarters city, and business sector
@@ -196,8 +198,8 @@ PAGE_SECTOR_KEYWORDS = {
     "daycare":              "child care",
 }
 
-# Secondary pages that commonly contain addresses
-_SECONDARY_PATHS = ["/contact", "/about", "/contact-us", "/about-us", "/locations"]
+# Secondary pages that commonly contain addresses (trimmed for speed)
+_SECONDARY_PATHS = ["/contact", "/about", "/contact-us"]
 
 # US state abbreviations for validation
 _US_STATES = {
@@ -211,9 +213,10 @@ _US_STATES = {
 class BusinessIdentifier:
     """Identifies the business name, headquarters city, and sector for a given website."""
 
-    def __init__(self, session: requests.Session = None, timeout: int = 10):
+    def __init__(self, session: requests.Session = None, timeout: int = 4):
         self.session = session or requests.Session()
         self.timeout = timeout
+        self._irs_cache: dict = {}  # name -> IRS response, avoids duplicate calls
 
     # ------------------------------------------------------------------
     # Step 1 & 2: Scrape website and extract candidate names
@@ -365,14 +368,13 @@ class BusinessIdentifier:
                 logger.info("Location from HTML patterns: %r", loc)
                 return loc, "page_content"
 
-        # Sources 3-6: run all external calls in parallel, pick by priority.
+        # Sources 3-4: IRS + secondary pages in parallel (skip OpenCorporates
+        # which often returns 401, and WHOIS/RDAP which is slow with low hit rate).
         tasks = [
-            ("opencorporates", self._lookup_opencorporates, business_name),
             ("irs_eo", self._lookup_irs_eo_location, business_name),
         ]
         if url:
             tasks.append(("secondary_page", self._scrape_secondary_pages, url))
-            tasks.append(("whois", self._infer_location_from_whois, url))
 
         with ThreadPoolExecutor(max_workers=len(tasks)) as executor:
             futures = {label: executor.submit(fn, arg) for label, fn, arg in tasks}
@@ -394,36 +396,37 @@ class BusinessIdentifier:
     def detect_sector(self, business_name: str, html: str = "") -> str:
         """
         Detect the business sector/purpose from multiple signals.
+        Local signals first (instant), then IRS API only if needed.
         Returns a human-readable sector phrase for use in search queries.
         """
-        # Signal 1: IRS NTEE code (for tax-exempt organisations)
-        ntee = self._lookup_irs_eo_ntee(business_name)
-        if ntee:
-            sector_letter = ntee[0].upper()
-            sector = NTEE_SECTOR_MAP.get(sector_letter, "")
-            if sector:
-                logger.info("Sector from IRS NTEE (%s): %r", ntee, sector)
-                return sector
-
-        # Signal 2: Business name keyword analysis
+        # Signal 1 (instant): Business name keyword analysis
         name_lower = business_name.lower()
         for keyword, sector in NAME_SECTOR_KEYWORDS.items():
             if keyword in name_lower:
                 logger.info("Sector from business name keyword %r: %r", keyword, sector)
                 return sector
 
-        # Signal 3: JSON-LD @type on the page
+        # Signal 2 (instant): JSON-LD @type on the page
         if html:
             sector = self._detect_sector_from_jsonld(html)
             if sector:
                 logger.info("Sector from JSON-LD @type: %r", sector)
                 return sector
 
-        # Signal 4: Page content keyword frequency analysis
+        # Signal 3 (instant): Page content keyword frequency analysis
         if html:
             sector = self._detect_sector_from_content(html)
             if sector:
                 logger.info("Sector from page content: %r", sector)
+                return sector
+
+        # Signal 4 (network, uses cache): IRS NTEE code (for tax-exempt orgs)
+        ntee = self._lookup_irs_eo_ntee(business_name)
+        if ntee:
+            sector_letter = ntee[0].upper()
+            sector = NTEE_SECTOR_MAP.get(sector_letter, "")
+            if sector:
+                logger.info("Sector from IRS NTEE (%s): %r", ntee, sector)
                 return sector
 
         return "local business services"
@@ -605,7 +608,7 @@ class BusinessIdentifier:
         """Fetch a single secondary page and extract a location string, or ""."""
         try:
             resp = self.session.get(
-                page_url, timeout=self.timeout, verify=True, allow_redirects=True,
+                page_url, timeout=min(self.timeout, 3), verify=True, allow_redirects=True,
             )
             if resp.status_code != 200:
                 return ""
@@ -714,8 +717,10 @@ class BusinessIdentifier:
                 logger.debug("OpenCorporates lookup failed at %s for %r: %s", api_url, name, exc)
         return ""
 
-    def _lookup_irs_eo_location(self, name: str) -> str:
-        """Search IRS Exempt Organizations database for city/state."""
+    def _fetch_irs_eo(self, name: str) -> dict | None:
+        """Fetch IRS EO data once, cache for reuse by location + NTEE lookups."""
+        if name in self._irs_cache:
+            return self._irs_cache[name]
         try:
             resp = self.session.get(
                 IRS_EO_SEARCH_URL,
@@ -729,36 +734,31 @@ class BusinessIdentifier:
             if resp.status_code == 200:
                 data = resp.json()
                 orgs = data.get("organizations", [])
-                if orgs:
-                    city = orgs[0].get("city", "")
-                    state = orgs[0].get("state", "")
-                    if city and state:
-                        return f"{city}, {state}"
+                result = orgs[0] if orgs else None
+                self._irs_cache[name] = result
+                return result
         except Exception as exc:
             logger.debug("IRS EO lookup failed for %r: %s", name, exc)
+        self._irs_cache[name] = None
+        return None
+
+    def _lookup_irs_eo_location(self, name: str) -> str:
+        """Extract city/state from cached IRS EO data."""
+        org = self._fetch_irs_eo(name)
+        if org:
+            city = org.get("city", "")
+            state = org.get("state", "")
+            if city and state:
+                return f"{city}, {state}"
         return ""
 
     def _lookup_irs_eo_ntee(self, name: str) -> str:
-        """Search IRS EO for NTEE classification code."""
-        try:
-            resp = self.session.get(
-                IRS_EO_SEARCH_URL,
-                params={
-                    "names": name, "resultsPerPage": 1,
-                    "orgTags": "", "type": "charities",
-                },
-                timeout=self.timeout,
-                headers={"Accept": "application/json"},
-            )
-            if resp.status_code == 200:
-                data = resp.json()
-                orgs = data.get("organizations", [])
-                if orgs:
-                    ntee = orgs[0].get("nteeCode", "") or orgs[0].get("nteeCd", "")
-                    if ntee:
-                        return ntee
-        except Exception as exc:
-            logger.debug("IRS EO NTEE lookup failed for %r: %s", name, exc)
+        """Extract NTEE code from cached IRS EO data."""
+        org = self._fetch_irs_eo(name)
+        if org:
+            ntee = org.get("nteeCode", "") or org.get("nteeCd", "")
+            if ntee:
+                return ntee
         return ""
 
     # ==================================================================

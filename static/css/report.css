@@ -1,0 +1,186 @@
+.report-toc {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    background: rgba(30,41,59,0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    position: sticky;
+    top: 72px;
+    z-index: 40;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.toc-link {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: all .2s;
+    text-decoration: none;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+}
+.toc-link:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+}
+.toc-link.active {
+    color: #fff;
+    background: rgba(59,130,246,0.2);
+    font-weight: 600;
+}
+@media (max-width: 768px) {
+    .report-toc {
+        margin-left: -12px;
+        margin-right: -12px;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+}
+.filter-btn.active, .module-btn.active {
+  border-color: var(--accent) !important;
+  color: var(--accent);
+}
+
+/* Performance Dashboard */
+.perf-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+
+.perf-tab {
+  padding: 8px 20px; border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--text);
+  cursor: pointer; font-size: 14px; transition: all .2s;
+}
+.perf-tab.active { background: #1d4ed8; color: #fff; border-color: #1d4ed8; font-weight: 600; }
+.perf-tab:hover:not(.active) { background: rgba(99,102,241,.15); }
+.perf-tab:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+
+.perf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) { .perf-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .perf-grid { grid-template-columns: 1fr; } }
+
+.gauge-card {
+  text-align: center; padding: 16px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: rgba(255,255,255,.03);
+}
+.gauge-container { display: flex; justify-content: center; }
+.gauge-label { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+
+  /* Scrollable table mode (shared by Detailed Results + AI Results) */
+  .scrollable-table {
+    max-height: 520px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .scrollable-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 2;
+  }
+
+  /* Results table - prevent Details column overflow */
+  #resultsTable {
+    table-layout: fixed;
+    width: 100%;
+  }
+  #resultsTable th:nth-child(1) { width: 40px; }
+  #resultsTable th:nth-child(2) { width: 100px; }
+  #resultsTable th:nth-child(3) { width: 100px; }
+  #resultsTable th:nth-child(4) { width: 110px; }
+    #resultsTable td:nth-child(4) {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  #resultsTable th:nth-child(5) { width: 28%; }
+  #resultsTable th:nth-child(7) { width: 60px; }
+  #resultsTable td {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Finding Guidance System */
+  .finding-guidance-wrapper {
+    display: none;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 12px;
+    font-size: 0.9rem;
+  }
+
+  .finding-guidance-wrapper.visible {
+    display: block;
+  }
+
+  .guidance-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: none;
+    border: none;
+    padding: 4px 0;
+    margin-top: 8px;
+    transition: opacity 0.2s;
+  }
+
+  .guidance-toggle:hover {
+    opacity: 0.8;
+  }
+
+  .guidance-section {
+    margin-bottom: 12px;
+  }
+
+  .guidance-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .guidance-label {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .guidance-text {
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+
+  .guidance-text strong {
+    font-weight: 600;
+  }
+
+  .guidance-icon {
+    display: inline-block;
+    transition: transform 0.2s;
+  }
+
+  .guidance-toggle.expanded .guidance-icon {
+    transform: rotate(180deg);
+  }

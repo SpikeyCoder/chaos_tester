@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Chaos Tester -- Data models for test results
 """
