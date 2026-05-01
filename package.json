@@ -1,7 +1,5 @@
 {
-  "dependencies": {
-    "beautifulsoup4": "^0.0.1-security",
-    "flask": "^0.2.10",
-    "requests": "^0.3.0"
-  }
+  "private": true,
+  "description": "Python/Flask service. The frontend lives in /frontend; root has no Node dependencies.",
+  "scripts": {}
 }
