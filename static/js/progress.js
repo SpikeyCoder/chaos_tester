@@ -53,10 +53,19 @@ source.onmessage = function(event) {
 
   /* Update live check items */
   var checkItem = document.querySelector('.check-item[data-module="' + data.module + '"]');
-  if (checkItem) {
+  if (checkItem && data.module !== 'done' && data.module !== 'runner') {
     var icon = checkItem.querySelector('.check-icon');
     var label = checkItem.querySelector('span:last-child');
-    if (!checkItem.classList.contains('check-active') && data.module !== 'done' && data.module !== 'runner') {
+    var isDone = data.msg && (data.msg.toLowerCase().startsWith('done') || data.msg.toLowerCase().includes('complete'));
+
+    if (isDone && checkItem.classList.contains('check-active') && !checkItem.classList.contains('check-done')) {
+      /* Module reported done — mark as complete */
+      checkItem.classList.add('check-done');
+      icon.style.background = 'rgba(74,222,128,0.15)';
+      icon.style.color = '#4ade80';
+      icon.innerHTML = '✓';
+    } else if (!checkItem.classList.contains('check-active')) {
+      /* Module just started — show spinner */
       checkItem.classList.add('check-active');
       icon.style.background = color;
       icon.style.color = '#fff';
@@ -66,19 +75,6 @@ source.onmessage = function(event) {
       checkItem.style.borderColor = color;
     }
   }
-  /* Mark previous module as complete if a new one started */
-  var allChecks = document.querySelectorAll('.check-item.check-active');
-  allChecks.forEach(function(item) {
-    if (item.getAttribute('data-module') !== data.module && data.module !== 'done' && data.module !== 'runner') {
-      var ic = item.querySelector('.check-icon');
-      if (ic && !item.classList.contains('check-done')) {
-        item.classList.add('check-done');
-        ic.style.background = 'rgba(74,222,128,0.15)';
-        ic.style.color = '#4ade80';
-        ic.innerHTML = '✓';
-      }
-    }
-  });
 
   if (data.module === 'done') {
     source.close();

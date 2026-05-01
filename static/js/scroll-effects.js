@@ -1,3 +1,36 @@
+/* Hamburger menu toggle */
+(function() {
+  var toggle = document.getElementById('navToggle');
+  var nav = document.getElementById('mainNav');
+  if (toggle && nav) {
+    toggle.addEventListener('click', function() {
+      nav.classList.toggle('open');
+      var expanded = this.getAttribute('aria-expanded') === 'true';
+      this.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+    });
+  }
+})();
+
+/* Smooth scroll for hash links on the homepage */
+(function() {
+  var hashLinks = document.querySelectorAll('a[href^="/#"]');
+  hashLinks.forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      if (window.location.pathname === '/') {
+        var targetId = this.getAttribute('href').replace('/#', '');
+        var target = document.getElementById(targetId);
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth' });
+          /* Close mobile nav if open */
+          var nav = document.getElementById('mainNav');
+          if (nav) nav.classList.remove('open');
+        }
+      }
+    });
+  });
+})();
+
 /* Header scroll effect */
 (function() {
   var header = document.querySelector('header');

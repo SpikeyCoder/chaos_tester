@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Website Auditor -- Running{% endblock %}
 
+{% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/progress.css') }}">
+{% endblock %}
 {% block content %}
 <!-- Progress Stepper -->
 <nav aria-label="Audit progress" style="margin-bottom:24px;">

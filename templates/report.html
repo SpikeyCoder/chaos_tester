@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Report {{ report.run_id }} -- Website Auditor{% endblock %}
 {% block robots %}noindex, nofollow{% endblock %}
+{% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/report.css') }}">
+{% endblock %}
 {% block content %}
 <!-- Breadcrumb Navigation -->
 <nav aria-label="Breadcrumb" style="margin-bottom:16px;font-size:0.85rem;color:var(--text-muted);">

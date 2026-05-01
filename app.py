@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Website Auditor -- Flask Web Application
 
@@ -169,9 +171,37 @@ def _clamp_int(raw: str, default: int, lo: int, hi: int) -> int:
 
 # -- SSE Progress Stream ------------------------------------------
 
+# Track per-module completion for accurate overall progress.
+# Modules: availability, links, forms, chaos, auth, security, performance, ai_visibility
+_ALL_MODULES = ["availability", "links", "forms", "chaos", "auth", "security", "performance", "ai_visibility"]
+_module_done: set = set()
+_total_modules: int = len(_ALL_MODULES)
+
+
 def _progress_callback(module: str, pct: int, msg: str):
-    global _progress, _highest_pct
-    effective_pct = max(pct, _highest_pct)
+    global _progress, _highest_pct, _module_done, _total_modules
+
+    # Track which modules have reported "Done"
+    is_done = msg and (msg.lower().startswith("done") or "complete" in msg.lower())
+    if is_done and module in _ALL_MODULES:
+        _module_done.add(module)
+
+    # Calculate overall progress from module completion ratio.
+    # Reserve 0-5% for startup, 5-95% for modules, 95-100% for finalization.
+    if module == "runner" and pct >= 100:
+        effective_pct = 100
+    elif module == "runner":
+        effective_pct = max(5, _highest_pct)
+    else:
+        done_ratio = len(_module_done) / max(_total_modules, 1)
+        effective_pct = int(5 + done_ratio * 90)
+        # If a module is actively running but not done, show partial credit
+        if module in _ALL_MODULES and module not in _module_done:
+            # Give partial credit for active modules (half a module's share)
+            partial = 0.5 / max(_total_modules, 1) * 90
+            effective_pct = max(effective_pct, int(5 + (len(_module_done) * 90 / max(_total_modules, 1)) + partial))
+
+    effective_pct = max(effective_pct, _highest_pct)
     _highest_pct = effective_pct
     entry = {"module": module, "pct": effective_pct, "msg": msg, "ts": datetime.utcnow().isoformat()}
     with _lock:
@@ -348,10 +378,18 @@ def start_run():
     # Set status to "running" BEFORE starting thread to prevent race condition
     # where the SSE stream sees "idle" before the thread has a chance to run.
     with _lock:
-        global _highest_pct
+        global _highest_pct, _module_done, _total_modules
         _current_status = "running"
         _progress.clear()
         _highest_pct = 0
+        _module_done = set()
+        # Count how many modules are actually enabled for this run
+        _total_modules = sum([
+            config.run_availability, config.run_links, config.run_forms,
+            config.run_chaos, config.run_auth, config.run_security,
+            True,  # performance always runs
+            config.run_ai_visibility,
+        ])
 
     thread = threading.Thread(target=_run_tests, args=(config,), daemon=True)
     thread.start()

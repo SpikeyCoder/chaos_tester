@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Free Website Audit Tool — AI Visibility, Security & Performance Scanner | Website Auditor{% endblock %}
 
+{% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
 {% block content %}
 <!-- ── Hero Section ─────────────────────────────────────────── -->
 <div class="landing-hero fade-up" id="audit">
@@ -318,10 +320,6 @@
     </div>
   </div>
 </section>
-
-<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4" defer></script>
-
-
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

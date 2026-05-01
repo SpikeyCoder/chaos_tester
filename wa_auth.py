@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Cross-subdomain authentication gate for website-auditor.io.
 
@@ -17,8 +19,6 @@ without needing to invalidate the cookie.
 The shared secret must be the same value in both the Node admin portal
 (``WA_SHARED_SECRET`` env var) and this Flask app.
 """
-
-from __future__ import annotations
 
 import logging
 import os

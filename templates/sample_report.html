@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Sample Report -- Website Auditor{% endblock %}
 {% block robots %}index, follow{% endblock %}
+{% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/sample-report.css') }}">
+{% endblock %}
 {% block content %}
 <!-- -- Report Top Bar -------------------------------------- -->
 <div class="report-top-bar fade-up">

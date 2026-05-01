@@ -3,6 +3,7 @@ var _detectTimer = null;
 var _blurTimer = null;
 var _lastDetectedUrl = '';
 var _overrideListenerAdded = false;
+var _detectInFlight = false;
 var _isMobile = /Mobi|Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || ('ontouchstart' in window);
 
 /* State tracking for business detection */
@@ -229,7 +230,11 @@ document.getElementById('base_url').addEventListener('input', function() {
   clearTimeout(_detectTimer);
   clearTimeout(_blurTimer);
   _lastDetectedUrl = '';
-  resetBusinessState();
+  /* Only reset UI if no API call is in flight -- otherwise the response
+     handler will take care of it when it lands. */
+  if (!_detectInFlight) {
+    resetBusinessState();
+  }
   disableAuditBtn();
   _detectTimer = setTimeout(function() { detectBusiness(); }, 600);
 });
@@ -264,12 +269,15 @@ function hideAuditSpinner() {
 
 function detectBusiness() {
   var url = document.getElementById('base_url').value.trim();
-  if (!url || url === _lastDetectedUrl) return;
+  if (!url) return;
+  /* Allow re-detection of the same URL (e.g. user re-enters after a run) */
   _lastDetectedUrl = url;
 
   disableAuditBtn();
-  resetBusinessState();
+  /* Don't call resetBusinessState() here -- the input handler already did it.
+     Calling it again would hide panels that are mid-animation. */
   showAuditSpinner();
+  _detectInFlight = true;
 
   fetch('/api/detect-business', {
     method: 'POST',
@@ -281,6 +289,9 @@ function detectBusiness() {
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
+    _detectInFlight = false;
+    /* If the URL changed while the request was in flight, discard this result */
+    if (document.getElementById('base_url').value.trim() !== url) return;
     hideAuditSpinner();
     var bizHidden = document.getElementById('business_name');
     var locHidden = document.getElementById('business_location');
@@ -325,7 +336,9 @@ function detectBusiness() {
     }
   })
   .catch(function(err) {
+    _detectInFlight = false;
     console.error('Detect failed:', err);
+    if (document.getElementById('base_url').value.trim() !== url) return;
     hideAuditSpinner();
     /* Show override fields so user can enter both manually */
     showBizOverride(true);
@@ -477,9 +490,6 @@ function detectBusiness() {
 /* -- Show loading indicator on form submit ---- */
 document.getElementById('runForm').addEventListener('submit', function() {
   var indicator = document.getElementById('loading-indicator');
-  var btn = document.getElementById('submitBtn');
-  if (indicator && btn) {
-    indicator.style.display = 'block';
-    btn.disabled = true;
-  }
+  if (indicator) indicator.style.display = 'block';
+  showAuditSpinner();
 });

@@ -39,7 +39,9 @@
 </script>
 {% endblock %}
 
+{% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/features.css') }}">
+{% endblock %}
 {% block content %}
 <div class="hero-section fade-up">
     <h1>Powerful <span class="gradient-text">Audit Features</span></h1>
