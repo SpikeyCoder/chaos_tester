@@ -125,7 +125,10 @@ def _set_security_headers(response):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
+    # X-XSS-Protection: explicit "0" per current OWASP guidance — the legacy
+    # browser XSS auditors had bugs that could be turned into XSS gadgets
+    # (e.g. CVE-2018-6149-class issues). CSP is the modern XSS containment.
+    response.headers["X-XSS-Protection"] = "0"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
