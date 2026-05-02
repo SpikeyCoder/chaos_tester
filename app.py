@@ -841,17 +841,49 @@ def api_bug_report():
 
 @app.route("/api/detect-business", methods=["POST"])
 def detect_business():
-    """Quick-detect business name, location, and sector from a URL."""
-    import requests as http_requests
+    """Quick-detect business name, location, and sector from a URL.
+
+    SECURITY: this endpoint accepts a user-supplied URL and fetches it
+    server-side. To prevent Server-Side Request Forgery (CWE-918,
+    OWASP A10:2021) we:
+
+    1.  Require an ``X-Requested-With: XMLHttpRequest`` header so the
+        endpoint cannot be triggered cross-origin without a CORS preflight
+        (consistent with /api/ai-query and /api/bug-report).
+    2.  Reject non-``http(s)`` schemes outright.
+    3.  Validate the hostname via ``_is_private_or_reserved`` BEFORE any
+        outbound request, blocking loopback, link-local, RFC1918, reserved,
+        and known cloud-metadata addresses.
+    4.  Use ``SafeSession`` for the actual fetch so the same hostname check
+        is re-applied on every redirect hop (DNS-rebinding defence).
+    """
+    from urllib.parse import urlparse
     from .modules.business_identifier import BusinessIdentifier
+    from .config import _is_private_or_reserved
+    from .safe_http import SafeSession, SSRFBlockedError
+
+    if request.headers.get("X-Requested-With") != "XMLHttpRequest":
+        abort(403, "Missing X-Requested-With header.")
+
     data = request.get_json(silent=True) or {}
     url = (data.get("url") or "").strip()
     if not url:
         return jsonify({"error": "url is required"}), 400
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
+
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        return jsonify({"error": "Only http(s) URLs are supported."}), 400
+    hostname = (parsed.hostname or "").strip()
+    if not hostname:
+        return jsonify({"error": "URL is missing a hostname."}), 400
+    if _is_private_or_reserved(hostname):
+        logger.warning("detect-business SSRF blocked: %s", hostname)
+        return jsonify({"error": "URL refers to a private or reserved address."}), 400
+
     try:
-        sess = http_requests.Session()
+        sess = SafeSession()
         sess.headers["User-Agent"] = "ChaosMonkeyTester/1.0 (business-detect)"
         identifier = BusinessIdentifier(session=sess, timeout=10)
         result = identifier.identify(url)
@@ -862,6 +894,9 @@ def detect_business():
             "lookup_source": result.get("lookup_source", ""),
             "candidates": result.get("candidates", [])[:5],
         })
+    except SSRFBlockedError as exc:
+        logger.warning("detect-business SSRF blocked at fetch time: %s", exc)
+        return jsonify({"error": "URL refers to a private or reserved address."}), 400
     except Exception as exc:
         return jsonify({"error": str(exc), "business_name": "", "location": "", "sector": ""}), 200
 
