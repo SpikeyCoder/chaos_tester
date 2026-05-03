@@ -1053,3 +1053,45 @@ def changelog_page():
 
 if __name__ == "__main__":
     main()
+
+
+@app.route("/api/psi-status")
+def api_psi_status():
+    """Diagnostic: check PSI API key status and test a single call."""
+    import requests as http_requests
+    psi_key = os.environ.get("GOOGLE_PSI_API_KEY", "")
+    key_status = "set" if psi_key else "not set"
+    key_length = len(psi_key) if psi_key else 0
+    key_prefix = psi_key[:8] + "..." if len(psi_key) > 8 else psi_key
+
+    # Test a single PSI call
+    test_url = "https://example.com"
+    params = {"url": test_url, "strategy": "desktop", "category": "performance"}
+    if psi_key:
+        params["key"] = psi_key
+
+    try:
+        resp = http_requests.get(
+            "https://www.googleapis.com/pagespeedonline/v5/runPagespeed",
+            params=params,
+            timeout=15,
+        )
+        psi_status = resp.status_code
+        if resp.status_code == 200:
+            data = resp.json()
+            score = data.get("lighthouseResult", {}).get("categories", {}).get("performance", {}).get("score")
+            psi_result = f"success (score={score})"
+        else:
+            psi_result = f"error: {resp.status_code} {resp.text[:200]}"
+    except Exception as exc:
+        psi_status = 0
+        psi_result = f"exception: {str(exc)[:200]}"
+
+    return jsonify({
+        "key_status": key_status,
+        "key_length": key_length,
+        "key_prefix": key_prefix,
+        "test_url": test_url,
+        "psi_http_status": psi_status,
+        "psi_result": psi_result,
+    })
