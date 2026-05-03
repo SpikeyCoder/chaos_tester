@@ -206,6 +206,16 @@ function switchPerfTab(strategy) {
   tab.setAttribute('tabindex', '0');
 }
 
+// Click listeners for perf tabs (restored after CSP refactoring removed inline onclick)
+(function() {
+  document.querySelectorAll('.perf-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var strategy = this.id.replace('tab-', '');
+      if (typeof switchPerfTab === 'function') switchPerfTab(strategy);
+    });
+  });
+})();
+
 // Arrow-key keyboard navigation for the Performance tablist (WCAG 2.1 keyboard)
 (function() {
   var tablist = document.querySelector('.perf-tabs[role="tablist"]');

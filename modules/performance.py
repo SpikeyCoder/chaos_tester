@@ -34,7 +34,7 @@ METRICS_MAP = {
 
 MAX_RETRIES = 3
 FIRST_ATTEMPT_TIMEOUT = 45
-RETRY_TIMEOUT = 45
+RETRY_TIMEOUT = 60
 
 
 def _fetch_strategy(url, strategy):
