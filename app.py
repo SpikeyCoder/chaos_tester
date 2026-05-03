@@ -1065,8 +1065,9 @@ def api_psi_status():
     key_prefix = psi_key[:8] + "..." if len(psi_key) > 8 else psi_key
 
     # Test a single PSI call
-    test_url = "https://example.com"
-    params = {"url": test_url, "strategy": "desktop", "category": "performance"}
+    test_url = request.args.get("url", "https://example.com")
+    test_strategy = request.args.get("strategy", "desktop")
+    params = {"url": test_url, "strategy": test_strategy, "category": "performance"}
     if psi_key:
         params["key"] = psi_key
 
