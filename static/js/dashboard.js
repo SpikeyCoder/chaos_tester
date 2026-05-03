@@ -276,7 +276,9 @@ function detectBusiness() {
   disableAuditBtn();
   /* Don't call resetBusinessState() here -- the input handler already did it.
      Calling it again would hide panels that are mid-animation. */
-  showAuditSpinner();
+  /* Show a dimmed spinner during detection (not the bright audit spinner) */
+  var _btn = document.getElementById('auditBtn');
+  if (_btn) { _btn.innerHTML = '<span class="btn-spinner"></span>'; _btn.style.opacity = '0.6'; }
   _detectInFlight = true;
 
   fetch('/api/detect-business', {
