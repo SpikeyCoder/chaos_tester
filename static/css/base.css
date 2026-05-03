@@ -1031,7 +1031,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 /* Bug report floating button */
 .bug-btn {
-    position: fixed; bottom: 24px; right: 24px; z-index: 90;
+    position: fixed; bottom: 24px; left: 24px; z-index: 90;
     background: var(--gradient-accent); color: #fff;
     border: none; border-radius: 50%; width: 48px; height: 48px;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
