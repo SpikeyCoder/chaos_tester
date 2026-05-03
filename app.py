@@ -581,9 +581,24 @@ def api_status():
 
 @app.route("/api/runs")
 def api_runs():
-    # Require X-Requested-With to prevent cross-origin abuse
+    """List recent audit runs.
+
+    SECURITY: the run history contains the URLs that customers asked us
+    to audit, plus the resulting status / summary. That is information
+    we should NOT expose to the open internet, so:
+
+      1. ``X-Requested-With`` is required (CSRF gate; the browser only
+         attaches it on a same-origin or pre-flighted request).
+      2. The caller must hold an active wa_auth subscription. Without
+         this gate, anyone who knew the endpoint name could harvest
+         the audit history of every customer.
+
+    Refs: pentest report 2026-05-03 finding WA-2.
+    """
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
         abort(403, "Missing X-Requested-With header.")
+    if not wa_auth.is_entitled(request):
+        return jsonify({"error": "subscription_required"}), 403
     with _lock:
         runs = [{
             "run_id": r["run_id"],
