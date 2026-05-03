@@ -21,7 +21,7 @@ API_KEY = os.environ.get("GOOGLE_PSI_API_KEY", "")
 # In-memory cache: url -> {timestamp, data}
 _cache = {}
 _cache_lock = threading.Lock()
-CACHE_TTL_SECONDS = 180  # 3 minutes
+CACHE_TTL_SECONDS = 900  # 15 minutes
 
 METRICS_MAP = {
     "first-contentful-paint":    ("First Contentful Paint",    "s"),
@@ -32,9 +32,9 @@ METRICS_MAP = {
     "total-blocking-time":       ("Total Blocking Time",        "ms"),
 }
 
-MAX_RETRIES = 2
-FIRST_ATTEMPT_TIMEOUT = 20
-RETRY_TIMEOUT = 30
+MAX_RETRIES = 3
+FIRST_ATTEMPT_TIMEOUT = 30
+RETRY_TIMEOUT = 45
 
 
 def _fetch_strategy(url, strategy):
@@ -59,7 +59,7 @@ def _fetch_strategy(url, strategy):
 
             if resp.status_code == 429:
                 # Rate limited: sleep before retry (only case where we sleep)
-                wait = 3 * (2 ** (attempt - 1))
+                wait = 5 * (2 ** (attempt - 1))
                 logger.warning(
                     "PSI %s rate-limited (429) for %s - retrying in %ds (attempt %d/%d)",
                     strategy, url, wait, attempt, MAX_RETRIES,
@@ -234,7 +234,7 @@ def fetch_performance_metrics(url):
         return _fetch_strategy(url, "desktop")
 
     def _fetch_mobile():
-        time.sleep(2)  # Stagger: let desktop start first
+        time.sleep(4)  # Stagger: let desktop start first, avoid rate limit
         return _fetch_strategy(url, "mobile")
 
     with ThreadPoolExecutor(max_workers=2) as executor:
