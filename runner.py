@@ -140,13 +140,12 @@ class ChaosTestRunner:
             discovered_pages = []
             page_cache: dict = {}
 
-            # -- Start slow API calls immediately (they don't need discovered pages) --
+            # -- Start AI visibility early (it doesn't need discovered pages) --
             early_tasks = []
-            early_tasks.append(("performance", self._run_performance))
             if self.config.run_ai_visibility:
                 early_tasks.append(("ai_visibility", self._run_ai_visibility))
 
-            early_executor = ThreadPoolExecutor(max_workers=len(early_tasks))
+            early_executor = ThreadPoolExecutor(max_workers=max(len(early_tasks), 1))
             early_futures = {}
             for name, fn in early_tasks:
                 early_futures[early_executor.submit(fn)] = name
@@ -193,7 +192,7 @@ class ChaosTestRunner:
                             logger.warning("Module %s failed: %s", name, exc)
                             self._emit(name, 99, f"Module error: {exc}")
 
-            # -- Wait for early tasks (PSI + AI) to finish --
+            # -- Wait for early tasks (AI visibility) to finish --
             for future in as_completed(early_futures):
                 name = early_futures[future]
                 try:
@@ -202,6 +201,12 @@ class ChaosTestRunner:
                     logger.warning("Module %s failed: %s", name, exc)
                     self._emit(name, 99, f"Module error: {exc}")
             early_executor.shutdown(wait=False)
+
+            # -- Run performance LAST, in isolation --
+            # PSI Lighthouse calls need 30-60s of sustained HTTP connections.
+            # Running them concurrently with other modules caused timeouts
+            # due to connection pool contention on Cloud Run.
+            self._run_performance()
 
             self.test_run.status = "completed"
 
