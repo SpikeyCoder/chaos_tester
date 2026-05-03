@@ -1,3 +1,15 @@
+// HTML escape helper — used to neutralise content sourced from third-party
+// AI APIs (Perplexity, etc.) before it reaches innerHTML. See pentest report
+// 2026-05-03 finding WA-3.
+function _escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Scroll to a specific result row and auto-expand its detail panel
   function openResultById(idx) {
     setTimeout(function() {
@@ -620,17 +632,24 @@ function runCustomAIQuery() {
     var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:12px;">';
     data.results.forEach(function(r) {
       var color = r.client_appears ? 'var(--green)' : 'var(--red)';
-      html += '<div style="background:var(--surface);border-radius:10px;padding:16px;border-left:4px solid ' + r.platform_color + ';">';
+      var safeColor = /^#[0-9a-fA-F]{3,8}$|^var\(--[a-z0-9-]+\)$/.test(String(r.platform_color || ''))
+        ? r.platform_color
+        : 'var(--text-muted)';
+      var safeLogo = _escHtml(r.platform_logo_url);
+      var safePlatform = _escHtml(r.platform);
+      var safePos = Number(r.position) || 0;
+      var safeRecommended = _escHtml(r.recommended);
+      html += '<div style="background:var(--surface);border-radius:10px;padding:16px;border-left:4px solid ' + safeColor + ';">';
       html += '<div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">';
-      html += '<img src="' + r.platform_logo_url + '" width="18" height="18" alt="' + r.platform + '"> ' + r.platform + '</div>';
+      html += '<img src="' + safeLogo + '" width="18" height="18" alt="' + safePlatform + '"> ' + safePlatform + '</div>';
       html += '<div style="font-size:0.85rem;margin-bottom:6px;">';
       if (r.client_appears) {
-        html += '<span class="badge badge-passed">Found at #' + r.position + '</span>';
+        html += '<span class="badge badge-passed">Found at #' + safePos + '</span>';
       } else {
         html += '<span class="badge badge-failed">Not found</span>';
       }
       html += '</div>';
-      html += '<div style="color:var(--text-muted);font-size:0.8rem;"><strong>Recommended:</strong> ' + r.recommended + '</div>';
+      html += '<div style="color:var(--text-muted);font-size:0.8rem;"><strong>Recommended:</strong> ' + safeRecommended + '</div>';
       html += '</div>';
     });
     html += '</div>';
