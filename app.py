@@ -145,7 +145,7 @@ def _set_security_headers(response):
     origin = request.headers.get("Origin", "")
     allowed_env = os.environ.get(
         "CORS_ALLOWED_ORIGINS",
-        "https://website-auditor.io,https://spikeycoder.github.io",
+        "https://website-auditor.io",
     )
     allowed = [o.strip() for o in allowed_env.split(",") if o.strip()]
     if origin in allowed:
