@@ -108,7 +108,7 @@ class ChaosTestRunner:
                 self._emit("performance", 90, "Done -- performance metrics collected.")
             else:
                 logger.warning("PSI returned empty data for %s", self.config.base_url)
-                self._emit("performance", 90, "Performance data empty (API may be rate-limited).")
+                self._emit("performance", 90, "Performance metrics unavailable for this site.")
         except Exception as exc:
             logger.warning("Performance metrics failed: %s", exc)
             self._emit("performance", 90, "Performance metrics unavailable.")

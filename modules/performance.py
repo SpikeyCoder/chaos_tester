@@ -33,7 +33,7 @@ METRICS_MAP = {
 }
 
 MAX_RETRIES = 3
-FIRST_ATTEMPT_TIMEOUT = 30
+FIRST_ATTEMPT_TIMEOUT = 45
 RETRY_TIMEOUT = 45
 
 
@@ -215,38 +215,31 @@ def _set_cache(url, data):
 
 
 def fetch_performance_metrics(url):
-    """Fetch Lighthouse metrics for both mobile and desktop with staggered starts.
-    Desktop fires first, mobile starts 2 seconds later to avoid overwhelming
-    Google's PSI infrastructure from the same IP/key.
-    Returns cached results if the same URL was fetched within the last 3 minutes."""
+    """Fetch Lighthouse metrics for both mobile and desktop SEQUENTIALLY.
+    Sequential execution avoids connection contention on Cloud Run instances
+    that are simultaneously running other audit modules. Each strategy gets
+    the full timeout budget without competing for resources.
+    Returns cached results if the same URL was fetched within the last 15 minutes."""
     # Check cache first
     cached = _get_cached(url)
     if cached is not None:
         return cached
 
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-    logger.info("Fetching PageSpeed Insights for %s (key=%s, staggered=2s)",
+    logger.info("Fetching PageSpeed Insights for %s (key=%s, sequential)",
                 url, "set" if API_KEY else "not set")
 
     result = {}
 
-    def _fetch_desktop():
-        return _fetch_strategy(url, "desktop")
-
-    def _fetch_mobile():
-        time.sleep(4)  # Stagger: let desktop start first, avoid rate limit
-        return _fetch_strategy(url, "mobile")
-
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        desktop_future = executor.submit(_fetch_desktop)
-        mobile_future = executor.submit(_fetch_mobile)
-
-        for future, strategy in [(desktop_future, "desktop"), (mobile_future, "mobile")]:
-            try:
-                result[strategy] = future.result()
-            except Exception as exc:
-                logger.warning("PSI %s failed: %s", strategy, exc)
-                result[strategy] = {}
+    # Run desktop first, then mobile -- sequential to avoid timeout contention
+    for strategy in ("desktop", "mobile"):
+        try:
+            result[strategy] = _fetch_strategy(url, strategy)
+        except Exception as exc:
+            logger.warning("PSI %s failed: %s", strategy, exc)
+            result[strategy] = {}
+        # Brief pause between strategies to be polite to the API
+        if strategy == "desktop":
+            time.sleep(2)
 
     if not any(result.get(s, {}).get("score") is not None for s in result):
         logger.warning("PSI returned no usable data for %s -- both strategies empty", url)
