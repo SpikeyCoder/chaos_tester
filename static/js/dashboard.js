@@ -23,7 +23,7 @@ function disableAuditBtn() {
   var btn = document.getElementById('auditBtn');
   if (!btn) return;
   btn.disabled = true;
-  btn.style.opacity = '0.8';
+  
   btn.style.cursor = 'not-allowed';
 }
 
@@ -256,7 +256,7 @@ function showAuditSpinner() {
   var btn = document.getElementById('auditBtn');
   if (!btn) return;
   btn.disabled = true;
-  btn.style.opacity = '0.8';
+  
   btn.style.cursor = 'not-allowed';
   btn.innerHTML = '<span class="btn-spinner"></span>';
 }
