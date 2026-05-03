@@ -1057,16 +1057,52 @@ if __name__ == "__main__":
 
 @app.route("/api/psi-status")
 def api_psi_status():
-    """Diagnostic: check PSI API key status and test a single call."""
+    """Diagnostic: check PSI API key status and test a single call.
+
+    SECURITY (CWE-200, CWE-918, OWASP A05/A10):
+      - Requires X-Requested-With (CSRF gate), entitlement (subscription),
+        and an explicit ``confirm=1`` query parameter so the endpoint is
+        not silently scriptable.
+      - Validates the test URL hostname via ``_is_private_or_reserved``
+        and the scheme is restricted to http(s) — same controls as
+        ``/api/detect-business``.
+      - Removes the partial API-key disclosure (``key_prefix``) from the
+        response — only a coarse boolean and length are returned.
+      - Caps the surfaced PSI error body so server tokens / IDs cannot
+        leak through error passthrough.
+    """
+    from urllib.parse import urlparse
+    from .config import _is_private_or_reserved
     import requests as http_requests
+
+    if request.headers.get("X-Requested-With") != "XMLHttpRequest":
+        abort(403, "Missing X-Requested-With header.")
+    if not wa_auth.is_entitled(request):
+        return jsonify({"error": "subscription_required"}), 403
+    if request.args.get("confirm") != "1":
+        return jsonify({
+            "error": "confirm=1 required to run a live PSI probe",
+        }), 400
+
     psi_key = os.environ.get("GOOGLE_PSI_API_KEY", "")
     key_status = "set" if psi_key else "not set"
     key_length = len(psi_key) if psi_key else 0
-    key_prefix = psi_key[:8] + "..." if len(psi_key) > 8 else psi_key
 
-    # Test a single PSI call
-    test_url = request.args.get("url", "https://example.com")
+    test_url = (request.args.get("url") or "https://example.com").strip()
     test_strategy = request.args.get("strategy", "desktop")
+    if test_strategy not in ("desktop", "mobile"):
+        test_strategy = "desktop"
+
+    parsed = urlparse(test_url)
+    if parsed.scheme not in ("http", "https"):
+        return jsonify({"error": "Only http(s) URLs are supported."}), 400
+    hostname = (parsed.hostname or "").strip()
+    if not hostname:
+        return jsonify({"error": "URL is missing a hostname."}), 400
+    if _is_private_or_reserved(hostname):
+        logger.warning("psi-status SSRF blocked: %s", hostname)
+        return jsonify({"error": "URL refers to a private or reserved address."}), 400
+
     params = {"url": test_url, "strategy": test_strategy, "category": "performance"}
     if psi_key:
         params["key"] = psi_key
@@ -1083,16 +1119,18 @@ def api_psi_status():
             score = data.get("lighthouseResult", {}).get("categories", {}).get("performance", {}).get("score")
             psi_result = f"success (score={score})"
         else:
-            psi_result = f"error: {resp.status_code} {resp.text[:200]}"
+            # Do NOT surface the upstream body — could echo back the API key
+            # or other server-side identifiers. Just record the status code.
+            psi_result = f"error (HTTP {resp.status_code})"
     except Exception as exc:
         psi_status = 0
-        psi_result = f"exception: {str(exc)[:200]}"
+        # Generic error label — full traceback goes to the server log only.
+        logger.warning("psi-status probe failed: %s", exc)
+        psi_result = "probe failed"
 
     return jsonify({
         "key_status": key_status,
         "key_length": key_length,
-        "key_prefix": key_prefix,
-        "test_url": test_url,
         "psi_http_status": psi_status,
         "psi_result": psi_result,
     })
