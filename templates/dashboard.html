@@ -46,6 +46,12 @@
 
     </form>
 
+  <!-- Helper text shown when BusinessIdentifier is open and the audit button is disabled -->
+  <div id="audit-cta-hint" aria-live="polite" style="display:none;max-width:680px;margin:12px auto 0;padding:0 8px;text-align:center;color:var(--text-muted);font-size:0.9rem;line-height:1.4;">
+    <span aria-hidden="true" style="display:inline-block;margin-right:6px;transform:translateY(1px);">&#x2193;</span>
+    <span id="audit-cta-hint-text">Complete the fields below to run your audit</span>
+  </div>
+
   <!-- Business name confirmation row: shown when business name is auto-detected -->
   <div id="biz-name-confirmed" aria-live="polite" style="display:none;overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;max-width:680px;margin-left:auto;margin-right:auto;">
     <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">

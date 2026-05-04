@@ -11,12 +11,62 @@ var _detectedBizName = '';
 var _detectedCity = '';
 var _cityWasAutoDetected = false;
 
+/* Funnel analytics flags -- fire each event at most once per page load */
+var _funnelUrlEnteredFired = false;
+var _funnelAuditStartedFired = false;
+
+function trackFunnelEvent(path) {
+  if (typeof window === 'undefined' || typeof window.goatcounter === 'undefined') return;
+  if (typeof window.goatcounter.count !== 'function') return;
+  try {
+    window.goatcounter.count({ path: path, event: true });
+  } catch (e) { /* ignore analytics failures */ }
+}
+
+function updateAuditCtaHint() {
+  var hint = document.getElementById('audit-cta-hint');
+  var hintText = document.getElementById('audit-cta-hint-text');
+  var btn = document.getElementById('auditBtn');
+  if (!hint || !btn) return;
+
+  var overrideWrap = document.getElementById('biz-name-override');
+  var overrideOpen = overrideWrap &&
+    overrideWrap.style.display !== 'none' &&
+    overrideWrap.style.opacity !== '0';
+
+  if (overrideOpen && btn.disabled) {
+    if (hintText) {
+      var nameInput = document.getElementById('override_biz_name');
+      var cityInput = document.getElementById('override_biz_city');
+      var cityWrap = document.getElementById('override-city-wrapper');
+      var cityNeeded = cityWrap && cityWrap.style.display !== 'none';
+      var nameMissing = !nameInput || !nameInput.value.trim();
+      var cityMissing = cityNeeded && (!cityInput || !cityInput.value.trim());
+      var msg;
+      if (nameMissing && cityMissing) {
+        msg = 'Enter your business name and city below to run your audit';
+      } else if (nameMissing) {
+        msg = 'Enter your business name below to run your audit';
+      } else if (cityMissing) {
+        msg = 'Enter your business city below to run your audit';
+      } else {
+        msg = 'Complete the fields below to run your audit';
+      }
+      hintText.textContent = msg;
+    }
+    hint.style.display = 'block';
+  } else {
+    hint.style.display = 'none';
+  }
+}
+
 function enableAuditBtn() {
   var btn = document.getElementById('auditBtn');
   if (!btn) return;
   btn.disabled = false;
   btn.style.opacity = '1';
   btn.style.cursor = 'pointer';
+  updateAuditCtaHint();
 }
 
 function disableAuditBtn() {
@@ -25,6 +75,7 @@ function disableAuditBtn() {
   btn.disabled = true;
   btn.style.opacity = '0.6';
   btn.style.cursor = 'not-allowed';
+  updateAuditCtaHint();
 }
 
 /* ── Slide-panel helpers ─────────────────────────────────────────── */
@@ -115,12 +166,15 @@ function showBizOverride(showCity, hideConfirmed) {
       }
     }, 100);
   }
+
+  updateAuditCtaHint();
 }
 
 function hideBizOverride() {
   var wrapper = document.getElementById('biz-name-override');
   if (!wrapper) return;
   slideUp(wrapper);
+  updateAuditCtaHint();
 }
 
 /* ── Reset all business-related state ──────────────────────────── */
@@ -272,6 +326,13 @@ function detectBusiness() {
   if (!url) return;
   /* Allow re-detection of the same URL (e.g. user re-enters after a run) */
   _lastDetectedUrl = url;
+
+  /* Funnel: user has entered a URL and we are starting business detection.
+     Fire once per page load so the count represents unique funnel entries. */
+  if (!_funnelUrlEnteredFired) {
+    _funnelUrlEnteredFired = true;
+    trackFunnelEvent('funnel/url-entered');
+  }
 
   disableAuditBtn();
   /* Don't call resetBusinessState() here -- the input handler already did it.
@@ -491,6 +552,12 @@ function detectBusiness() {
 
 /* -- Show loading indicator on form submit ---- */
 document.getElementById('runForm').addEventListener('submit', function() {
+  /* Funnel: user successfully submitted the audit form. Fire once per page
+     load so re-submits after server-side validation don't double-count. */
+  if (!_funnelAuditStartedFired) {
+    _funnelAuditStartedFired = true;
+    trackFunnelEvent('funnel/audit-started');
+  }
   var indicator = document.getElementById('loading-indicator');
   if (indicator) indicator.style.display = 'block';
   showAuditSpinner();
