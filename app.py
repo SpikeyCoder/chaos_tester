@@ -583,34 +583,15 @@ def api_status():
 def api_runs():
     """List recent audit runs.
 
-    SECURITY: the run history contains the URLs that customers asked us
-    to audit, plus the resulting status / summary. That is information
-    we should NOT expose to the open internet, so:
+    Open endpoint — no entitlement gate. The bearer-token authenticated
+    API lives in the separate website-auditor-api repo; this dashboard
+    endpoint is just the SPA's view of locally completed runs.
 
-      1. ``X-Requested-With`` is required (CSRF gate; the browser only
-         attaches it on a same-origin or pre-flighted request).
-      2. The caller must hold an active wa_auth subscription. Without
-         this gate, anyone who knew the endpoint name could harvest
-         the audit history of every customer.
-
-    Refs: pentest report 2026-05-03 finding WA-2.
+    The ``X-Requested-With`` requirement is a CSRF gate (the browser
+    only attaches it on a same-origin or pre-flighted request).
     """
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
         return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
-    status, _ent = wa_auth.check_request(request)
-    if status == wa_auth.STATUS_SESSION_EXPIRED:
-        # Cookie was presented but is expired or otherwise unusable. 401
-        # tells the SPA to surface a re-login CTA rather than a paywall.
-        return jsonify({
-            "error": "session_expired",
-            "message": "Your session has expired. Please log in again.",
-        }), 401
-    if status != wa_auth.STATUS_OK:
-        return jsonify({
-            "error": "subscription_required",
-            "message": "An active API subscription or free trial is required to view audit history.",
-            "upgrade_url": "https://api.website-auditor.io/admin_portal/",
-        }), 403
     with _lock:
         runs = [{
             "run_id": r["run_id"],
@@ -634,13 +615,7 @@ def api_ai_query():
     # Gate: require an active paid or trialing subscription at
     # api.website-auditor.io. Verified via the wa_auth cookie set by
     # the admin portal after successful Google / magic-link auth.
-    status, _ent = wa_auth.check_request(request)
-    if status == wa_auth.STATUS_SESSION_EXPIRED:
-        return jsonify({
-            "error": "session_expired",
-            "message": "Your session has expired. Please log in again.",
-        }), 401
-    if status != wa_auth.STATUS_OK:
+    if not wa_auth.is_entitled(request):
         return jsonify({
             "error": "subscription_required",
             "message": "An active API subscription or free trial is required to run custom AI visibility queries.",

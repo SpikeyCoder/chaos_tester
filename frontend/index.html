@@ -507,58 +507,6 @@ function api(path, opts) {
   return fetch(url, merged);
 }
 
-// -- 401/403 rendering helper ---------------------------------------
-// Used by /api/runs callers to surface auth/subscription errors in the
-// UI consistently. The backend returns:
-//   401 {error:"session_expired", message:...}        cookie expired/invalid
-//   403 {error:"subscription_required", message, upgrade_url}
-//   403 {error:"missing_header",       message}        XHR header was stripped
-function renderApiAuthError(container, status, body) {
-  if (!container) return;
-  container.textContent = '';
-  var card = document.createElement('div');
-  card.className = 'card';
-  card.style.cssText = 'padding:24px;text-align:center;';
-
-  var h = document.createElement('h3');
-  h.style.cssText = 'font-size:1.1rem;font-weight:700;margin-bottom:8px;';
-  var p = document.createElement('p');
-  p.className = 'text-muted';
-  p.style.cssText = 'margin-bottom:16px;';
-
-  var err = (body && body.error) || '';
-
-  if (status === 401 || err === 'session_expired') {
-    h.textContent = 'Session expired';
-    p.textContent = (body && body.message) || 'Your session has expired. Please log in again.';
-    var loginLink = document.createElement('a');
-    loginLink.className = 'btn btn-primary';
-    loginLink.href = 'https://api.website-auditor.io/admin_portal/';
-    loginLink.textContent = 'Log in again';
-    card.appendChild(h);
-    card.appendChild(p);
-    card.appendChild(loginLink);
-  } else if (err === 'subscription_required') {
-    h.textContent = 'Subscription required';
-    p.textContent = (body && body.message) || 'An active subscription or free trial is required to view audit history.';
-    var upgradeLink = document.createElement('a');
-    upgradeLink.className = 'btn btn-primary';
-    upgradeLink.href = (body && body.upgrade_url) || 'https://api.website-auditor.io/admin_portal/';
-    upgradeLink.textContent = 'Upgrade or start a free trial';
-    card.appendChild(h);
-    card.appendChild(p);
-    card.appendChild(upgradeLink);
-  } else {
-    // missing_header or anything else 4xx the caller funnelled here.
-    h.textContent = 'Could not load run history';
-    p.textContent = (body && body.message) || 'Request was rejected by the server. Please refresh and try again.';
-    card.appendChild(h);
-    card.appendChild(p);
-  }
-
-  container.appendChild(card);
-}
-
 // -- Connection check ------------------------------------------------
 function checkConnection() {
   var dot = document.getElementById('connDot');
@@ -579,17 +527,7 @@ function checkConnection() {
 function loadHistory() {
   var container = document.getElementById('historyContent');
   api('/api/runs')
-    .then(function(r) {
-      if (r.status === 401 || r.status === 403) {
-        return r.json().catch(function() { return {}; }).then(function(body) {
-          renderApiAuthError(container, r.status, body);
-          var stop = new Error('handled');
-          stop.handled = true;
-          throw stop;
-        });
-      }
-      return r.json();
-    })
+    .then(function(r) { return r.json(); })
     .then(function(runs) {
       if (!runs || runs.length === 0) {
         container.textContent = '';
@@ -672,8 +610,7 @@ function loadHistory() {
       container.textContent = '';
       container.appendChild(table);
     })
-    .catch(function(err) {
-      if (err && err.handled) return;
+    .catch(function() {
       container.textContent = '';
       var p = document.createElement('p');
       p.className = 'text-muted';
@@ -805,34 +742,13 @@ function startSSE() {
       pctEl.style.color = data.msg === 'completed' ? 'var(--green)' : 'var(--red)';
       txt.textContent = data.msg === 'completed' ? 'All tests complete!' : 'Run failed \u2014 see logs.';
 
-      // Fetch runs to get the latest run_id. If the user's session has
-      // expired (401) or they're not entitled (403), surface that into
-      // the progress text instead of silently swallowing the error.
-      api('/api/runs').then(function(r) {
-        if (r.status === 401 || r.status === 403) {
-          return r.json().catch(function() { return {}; }).then(function(body) {
-            var err = (body && body.error) || '';
-            if (r.status === 401 || err === 'session_expired') {
-              txt.textContent = 'Run finished, but your session has expired. Please log in again.';
-            } else if (err === 'subscription_required') {
-              txt.textContent = 'Run finished, but viewing the report requires an active subscription.';
-            } else {
-              txt.textContent = 'Run finished, but the report list could not be loaded.';
-            }
-            var stop = new Error('handled');
-            stop.handled = true;
-            throw stop;
-          });
-        }
-        return r.json();
-      }).then(function(runs) {
+      // Fetch runs to get the latest run_id
+      api('/api/runs').then(function(r) { return r.json(); }).then(function(runs) {
         if (runs && runs.length > 0) {
           reportBtn.href = '#report/' + runs[0].run_id;
           reportBtn.style.display = 'inline-flex';
         }
-      }).catch(function(err) {
-        if (err && err.handled) return;
-      });
+      }).catch(function() {});
     }
   };
 
@@ -865,21 +781,7 @@ function loadReport(runId) {
 
 function loadLatestReport() {
   api('/api/runs')
-    .then(function(r) {
-      if (r.status === 401 || r.status === 403) {
-        return r.json().catch(function() { return {}; }).then(function(body) {
-          // Render the auth/subscription card directly into the report
-          // header so the user sees an actionable CTA instead of being
-          // silently bounced back to the dashboard.
-          renderApiAuthError(document.getElementById('reportHeader'), r.status, body);
-          location.hash = '#report-latest';
-          var stop = new Error('handled');
-          stop.handled = true;
-          throw stop;
-        });
-      }
-      return r.json();
-    })
+    .then(function(r) { return r.json(); })
     .then(function(runs) {
       if (runs && runs.length > 0) {
         location.hash = '#report/' + runs[0].run_id;
@@ -887,8 +789,7 @@ function loadLatestReport() {
         location.hash = '#dashboard';
       }
     })
-    .catch(function(err) {
-      if (err && err.handled) return;
+    .catch(function() {
       location.hash = '#dashboard';
     });
 }
