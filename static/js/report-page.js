@@ -1295,3 +1295,18 @@ function fallbackCopy(text, btn) {
   }
   document.body.removeChild(ta);
 }
+
+/* Wire up the report top-bar action pills (CSP-compliant; no inline handlers) */
+(function initReportActionPills() {
+  var shareBtn = document.getElementById('share-link-btn');
+  if (shareBtn) shareBtn.addEventListener('click', copyShareLink);
+
+  var pdfBtn = document.querySelector('.pill-btn.pill-pdf');
+  if (pdfBtn) pdfBtn.addEventListener('click', downloadPDF);
+
+  var scheduleBtn = document.querySelector('.pill-btn.pill-schedule');
+  if (scheduleBtn) scheduleBtn.addEventListener('click', function() {
+    /* Send the user back to the home page where they can submit a new audit */
+    window.location.href = '/';
+  });
+})();

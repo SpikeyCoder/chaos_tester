@@ -155,3 +155,24 @@ var bugReport = (function() {
 document.getElementById('bugDesc').addEventListener('input', function() {
     document.getElementById('bugCharCount').textContent = this.value.length;
 });
+
+/* Wire up floating bug button + modal controls (CSP-compliant; no inline handlers) */
+(function initBugReportHandlers() {
+    var openBtn = document.querySelector('.bug-btn');
+    if (openBtn) openBtn.addEventListener('click', function() { bugReport.open(); });
+
+    var overlay = document.getElementById('bugOverlay');
+    if (overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) bugReport.close();
+        });
+        var closeBtn = overlay.querySelector('.bug-modal-close');
+        if (closeBtn) closeBtn.addEventListener('click', function() { bugReport.close(); });
+    }
+
+    var form = document.getElementById('bugForm');
+    if (form) form.addEventListener('submit', bugReport.submit);
+
+    var featureCheckbox = document.getElementById('bugIsFeature');
+    if (featureCheckbox) featureCheckbox.addEventListener('change', bugReport.toggleType);
+})();
