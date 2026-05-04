@@ -33,6 +33,14 @@ logger = logging.getLogger("chaos_tester.wa_auth")
 _COOKIE_NAME = "wa_auth"
 _JWT_ALG = "HS256"
 
+# Auth-check outcomes returned by ``check_request``. Routes use these to
+# decide between 401 (cookie present but unusable -> tell the user to log
+# in again) and 403 (authenticated but unentitled -> show upsell).
+STATUS_OK = "ok"
+STATUS_NO_COOKIE = "no_cookie"
+STATUS_SESSION_EXPIRED = "session_expired"
+STATUS_NO_SUBSCRIPTION = "no_subscription"
+
 
 def _shared_secret() -> str:
     """Return the shared HMAC secret, or empty string if unset."""
@@ -40,7 +48,12 @@ def _shared_secret() -> str:
 
 
 def _decode_token(token: str) -> Optional[dict]:
-    """Verify the JWT signature and return its payload, or None on failure."""
+    """Verify the JWT signature and return its payload, or None on failure.
+
+    Treats every non-decodable case as ``None`` for callers that don't care
+    *why* the token is bad. Use ``check_request`` when the distinction
+    between "expired/invalid cookie" and "no cookie at all" matters.
+    """
     secret = _shared_secret()
     if not secret:
         logger.warning("WA_SHARED_SECRET not set — cannot verify wa_auth cookie")
@@ -71,25 +84,44 @@ def get_current_entitlement(request) -> Optional[dict]:
 
     None means "show the upsell banner / block the API call."
     """
-    token = request.cookies.get(_COOKIE_NAME)
-    if not token:
-        return None
-
-    payload = _decode_token(token)
-    if not payload:
-        return None
-
-    user_id = payload.get("sub")
-    if not user_id:
-        return None
-
-    sub = supa.get_active_subscription(user_id)
-    if not sub:
-        return None
-
-    return {"user_id": user_id, "subscription": sub}
+    _, ent = check_request(request)
+    return ent
 
 
 def is_entitled(request) -> bool:
     """Convenience wrapper that returns only the boolean."""
     return get_current_entitlement(request) is not None
+
+
+def check_request(request):
+    """Inspect the wa_auth cookie and return ``(status, entitlement)``.
+
+    ``status`` is one of the ``STATUS_*`` constants:
+
+      - ``STATUS_OK``                 caller is authenticated and entitled
+      - ``STATUS_NO_COOKIE``          no wa_auth cookie at all
+      - ``STATUS_SESSION_EXPIRED``    cookie present but expired or invalid
+      - ``STATUS_NO_SUBSCRIPTION``    cookie valid but no active subscription
+
+    The ``entitlement`` dict is only populated for ``STATUS_OK``.
+
+    Distinguishing "no cookie / expired" from "no subscription" lets routes
+    return 401 (re-login) vs 403 (upsell) appropriately.
+    """
+    token = request.cookies.get(_COOKIE_NAME)
+    if not token:
+        return STATUS_NO_COOKIE, None
+
+    payload = _decode_token(token)
+    if not payload:
+        return STATUS_SESSION_EXPIRED, None
+
+    user_id = payload.get("sub")
+    if not user_id:
+        return STATUS_SESSION_EXPIRED, None
+
+    sub = supa.get_active_subscription(user_id)
+    if not sub:
+        return STATUS_NO_SUBSCRIPTION, None
+
+    return STATUS_OK, {"user_id": user_id, "subscription": sub}

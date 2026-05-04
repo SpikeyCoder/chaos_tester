@@ -318,7 +318,7 @@ def start_run():
     # (the custom header triggers a CORS preflight, which blocks cross-site CSRF)
     if is_json:
         if request.headers.get("X-Requested-With") != "XMLHttpRequest":
-            abort(403, "Missing X-Requested-With header.")
+            return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
     else:
         _validate_csrf_token()
 
@@ -596,9 +596,21 @@ def api_runs():
     Refs: pentest report 2026-05-03 finding WA-2.
     """
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
-        abort(403, "Missing X-Requested-With header.")
-    if not wa_auth.is_entitled(request):
-        return jsonify({"error": "subscription_required"}), 403
+        return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
+    status, _ent = wa_auth.check_request(request)
+    if status == wa_auth.STATUS_SESSION_EXPIRED:
+        # Cookie was presented but is expired or otherwise unusable. 401
+        # tells the SPA to surface a re-login CTA rather than a paywall.
+        return jsonify({
+            "error": "session_expired",
+            "message": "Your session has expired. Please log in again.",
+        }), 401
+    if status != wa_auth.STATUS_OK:
+        return jsonify({
+            "error": "subscription_required",
+            "message": "An active API subscription or free trial is required to view audit history.",
+            "upgrade_url": "https://api.website-auditor.io/admin_portal/",
+        }), 403
     with _lock:
         runs = [{
             "run_id": r["run_id"],
@@ -617,12 +629,18 @@ def api_runs():
 def api_ai_query():
     """Run a custom AI visibility query against all platforms."""
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
-        abort(403, "Missing X-Requested-With header.")
+        return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
 
     # Gate: require an active paid or trialing subscription at
     # api.website-auditor.io. Verified via the wa_auth cookie set by
     # the admin portal after successful Google / magic-link auth.
-    if not wa_auth.is_entitled(request):
+    status, _ent = wa_auth.check_request(request)
+    if status == wa_auth.STATUS_SESSION_EXPIRED:
+        return jsonify({
+            "error": "session_expired",
+            "message": "Your session has expired. Please log in again.",
+        }), 401
+    if status != wa_auth.STATUS_OK:
         return jsonify({
             "error": "subscription_required",
             "message": "An active API subscription or free trial is required to run custom AI visibility queries.",
@@ -760,7 +778,7 @@ def api_bug_report():
     import base64
 
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
-        abort(403, "Missing X-Requested-With header.")
+        return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
 
     data = request.get_json(silent=True) or {}
     description = (data.get("description") or "").strip()
@@ -881,7 +899,7 @@ def detect_business():
     from .safe_http import SafeSession, SSRFBlockedError
 
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
-        abort(403, "Missing X-Requested-With header.")
+        return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
 
     data = request.get_json(silent=True) or {}
     url = (data.get("url") or "").strip()
