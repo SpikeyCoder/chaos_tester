@@ -603,6 +603,42 @@ function runCustomAIQuery() {
     body: JSON.stringify({ query: query, run_id: runId })
   })
   .then(function(r) {
+    // Subscription gate: render an upsell card with a real CTA instead
+    // of the generic "Query failed: subscription_required" string.
+    if (r.status === 403) {
+      return r.json().catch(function() { return {}; }).then(function(body) {
+        if (body && body.error === 'subscription_required') {
+          statusEl.style.display = 'none';
+          btn.disabled = false;
+          btn.textContent = 'Run Query';
+          errorEl.textContent = '';
+          var url = body.upgrade_url || 'https://api.website-auditor.io/admin_portal/';
+          var card = document.createElement('div');
+          card.style.cssText = 'background:var(--surface);border-left:4px solid var(--accent);padding:16px;border-radius:8px;text-align:left;';
+          var h = document.createElement('div');
+          h.style.cssText = 'font-weight:600;margin-bottom:6px;';
+          h.textContent = 'Subscription required';
+          var p = document.createElement('div');
+          p.style.cssText = 'color:var(--text-muted);font-size:0.9rem;margin-bottom:10px;';
+          p.textContent = body.message || 'Custom AI Visibility queries require an active subscription or free trial.';
+          var a = document.createElement('a');
+          a.className = 'btn btn-primary';
+          a.href = url;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = 'Upgrade or start a free trial';
+          card.appendChild(h);
+          card.appendChild(p);
+          card.appendChild(a);
+          errorEl.appendChild(card);
+          errorEl.style.display = 'block';
+          var stop = new Error('handled');
+          stop.handled = true;
+          throw stop;
+        }
+        throw new Error((body && body.error) || r.statusText);
+      });
+    }
     if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || r.statusText); });
     return r.json();
   })
@@ -657,6 +693,7 @@ function runCustomAIQuery() {
     resultsEl.style.display = 'block';
   })
   .catch(function(err) {
+    if (err && err.handled) return;
     statusEl.style.display = 'none';
     btn.disabled = false;
     btn.textContent = 'Run Query';

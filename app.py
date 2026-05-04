@@ -318,7 +318,7 @@ def start_run():
     # (the custom header triggers a CORS preflight, which blocks cross-site CSRF)
     if is_json:
         if request.headers.get("X-Requested-With") != "XMLHttpRequest":
-            abort(403, "Missing X-Requested-With header.")
+            return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
     else:
         _validate_csrf_token()
 
@@ -581,9 +581,17 @@ def api_status():
 
 @app.route("/api/runs")
 def api_runs():
-    # Require X-Requested-With to prevent cross-origin abuse
+    """List recent audit runs.
+
+    Open endpoint — no entitlement gate. The bearer-token authenticated
+    API lives in the separate website-auditor-api repo; this dashboard
+    endpoint is just the SPA's view of locally completed runs.
+
+    The ``X-Requested-With`` requirement is a CSRF gate (the browser
+    only attaches it on a same-origin or pre-flighted request).
+    """
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
-        abort(403, "Missing X-Requested-With header.")
+        return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
     with _lock:
         runs = [{
             "run_id": r["run_id"],
@@ -602,7 +610,7 @@ def api_runs():
 def api_ai_query():
     """Run a custom AI visibility query against all platforms."""
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
-        abort(403, "Missing X-Requested-With header.")
+        return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
 
     # Gate: require an active paid or trialing subscription at
     # api.website-auditor.io. Verified via the wa_auth cookie set by
@@ -745,7 +753,7 @@ def api_bug_report():
     import base64
 
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
-        abort(403, "Missing X-Requested-With header.")
+        return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
 
     data = request.get_json(silent=True) or {}
     description = (data.get("description") or "").strip()
@@ -866,7 +874,7 @@ def detect_business():
     from .safe_http import SafeSession, SSRFBlockedError
 
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
-        abort(403, "Missing X-Requested-With header.")
+        return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
 
     data = request.get_json(silent=True) or {}
     url = (data.get("url") or "").strip()

@@ -485,9 +485,26 @@ function setNav(id) {
 window.addEventListener('hashchange', function() { navigate(location.hash); });
 
 // -- API helper ------------------------------------------------------
+// All calls clear the backend's X-Requested-With CSRF gate by default.
+// Caller-supplied headers in opts.headers win on conflict (so a caller
+// can still override Content-Type or any other header).
 function api(path, opts) {
   var url = apiUrl.replace(/\/+$/, '') + path;
-  return fetch(url, opts);
+  opts = opts || {};
+  var headers = { 'X-Requested-With': 'XMLHttpRequest' };
+  if (opts.headers) {
+    for (var k in opts.headers) {
+      if (Object.prototype.hasOwnProperty.call(opts.headers, k)) {
+        headers[k] = opts.headers[k];
+      }
+    }
+  }
+  var merged = {};
+  for (var key in opts) {
+    if (Object.prototype.hasOwnProperty.call(opts, key)) merged[key] = opts[key];
+  }
+  merged.headers = headers;
+  return fetch(url, merged);
 }
 
 // -- Connection check ------------------------------------------------
