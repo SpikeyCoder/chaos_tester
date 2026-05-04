@@ -1,0 +1,14 @@
+# Default reviewer for everything in the repo.
+*                              @SpikeyCoder
+
+# Security-sensitive surfaces always require owner approval.
+/SECURITY.md                   @SpikeyCoder
+/compliance/                   @SpikeyCoder
+/.github/                      @SpikeyCoder
+/safe_http.py                  @SpikeyCoder
+/wa_auth.py                    @SpikeyCoder
+/app.py                        @SpikeyCoder
+/modules/auth.py               @SpikeyCoder
+/modules/security.py           @SpikeyCoder
+/Dockerfile                    @SpikeyCoder
+/requirements.txt              @SpikeyCoder
