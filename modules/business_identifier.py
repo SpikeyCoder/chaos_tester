@@ -213,9 +213,15 @@ _US_STATES = {
 class BusinessIdentifier:
     """Identifies the business name, headquarters city, and sector for a given website."""
 
-    def __init__(self, session: requests.Session = None, timeout: int = 4):
+    def __init__(
+        self,
+        session: requests.Session = None,
+        timeout: int = 4,
+        google_places_api_key: str = "",
+    ):
         self.session = session or requests.Session()
         self.timeout = timeout
+        self.google_places_api_key = google_places_api_key or ""
         self._irs_cache: dict = {}  # name -> IRS response, avoids duplicate calls
 
     # ------------------------------------------------------------------
@@ -387,6 +393,20 @@ class BusinessIdentifier:
                     return loc, label
             except Exception as exc:
                 logger.debug("%s lookup failed: %s", label, exc)
+
+        # Source 5: Google Places Text Search (final fallback, requires API key)
+        if self.google_places_api_key and business_name:
+            domain = ""
+            if url:
+                try:
+                    parsed = urlparse(url)
+                    domain = re.sub(r"^www\.", "", parsed.hostname or "")
+                except Exception:
+                    domain = ""
+            loc = self._lookup_google_places(business_name, domain)
+            if loc:
+                logger.info("Location from google_places: %r", loc)
+                return loc, "google_places"
 
         return "", ""
 
@@ -760,6 +780,50 @@ class BusinessIdentifier:
             if ntee:
                 return ntee
         return ""
+
+    def _lookup_google_places(self, business_name: str, domain: str = "") -> str:
+        """Use Google Places Text Search to resolve a business to 'City, ST'."""
+        if not self.google_places_api_key:
+            return ""
+        if not business_name:
+            return ""
+        query = f"{business_name} {domain}".strip() if domain else business_name
+        try:
+            resp = requests.post(
+                "https://places.googleapis.com/v1/places:searchText",
+                headers={
+                    "X-Goog-Api-Key": self.google_places_api_key,
+                    "X-Goog-FieldMask": "places.addressComponents,places.formattedAddress",
+                    "Content-Type": "application/json",
+                },
+                json={"textQuery": query},
+                timeout=min(self.timeout, 4),
+            )
+            if resp.status_code != 200:
+                logger.warning(
+                    "Google Places returned %d for %r: %s",
+                    resp.status_code, query, resp.text[:200],
+                )
+                return ""
+            data = resp.json() or {}
+            places = data.get("places") or []
+            if not places:
+                return ""
+            components = places[0].get("addressComponents") or []
+            city = ""
+            state = ""
+            for comp in components:
+                types = comp.get("types") or []
+                if "locality" in types and not city:
+                    city = comp.get("shortText") or comp.get("longText") or ""
+                elif "administrative_area_level_1" in types and not state:
+                    state = comp.get("shortText") or comp.get("longText") or ""
+            if state and state.upper() in _US_STATES and city:
+                return f"{city}, {state.upper()}"
+            return ""
+        except Exception as exc:
+            logger.warning("Google Places lookup failed for %r: %s", query, exc)
+            return ""
 
     # ==================================================================
     # Sector detection helpers

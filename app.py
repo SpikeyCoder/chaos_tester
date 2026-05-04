@@ -896,7 +896,14 @@ def detect_business():
     try:
         sess = SafeSession()
         sess.headers["User-Agent"] = "ChaosMonkeyTester/1.0 (business-detect)"
-        identifier = BusinessIdentifier(session=sess, timeout=10)
+        identifier = BusinessIdentifier(
+            session=sess,
+            timeout=10,
+            google_places_api_key=app.config.get(
+                "GOOGLE_PLACES_API_KEY",
+                os.environ.get("GOOGLE_PLACES_API_KEY", ""),
+            ),
+        )
         result = identifier.identify(url)
         return jsonify({
             "business_name": result.get("business_name", ""),
