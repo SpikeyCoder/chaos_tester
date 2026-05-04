@@ -969,21 +969,21 @@ async function downloadPDF() {
     var bottomLimit = pageH - 14;
     var y = 16;
 
-    /* ── Color palette ─────────────────────────────── */
+    /* ── Color palette (light/print theme) ─────────── */
     var colors = {
-      brand:    [59, 130, 246],
-      darkBg:   [15, 23, 42],
-      cardBg:   [30, 41, 59],
-      surface2: [20, 30, 48],
+      brand:    [59, 130, 246],   // brand blue (table header bg)
+      cardBg:   [245, 247, 250],  // light gray card surface
+      altRow:   [248, 250, 252],  // very light gray alt row
       white:    [255, 255, 255],
-      muted:    [148, 163, 184],
-      text:     [203, 213, 225],
-      green:    [74, 222, 128],
-      red:      [239, 68, 68],
-      yellow:   [234, 179, 8],
-      orange:   [249, 115, 22],
-      border:   [51, 65, 85],
-      purple:   [139, 92, 246]
+      text:     [30, 41, 59],     // near-black body text
+      heading:  [15, 23, 42],     // darker for headings
+      muted:    [100, 116, 139],  // mid gray for subtext
+      green:    [22, 163, 74],    // legible green on white
+      red:      [220, 38, 38],    // legible red on white
+      yellow:   [161, 98, 7],     // dark amber - legible on white
+      orange:   [194, 65, 12],    // dark orange - legible on white
+      border:   [203, 213, 225],  // soft border on white
+      alertBg:  [254, 242, 242]   // soft red wash for alert
     };
 
     /* ── Helpers ──────────────────────────────────── */
@@ -992,21 +992,16 @@ async function downloadPDF() {
       if (stroke) doc.setDrawColor.apply(doc, stroke);
       doc.roundedRect(x, ry, w, h, r, r, stroke ? 'FD' : 'F');
     }
-    function drawPageBg() {
-      doc.setFillColor.apply(doc, colors.darkBg);
-      doc.rect(0, 0, pageW, pageH, 'F');
-    }
     function ensureSpace(needed) {
       if (y + needed > bottomLimit) {
         doc.addPage();
-        drawPageBg();
         y = margin;
       }
     }
     function newSection(title, subtitle) {
       ensureSpace(subtitle ? 18 : 12);
       doc.setFontSize(13); doc.setFont('helvetica', 'bold');
-      doc.setTextColor.apply(doc, colors.white);
+      doc.setTextColor.apply(doc, colors.heading);
       doc.text(title, margin, y + 6);
       if (subtitle) {
         doc.setFontSize(8); doc.setFont('helvetica', 'normal');
@@ -1051,20 +1046,16 @@ async function downloadPDF() {
           font: 'helvetica'
         },
         headStyles: {
-          fillColor: colors.cardBg,
+          fillColor: colors.brand,
           textColor: colors.white,
           fontStyle: 'bold',
           fontSize: 7.5,
           halign: 'left'
         },
-        alternateRowStyles: { fillColor: colors.surface2 },
-        bodyStyles: { fillColor: colors.darkBg },
-        didDrawPage: drawPageBg,
-        willDrawPage: drawPageBg
+        alternateRowStyles: { fillColor: colors.altRow },
+        bodyStyles: { fillColor: colors.white }
       }, extra);
     }
-
-    drawPageBg();
 
     /* ── Header bar ───────────────────────────────── */
     var domain = (reportData.base_url || '').replace(/^https?:\/\//, '');
@@ -1075,14 +1066,14 @@ async function downloadPDF() {
     var score = Math.round(s.pass_rate || 0);
     var scoreColor = score >= 90 ? colors.green : (score >= 70 ? colors.orange : colors.red);
 
-    roundRect(margin, y, usable, 24, 3, colors.cardBg);
+    roundRect(margin, y, usable, 24, 3, colors.cardBg, colors.border);
     doc.setFontSize(17); doc.setFont('helvetica', 'bold');
-    doc.setTextColor.apply(doc, colors.white);
+    doc.setTextColor.apply(doc, colors.heading);
     doc.text('Audit Report', margin + 6, y + 10);
     doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-    doc.setTextColor.apply(doc, colors.muted);
+    doc.setTextColor.apply(doc, colors.text);
     doc.text(domain, margin + 6, y + 16);
-    doc.setFontSize(8);
+    doc.setFontSize(8); doc.setTextColor.apply(doc, colors.muted);
     doc.text(startedAt + '  •  ' + (reportData.duration_s || 0) + 's', margin + 6, y + 21);
     /* Score on right of header */
     doc.setFontSize(22); doc.setFont('helvetica', 'bold');
@@ -1104,7 +1095,7 @@ async function downloadPDF() {
     ];
     metrics.forEach(function(m, i) {
       var mx = margin + i * (mw + 4);
-      roundRect(mx, y, mw, metricCardH, 2, colors.cardBg);
+      roundRect(mx, y, mw, metricCardH, 2, colors.cardBg, colors.border);
       doc.setFontSize(15); doc.setFont('helvetica', 'bold');
       doc.setTextColor.apply(doc, m.color);
       doc.text(m.value, mx + 4, y + 10);
@@ -1117,7 +1108,7 @@ async function downloadPDF() {
     /* Alert banner */
     if (critIssues > 0) {
       ensureSpace(14);
-      roundRect(margin, y, usable, 12, 2, [50, 20, 20], colors.red);
+      roundRect(margin, y, usable, 12, 2, colors.alertBg, colors.red);
       doc.setFontSize(9); doc.setFont('helvetica', 'bold');
       doc.setTextColor.apply(doc, colors.red);
       doc.text('!  ' + critIssues + ' Critical Issue' + (critIssues !== 1 ? 's' : '') + ' require immediate attention', margin + 6, y + 7.5);
@@ -1177,7 +1168,7 @@ async function downloadPDF() {
 
         /* Title */
         doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-        doc.setTextColor.apply(doc, colors.white);
+        doc.setTextColor.apply(doc, colors.heading);
         doc.text(titleLines, margin + 16, y + 8);
 
         /* Severity badge (right-aligned with title row) */
@@ -1240,7 +1231,7 @@ async function downloadPDF() {
       newSection('Overview', 'Per-module summary scores');
       var gaugeBlockH = 30;
       ensureSpace(gaugeBlockH + 6);
-      roundRect(margin, y, usable, gaugeBlockH, 3, colors.cardBg);
+      roundRect(margin, y, usable, gaugeBlockH, 3, colors.cardBg, colors.border);
       var gCount = overviewSections.length;
       var gSpacing = usable / gCount;
       overviewSections.forEach(function(secItem, i) {
@@ -1288,9 +1279,9 @@ async function downloadPDF() {
 
         ensureSpace(14);
         /* Sub-header bar */
-        roundRect(margin, y, usable, 10, 2, colors.cardBg);
+        roundRect(margin, y, usable, 10, 2, colors.cardBg, colors.border);
         doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-        doc.setTextColor.apply(doc, colors.white);
+        doc.setTextColor.apply(doc, colors.heading);
         doc.text(label + ' — Lighthouse Score', margin + 4, y + 6.8);
         doc.setFontSize(11); doc.setTextColor.apply(doc, lhColor);
         doc.text(lhScore.toString(), pageW - margin - 4, y + 6.8, { align: 'right' });
@@ -1336,7 +1327,7 @@ async function downloadPDF() {
         if (perfRecs.length > 0) {
           ensureSpace(8);
           doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-          doc.setTextColor.apply(doc, colors.white);
+          doc.setTextColor.apply(doc, colors.heading);
           doc.text('Top Recommendations', margin, y + 4);
           y += 7;
           perfRecs.slice(0, 3).forEach(function(rec) {
@@ -1348,12 +1339,12 @@ async function downloadPDF() {
             var cardH = 5 + titleLines.length * 4 + descLines.length * 3.6 + (savings ? 4 : 0) + 4;
             ensureSpace(cardH + 3);
             var recColor = rec.score == null ? colors.muted : (rec.score < 0.5 ? colors.red : (rec.score < 0.9 ? colors.yellow : colors.green));
-            roundRect(margin, y, usable, cardH, 2, colors.surface2);
+            roundRect(margin, y, usable, cardH, 2, colors.altRow, colors.border);
             /* Color indicator stripe */
             doc.setFillColor.apply(doc, recColor);
             doc.rect(margin, y, 1.5, cardH, 'F');
             doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
-            doc.setTextColor.apply(doc, colors.white);
+            doc.setTextColor.apply(doc, colors.heading);
             doc.text(titleLines, margin + 4, y + 5);
             doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
             doc.setTextColor.apply(doc, colors.text);
@@ -1436,12 +1427,12 @@ async function downloadPDF() {
       var bizInfo = ai.business_info || {};
       var sumCards = [
         { value: ai.overall_score + '%', label: 'Overall AI Visibility', color: aiScoreColor },
-        { value: (ai.total_appearances || 0) + '/' + (ai.total_queries || 0), label: 'Appearances in AI Results', color: colors.white },
-        { value: bizInfo.business_name || '—', label: ((bizInfo.sector || '') + (bizInfo.location ? ' — ' + bizInfo.location : '')) || 'Business', color: colors.white }
+        { value: (ai.total_appearances || 0) + '/' + (ai.total_queries || 0), label: 'Appearances in AI Results', color: colors.heading },
+        { value: bizInfo.business_name || '—', label: ((bizInfo.sector || '') + (bizInfo.location ? ' — ' + bizInfo.location : '')) || 'Business', color: colors.heading }
       ];
       sumCards.forEach(function(c, i) {
         var cx = margin + i * (sumW + 4);
-        roundRect(cx, y, sumW, sumH, 2, colors.cardBg);
+        roundRect(cx, y, sumW, sumH, 2, colors.cardBg, colors.border);
         doc.setFontSize(c.value.length > 18 ? 9 : 13); doc.setFont('helvetica', 'bold');
         doc.setTextColor.apply(doc, c.color);
         doc.text(truncate(c.value, 32), cx + sumW / 2, y + 10, { align: 'center' });
@@ -1465,7 +1456,7 @@ async function downloadPDF() {
       if (platformRows.length > 0) {
         ensureSpace(8);
         doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-        doc.setTextColor.apply(doc, colors.white);
+        doc.setTextColor.apply(doc, colors.heading);
         doc.text('Platform Scores', margin, y + 4);
         y += 7;
         doc.autoTable(autoTableShared({
@@ -1494,7 +1485,7 @@ async function downloadPDF() {
       if (aiAll.length > 0) {
         ensureSpace(8);
         doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-        doc.setTextColor.apply(doc, colors.white);
+        doc.setTextColor.apply(doc, colors.heading);
         doc.text('Query Results (' + aiAll.length + ')', margin, y + 4);
         y += 7;
 
