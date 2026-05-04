@@ -963,8 +963,10 @@ async function downloadPDF() {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     var pageW = doc.internal.pageSize.getWidth();
+    var pageH = doc.internal.pageSize.getHeight();
     var margin = 16;
     var usable = pageW - margin * 2;
+    var bottomLimit = pageH - 14;
     var y = 16;
 
     /* ── Color palette ─────────────────────────────── */
@@ -972,220 +974,77 @@ async function downloadPDF() {
       brand:    [59, 130, 246],
       darkBg:   [15, 23, 42],
       cardBg:   [30, 41, 59],
+      surface2: [20, 30, 48],
       white:    [255, 255, 255],
       muted:    [148, 163, 184],
+      text:     [203, 213, 225],
       green:    [74, 222, 128],
       red:      [239, 68, 68],
       yellow:   [234, 179, 8],
       orange:   [249, 115, 22],
-      border:   [51, 65, 85]
+      border:   [51, 65, 85],
+      purple:   [139, 92, 246]
     };
 
-    /* ── Helper: draw rounded rect ────────────────── */
-    function roundRect(x, y, w, h, r, fill, stroke) {
+    /* ── Helpers ──────────────────────────────────── */
+    function roundRect(x, ry, w, h, r, fill, stroke) {
       doc.setFillColor.apply(doc, fill || colors.cardBg);
       if (stroke) doc.setDrawColor.apply(doc, stroke);
-      doc.roundedRect(x, y, w, h, r, r, stroke ? 'FD' : 'F');
+      doc.roundedRect(x, ry, w, h, r, r, stroke ? 'FD' : 'F');
     }
-
-    /* ── Page background ──────────────────────────── */
     function drawPageBg() {
       doc.setFillColor.apply(doc, colors.darkBg);
-      doc.rect(0, 0, pageW, doc.internal.pageSize.getHeight(), 'F');
+      doc.rect(0, 0, pageW, pageH, 'F');
     }
-    drawPageBg();
-
-    /* ── Header bar ───────────────────────────────── */
-    roundRect(margin, y, usable, 20, 3, colors.cardBg);
-    doc.setFontSize(16); doc.setFont('helvetica', 'bold');
-    doc.setTextColor.apply(doc, colors.white);
-    doc.text('Audit Report', margin + 6, y + 9);
-    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-    doc.setTextColor.apply(doc, colors.muted);
-    var domain = (reportData.base_url || '').replace(/^https?:\/\//, '');
-    doc.text(domain + '  •  ' + (reportData.started_at || '').slice(0, 19) + '  •  ' + reportData.duration_s + 's', margin + 6, y + 15);
-    y += 26;
-
-    /* ── Executive Summary card ───────────────────── */
-    var s = reportData.summary || {};
-    var totalIssues = (s.failed || 0) + (s.errors || 0) + (s.warnings || 0);
-    var critIssues = (s.failed || 0) + (s.errors || 0);
-    var score = Math.round(s.pass_rate || 0);
-    var scoreColor = score >= 90 ? colors.green : (score >= 70 ? colors.orange : colors.red);
-
-    roundRect(margin, y, usable, 48, 3, colors.cardBg);
-    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-    doc.setTextColor.apply(doc, colors.white);
-    doc.text('Executive Summary', margin + 6, y + 10);
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-    doc.setTextColor.apply(doc, colors.muted);
-    doc.text('Overall website health and critical findings', margin + 6, y + 16);
-
-    /* Score */
-    doc.setFontSize(32); doc.setFont('helvetica', 'bold');
-    doc.setTextColor.apply(doc, scoreColor);
-    doc.text(score.toString(), pageW - margin - 6, y + 14, { align: 'right' });
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-    doc.setTextColor.apply(doc, colors.muted);
-    doc.text('Overall Score', pageW - margin - 6, y + 19, { align: 'right' });
-
-    /* Metric boxes inside the card */
-    var metricsY = y + 24;
-    var mw = (usable - 24) / 4;
-    var metrics = [
-      { label: 'Total Issues', value: totalIssues.toString(), color: colors.yellow },
-      { label: 'Critical Issues', value: critIssues.toString(), color: colors.red },
-      { label: 'Checks Passed', value: (s.passed || 0).toString(), color: colors.green },
-      { label: 'Scan Duration', value: reportData.duration_s + 's', color: colors.brand }
-    ];
-    metrics.forEach(function(m, i) {
-      var mx = margin + 6 + i * (mw + 4);
-      roundRect(mx, metricsY, mw, 18, 2, colors.darkBg);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.setTextColor.apply(doc, m.color);
-      doc.text(m.value, mx + 4, metricsY + 8);
-      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-      doc.setTextColor.apply(doc, colors.muted);
-      doc.text(m.label, mx + 4, metricsY + 14);
-    });
-    y += 54;
-
-    /* ── Alert banner (if critical issues) ────────── */
-    if (critIssues > 0) {
-      roundRect(margin, y, usable, 12, 2, [50, 20, 20], colors.red);
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-      doc.setTextColor.apply(doc, colors.red);
-      doc.text('⚠  ' + critIssues + ' Critical Issue' + (critIssues !== 1 ? 's' : '') + ' Require Immediate Attention', margin + 6, y + 7.5);
-      y += 16;
+    function ensureSpace(needed) {
+      if (y + needed > bottomLimit) {
+        doc.addPage();
+        drawPageBg();
+        y = margin;
+      }
     }
-
-    /* ── Snapshot Summary (ring gauges in PDF) ──────── */
-    var pdfResults = reportData.results || [];
-    var pdfModules = {};
-    pdfResults.forEach(function(r) {
-      var m = r.module || 'other';
-      if (!pdfModules[m]) pdfModules[m] = { total: 0, passed: 0 };
-      pdfModules[m].total++;
-      if (r.status === 'passed') pdfModules[m].passed++;
-    });
-    function pdfRate(m) { return pdfModules[m] ? Math.round((pdfModules[m].passed / pdfModules[m].total) * 100) : null; }
-    function pdfCombine() {
-      var t = 0, p = 0;
-      for (var i = 0; i < arguments.length; i++) { var m = pdfModules[arguments[i]]; if (m) { t += m.total; p += m.passed; } }
-      return t > 0 ? Math.round((p / t) * 100) : null;
-    }
-    var pdfPerf = reportData.performance_metrics || {};
-    var pdfPerfScore = null;
-    if (pdfPerf.mobile && pdfPerf.mobile.score != null) pdfPerfScore = Math.round(pdfPerf.mobile.score * 100);
-    else if (pdfPerf.desktop && pdfPerf.desktop.score != null) pdfPerfScore = Math.round(pdfPerf.desktop.score * 100);
-
-    var pdfSections = [];
-    if (pdfPerfScore !== null) pdfSections.push({ label: 'Performance', score: pdfPerfScore });
-    var pdfSec = pdfCombine('security', 'auth');
-    if (pdfSec !== null) pdfSections.push({ label: 'Security', score: pdfSec });
-    var pdfAvail = pdfRate('availability');
-    if (pdfAvail !== null) pdfSections.push({ label: 'Availability', score: pdfAvail });
-    var pdfLf = pdfCombine('links', 'forms');
-    if (pdfLf !== null) pdfSections.push({ label: 'Links & Forms', score: pdfLf });
-    var pdfCh = pdfRate('chaos');
-    if (pdfCh !== null) pdfSections.push({ label: 'Resilience', score: pdfCh });
-
-    if (pdfSections.length > 0) {
-      var gaugeCardH = 34;
-      roundRect(margin, y, usable, gaugeCardH, 3, colors.cardBg);
-      doc.setFontSize(11); doc.setFont('helvetica', 'bold');
-      doc.setTextColor.apply(doc, colors.white);
-      doc.text('Snapshot Summary', margin + 6, y + 8);
-      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-      doc.setTextColor.apply(doc, colors.muted);
-      doc.text('Core Web Vitals and performance metrics', margin + 6, y + 13);
-
-      var gCount = pdfSections.length;
-      var gSpacing = usable / (gCount + 1);
-      pdfSections.forEach(function(sec, i) {
-        var gx = margin + gSpacing * (i + 1);
-        var gy = y + 22;
-        var gr = 6; // radius in mm
-        var gScore = sec.score;
-        var gColor = gScore >= 90 ? colors.green : (gScore >= 70 ? colors.orange : colors.red);
-        var gBgColor = colors.border;
-
-        /* Background circle */
-        doc.setDrawColor.apply(doc, gBgColor);
-        doc.setLineWidth(1.8);
-        doc.circle(gx, gy, gr, 'S');
-
-        /* Score arc — approximate with a thick colored arc */
-        doc.setDrawColor.apply(doc, gColor);
-        doc.setLineWidth(1.8);
-        var startAngle = -90 * (Math.PI / 180);
-        var endAngle = startAngle + (gScore / 100) * 2 * Math.PI;
-        /* Draw arc as small line segments */
-        var steps = Math.max(Math.round(gScore / 2), 1);
-        for (var st = 0; st < steps; st++) {
-          var a1 = startAngle + (st / steps) * (endAngle - startAngle);
-          var a2 = startAngle + ((st + 1) / steps) * (endAngle - startAngle);
-          var x1 = gx + gr * Math.cos(a1), y1 = gy + gr * Math.sin(a1);
-          var x2 = gx + gr * Math.cos(a2), y2 = gy + gr * Math.sin(a2);
-          doc.line(x1, y1, x2, y2);
-        }
-
-        /* Score text */
-        doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-        doc.setTextColor.apply(doc, gColor);
-        doc.text(gScore.toString(), gx, gy + 3, { align: 'center' });
-
-        /* Label */
-        doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-        doc.setTextColor.apply(doc, colors.muted);
-        doc.text(sec.label, gx, gy + gr + 6, { align: 'center' });
-      });
-      y += gaugeCardH + 6;
-    }
-
-    /* ── Results Table ────────────────────────────── */
-    var results = reportData.results || [];
-    if (results.length > 0) {
+    function newSection(title, subtitle) {
+      ensureSpace(subtitle ? 18 : 12);
       doc.setFontSize(13); doc.setFont('helvetica', 'bold');
       doc.setTextColor.apply(doc, colors.white);
-      doc.text('Detailed Results (' + results.length + ' tests)', margin, y + 6);
-      y += 12;
-
-      /* Sort: failed/error first, then warning, then passed */
-      var order = { failed: 0, error: 1, warning: 2, passed: 3, skipped: 4 };
-      var sorted = results.slice().sort(function(a, b) {
-        return (order[a.status] || 9) - (order[b.status] || 9);
-      });
-
-      var statusColors = {
-        passed:  colors.green,
-        failed:  colors.red,
-        error:   colors.red,
-        warning: colors.yellow,
-        skipped: colors.muted
-      };
-
-      var tableBody = sorted.map(function(r) {
-        return [
-          (r.status || '').toUpperCase(),
-          r.severity || '',
-          r.module || '',
-          r.name || '',
-          (r.details || r.description || '').substring(0, 120) + ((r.details || r.description || '').length > 120 ? '…' : ''),
-          r.recommendation ? r.recommendation.substring(0, 100) + (r.recommendation.length > 100 ? '…' : '') : '—'
-        ];
-      });
-
-      doc.autoTable({
-        startY: y,
+      doc.text(title, margin, y + 6);
+      if (subtitle) {
+        doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+        doc.setTextColor.apply(doc, colors.muted);
+        doc.text(subtitle, margin, y + 11);
+        y += 16;
+      } else {
+        y += 12;
+      }
+    }
+    function truncate(str, n) {
+      str = (str == null ? '' : String(str));
+      if (str.length <= n) return str;
+      return str.substring(0, n - 1).trimEnd() + '…';
+    }
+    function severityBadgeColor(sev) {
+      sev = (sev || '').toLowerCase();
+      if (sev === 'critical') return colors.red;
+      if (sev === 'high') return colors.orange;
+      if (sev === 'medium') return colors.yellow;
+      if (sev === 'low') return colors.brand;
+      return colors.muted;
+    }
+    function statusColor(st) {
+      st = (st || '').toLowerCase();
+      if (st === 'passed') return colors.green;
+      if (st === 'failed' || st === 'error') return colors.red;
+      if (st === 'warning') return colors.yellow;
+      return colors.muted;
+    }
+    function autoTableShared(extra) {
+      return Object.assign({
         margin: { left: margin, right: margin },
-        head: [['Status', 'Severity', 'Module', 'Check', 'Details', 'Recommendation']],
-        body: tableBody,
         theme: 'plain',
         styles: {
           fontSize: 7,
           cellPadding: 2.5,
-          textColor: [203, 213, 225],
+          textColor: colors.text,
           lineColor: colors.border,
           lineWidth: 0.2,
           overflow: 'linebreak',
@@ -1198,62 +1057,508 @@ async function downloadPDF() {
           fontSize: 7.5,
           halign: 'left'
         },
-        alternateRowStyles: {
-          fillColor: [20, 30, 48]
-        },
-        bodyStyles: {
-          fillColor: colors.darkBg
-        },
-        columnStyles: {
-          0: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
-          1: { cellWidth: 14, halign: 'center' },
-          2: { cellWidth: 18 },
-          3: { cellWidth: 30 },
-          4: { cellWidth: 50 },
-          5: { cellWidth: usable - 14 - 14 - 18 - 30 - 50 }
-        },
-        didParseCell: function(data) {
-          if (data.section === 'body' && data.column.index === 0) {
-            var st = (data.cell.raw || '').toLowerCase();
-            var c = statusColors[st] || colors.muted;
-            data.cell.styles.textColor = c;
-          }
-          if (data.section === 'body' && data.column.index === 1) {
-            var sev = (data.cell.raw || '').toLowerCase();
-            if (sev === 'critical') data.cell.styles.textColor = colors.red;
-            else if (sev === 'high') data.cell.styles.textColor = colors.orange;
-            else if (sev === 'medium') data.cell.styles.textColor = colors.yellow;
-          }
-        },
-        didDrawPage: function() {
-          /* Dark background on every new page */
-          drawPageBg();
-        },
-        willDrawPage: function() {
-          drawPageBg();
+        alternateRowStyles: { fillColor: colors.surface2 },
+        bodyStyles: { fillColor: colors.darkBg },
+        didDrawPage: drawPageBg,
+        willDrawPage: drawPageBg
+      }, extra);
+    }
+
+    drawPageBg();
+
+    /* ── Header bar ───────────────────────────────── */
+    var domain = (reportData.base_url || '').replace(/^https?:\/\//, '');
+    var startedAt = (reportData.started_at || '').slice(0, 19);
+    var s = reportData.summary || {};
+    var totalIssues = (s.failed || 0) + (s.errors || 0) + (s.warnings || 0);
+    var critIssues = (s.failed || 0) + (s.errors || 0);
+    var score = Math.round(s.pass_rate || 0);
+    var scoreColor = score >= 90 ? colors.green : (score >= 70 ? colors.orange : colors.red);
+
+    roundRect(margin, y, usable, 24, 3, colors.cardBg);
+    doc.setFontSize(17); doc.setFont('helvetica', 'bold');
+    doc.setTextColor.apply(doc, colors.white);
+    doc.text('Audit Report', margin + 6, y + 10);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.setTextColor.apply(doc, colors.muted);
+    doc.text(domain, margin + 6, y + 16);
+    doc.setFontSize(8);
+    doc.text(startedAt + '  •  ' + (reportData.duration_s || 0) + 's', margin + 6, y + 21);
+    /* Score on right of header */
+    doc.setFontSize(22); doc.setFont('helvetica', 'bold');
+    doc.setTextColor.apply(doc, scoreColor);
+    doc.text(score.toString(), pageW - margin - 6, y + 14, { align: 'right' });
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+    doc.setTextColor.apply(doc, colors.muted);
+    doc.text('Overall Score', pageW - margin - 6, y + 20, { align: 'right' });
+    y += 30;
+
+    /* ── Executive Summary metrics ─────────────────── */
+    var metricCardH = 22;
+    var mw = (usable - 12) / 4;
+    var metrics = [
+      { label: 'Total Issues',    value: totalIssues.toString(),       color: colors.yellow },
+      { label: 'Critical Issues', value: critIssues.toString(),        color: colors.red },
+      { label: 'Checks Passed',   value: (s.passed || 0).toString(),   color: colors.green },
+      { label: 'Scan Duration',   value: (reportData.duration_s || 0) + 's', color: colors.brand }
+    ];
+    metrics.forEach(function(m, i) {
+      var mx = margin + i * (mw + 4);
+      roundRect(mx, y, mw, metricCardH, 2, colors.cardBg);
+      doc.setFontSize(15); doc.setFont('helvetica', 'bold');
+      doc.setTextColor.apply(doc, m.color);
+      doc.text(m.value, mx + 4, y + 10);
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+      doc.setTextColor.apply(doc, colors.muted);
+      doc.text(m.label, mx + 4, y + 17);
+    });
+    y += metricCardH + 6;
+
+    /* Alert banner */
+    if (critIssues > 0) {
+      ensureSpace(14);
+      roundRect(margin, y, usable, 12, 2, [50, 20, 20], colors.red);
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+      doc.setTextColor.apply(doc, colors.red);
+      doc.text('!  ' + critIssues + ' Critical Issue' + (critIssues !== 1 ? 's' : '') + ' require immediate attention', margin + 6, y + 7.5);
+      y += 16;
+    }
+
+    /* ── Fix First section ─────────────────────────── */
+    var allResults = reportData.results || [];
+    var actionable = allResults.filter(function(r) {
+      return r.status === 'failed' || r.status === 'error' || r.status === 'warning';
+    });
+    var sevOrder = ['critical', 'high', 'medium', 'low', 'info'];
+    var modOrder = ['security', 'chaos', 'forms', 'availability', 'auth', 'links'];
+    function rankKey(r) {
+      var sIdx = sevOrder.indexOf((r.severity || '').toLowerCase());
+      if (sIdx === -1) sIdx = sevOrder.length;
+      var mIdx = modOrder.indexOf((r.module || '').toLowerCase());
+      if (mIdx === -1) mIdx = modOrder.length;
+      return sIdx * 10 + mIdx;
+    }
+    var ranked = actionable.slice().sort(function(a, b) { return rankKey(a) - rankKey(b); });
+    var fixFirst = ranked.slice(0, 3);
+
+    var impactByModule = {
+      security: 'Leaves your site exposed to attacks that can deface pages, inject malware, or leak customer data. Search engines push insecure sites lower in results.',
+      chaos:    'Slow load times cost you customers — 53% of mobile visitors abandon pages that take longer than 3 seconds, and search engines rank slow sites lower.',
+      forms:    'Broken forms block customers from contacting you, signing up, or completing a purchase — direct lost revenue.',
+      availability: 'Pages returning errors mean customers cannot reach parts of your site. Search engines stop indexing broken pages, so they disappear from results.',
+      auth:     'Login or session problems lock customers out of their accounts, trigger support tickets, and erode trust in your brand.',
+      links:    'Broken links frustrate visitors mid-journey and signal to search engines that your site is not well maintained, dragging down rankings.'
+    };
+
+    if (fixFirst.length > 0) {
+      newSection('Fix These Things First', fixFirst.length + ' high-impact issue' + (fixFirst.length !== 1 ? 's' : '') + ' — start here for the biggest business impact');
+      fixFirst.forEach(function(item, i) {
+        var impact = impactByModule[(item.module || '').toLowerCase()] || item.recommendation || 'This issue affects how visitors and search engines experience your site.';
+        var sev = (item.severity || 'info').toLowerCase();
+        var effort, effortColor;
+        if (sev === 'low' || sev === 'info') { effort = 'Quick fix'; effortColor = colors.green; }
+        else if (sev === 'medium')           { effort = '~30 minutes'; effortColor = colors.orange; }
+        else                                  { effort = 'Needs a developer'; effortColor = colors.red; }
+
+        var titleStr = item.name || '(unnamed check)';
+        var titleLines = doc.splitTextToSize(titleStr, usable - 24);
+        var impactLines = doc.splitTextToSize(impact, usable - 24);
+        var cardH = 14 + titleLines.length * 4.5 + impactLines.length * 4 + 6;
+        ensureSpace(cardH + 4);
+
+        roundRect(margin, y, usable, cardH, 3, colors.cardBg, colors.border);
+        /* Numbered circle */
+        var sevColor = severityBadgeColor(sev);
+        doc.setFillColor.apply(doc, sevColor);
+        doc.circle(margin + 8, y + 8, 4.5, 'F');
+        doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+        doc.setTextColor.apply(doc, colors.white);
+        doc.text((i + 1).toString(), margin + 8, y + 9.5, { align: 'center' });
+
+        /* Title */
+        doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+        doc.setTextColor.apply(doc, colors.white);
+        doc.text(titleLines, margin + 16, y + 8);
+
+        /* Severity badge (right-aligned with title row) */
+        doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+        doc.setTextColor.apply(doc, sevColor);
+        doc.text(sev.toUpperCase(), pageW - margin - 6, y + 8, { align: 'right' });
+
+        /* Impact body */
+        var bodyY = y + 8 + titleLines.length * 4.5 + 2;
+        doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+        doc.setTextColor.apply(doc, colors.text);
+        doc.text(impactLines, margin + 16, bodyY);
+
+        /* Effort tag */
+        var tagY = bodyY + impactLines.length * 4 + 1;
+        doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+        doc.setTextColor.apply(doc, effortColor);
+        doc.text(effort, margin + 16, tagY);
+        /* Module label on the right */
+        doc.setTextColor.apply(doc, colors.muted);
+        doc.setFont('helvetica', 'normal');
+        doc.text((item.module || '').toUpperCase(), pageW - margin - 6, tagY, { align: 'right' });
+
+        y += cardH + 4;
+      });
+      y += 4;
+    }
+
+    /* ── Overview (per-module summary) ────────────── */
+    var modules = {};
+    allResults.forEach(function(r) {
+      var m = r.module || 'other';
+      if (!modules[m]) modules[m] = { total: 0, passed: 0 };
+      modules[m].total++;
+      if (r.status === 'passed') modules[m].passed++;
+    });
+    function rate(m) { return modules[m] ? Math.round((modules[m].passed / modules[m].total) * 100) : null; }
+    function combine() {
+      var t = 0, p = 0;
+      for (var i = 0; i < arguments.length; i++) { var m = modules[arguments[i]]; if (m) { t += m.total; p += m.passed; } }
+      return t > 0 ? Math.round((p / t) * 100) : null;
+    }
+    var perfData = reportData.performance_metrics || {};
+    var perfScore = null;
+    if (perfData.mobile && perfData.mobile.score != null) perfScore = Math.round(perfData.mobile.score * 100);
+    else if (perfData.desktop && perfData.desktop.score != null) perfScore = Math.round(perfData.desktop.score * 100);
+
+    var overviewSections = [];
+    if (perfScore !== null) overviewSections.push({ label: 'Performance', score: perfScore });
+    var sec = combine('security', 'auth');
+    if (sec !== null) overviewSections.push({ label: 'Security', score: sec });
+    var avail = rate('availability');
+    if (avail !== null) overviewSections.push({ label: 'Availability', score: avail });
+    var lf = combine('links', 'forms');
+    if (lf !== null) overviewSections.push({ label: 'Links & Forms', score: lf });
+    var ch = rate('chaos');
+    if (ch !== null) overviewSections.push({ label: 'Resilience', score: ch });
+
+    if (overviewSections.length > 0) {
+      newSection('Overview', 'Per-module summary scores');
+      var gaugeBlockH = 30;
+      ensureSpace(gaugeBlockH + 6);
+      roundRect(margin, y, usable, gaugeBlockH, 3, colors.cardBg);
+      var gCount = overviewSections.length;
+      var gSpacing = usable / gCount;
+      overviewSections.forEach(function(secItem, i) {
+        var gx = margin + gSpacing * (i + 0.5);
+        var gy = y + 12;
+        var gr = 6;
+        var gScore = secItem.score;
+        var gColor = gScore >= 90 ? colors.green : (gScore >= 70 ? colors.orange : colors.red);
+
+        doc.setDrawColor.apply(doc, colors.border);
+        doc.setLineWidth(1.6);
+        doc.circle(gx, gy, gr, 'S');
+
+        doc.setDrawColor.apply(doc, gColor);
+        doc.setLineWidth(1.6);
+        var startA = -Math.PI / 2;
+        var endA = startA + (gScore / 100) * 2 * Math.PI;
+        var steps = Math.max(Math.round(gScore / 2), 2);
+        for (var st = 0; st < steps; st++) {
+          var a1 = startA + (st / steps) * (endA - startA);
+          var a2 = startA + ((st + 1) / steps) * (endA - startA);
+          doc.line(gx + gr * Math.cos(a1), gy + gr * Math.sin(a1),
+                   gx + gr * Math.cos(a2), gy + gr * Math.sin(a2));
         }
+        doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+        doc.setTextColor.apply(doc, gColor);
+        doc.text(gScore.toString(), gx, gy + 1.5, { align: 'center' });
+        doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+        doc.setTextColor.apply(doc, colors.muted);
+        doc.text(secItem.label, gx, gy + gr + 6, { align: 'center' });
+      });
+      y += gaugeBlockH + 8;
+    }
+
+    /* ── Performance (Mobile + Desktop) ─────────── */
+    var hasPerf = (perfData.mobile && perfData.mobile.score != null) || (perfData.desktop && perfData.desktop.score != null);
+    if (hasPerf) {
+      newSection('Performance Metrics', 'Lighthouse Core Web Vitals — mobile and desktop');
+      ['mobile', 'desktop'].forEach(function(strategy) {
+        var sdata = perfData[strategy];
+        if (!sdata || sdata.score == null) return;
+        var label = strategy.charAt(0).toUpperCase() + strategy.slice(1);
+        var lhScore = Math.round(sdata.score * 100);
+        var lhColor = lhScore >= 90 ? colors.green : (lhScore >= 50 ? colors.orange : colors.red);
+
+        ensureSpace(14);
+        /* Sub-header bar */
+        roundRect(margin, y, usable, 10, 2, colors.cardBg);
+        doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+        doc.setTextColor.apply(doc, colors.white);
+        doc.text(label + ' — Lighthouse Score', margin + 4, y + 6.8);
+        doc.setFontSize(11); doc.setTextColor.apply(doc, lhColor);
+        doc.text(lhScore.toString(), pageW - margin - 4, y + 6.8, { align: 'right' });
+        y += 12;
+
+        /* Metrics table */
+        var metricRows = [];
+        var metricsObj = sdata.metrics || {};
+        Object.keys(metricsObj).forEach(function(mid) {
+          var m = metricsObj[mid];
+          var mScore = m.score == null ? null : Math.round(m.score * 100);
+          metricRows.push([
+            m.label || mid,
+            m.display || (m.value != null ? String(m.value) : '—'),
+            mScore == null ? '—' : (mScore + '/100')
+          ]);
+        });
+        if (metricRows.length > 0) {
+          doc.autoTable(autoTableShared({
+            startY: y,
+            head: [['Metric', 'Value', 'Score']],
+            body: metricRows,
+            columnStyles: {
+              0: { cellWidth: usable * 0.55 },
+              1: { cellWidth: usable * 0.25 },
+              2: { cellWidth: usable * 0.20, halign: 'right', fontStyle: 'bold' }
+            },
+            didParseCell: function(data) {
+              if (data.section === 'body' && data.column.index === 2) {
+                var raw = (data.cell.raw || '').toString();
+                var n = parseInt(raw, 10);
+                if (!isNaN(n)) {
+                  data.cell.styles.textColor = n >= 90 ? colors.green : (n >= 50 ? colors.orange : colors.red);
+                }
+              }
+            }
+          }));
+          y = doc.lastAutoTable.finalY + 4;
+        }
+
+        /* Top recommendations */
+        var perfRecs = sdata.recommendations || [];
+        if (perfRecs.length > 0) {
+          ensureSpace(8);
+          doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+          doc.setTextColor.apply(doc, colors.white);
+          doc.text('Top Recommendations', margin, y + 4);
+          y += 7;
+          perfRecs.slice(0, 3).forEach(function(rec) {
+            var title = truncate(rec.title || '', 90);
+            var desc = truncate(rec.description || '', 220);
+            var titleLines = doc.splitTextToSize(title, usable - 8);
+            var descLines = doc.splitTextToSize(desc, usable - 8);
+            var savings = rec.savings_ms && rec.savings_ms > 0 ? 'Potential savings: ' + (rec.savings_ms / 1000).toFixed(1) + 's' : '';
+            var cardH = 5 + titleLines.length * 4 + descLines.length * 3.6 + (savings ? 4 : 0) + 4;
+            ensureSpace(cardH + 3);
+            var recColor = rec.score == null ? colors.muted : (rec.score < 0.5 ? colors.red : (rec.score < 0.9 ? colors.yellow : colors.green));
+            roundRect(margin, y, usable, cardH, 2, colors.surface2);
+            /* Color indicator stripe */
+            doc.setFillColor.apply(doc, recColor);
+            doc.rect(margin, y, 1.5, cardH, 'F');
+            doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
+            doc.setTextColor.apply(doc, colors.white);
+            doc.text(titleLines, margin + 4, y + 5);
+            doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+            doc.setTextColor.apply(doc, colors.text);
+            doc.text(descLines, margin + 4, y + 5 + titleLines.length * 4 + 0.5);
+            if (savings) {
+              doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+              doc.setTextColor.apply(doc, colors.brand);
+              doc.text(savings, margin + 4, y + cardH - 2.5);
+            }
+            y += cardH + 2;
+          });
+        }
+        y += 4;
+      });
+    }
+
+    /* ── Detailed Results table ──────────────────── */
+    if (allResults.length > 0) {
+      newSection('Detailed Results', allResults.length + ' total tests');
+
+      var sortOrder = { failed: 0, error: 1, warning: 2, passed: 3, skipped: 4 };
+      var sortedResults = allResults.slice().sort(function(a, b) {
+        var as = sortOrder[a.status]; if (as == null) as = 9;
+        var bs = sortOrder[b.status]; if (bs == null) bs = 9;
+        if (as !== bs) return as - bs;
+        return rankKey(a) - rankKey(b);
       });
 
+      var tableBody = sortedResults.map(function(r) {
+        var details = r.details || r.description || '';
+        var rec = r.recommendation || '';
+        if (r.url && details.indexOf(r.url) === -1) {
+          details = details ? (details + ' — ' + r.url) : r.url;
+        }
+        return [
+          (r.status || '').toUpperCase(),
+          (r.severity || '').toUpperCase(),
+          r.module || '',
+          truncate(r.name || '', 80),
+          truncate(details, 280),
+          truncate(rec, 220) || '—'
+        ];
+      });
+
+      doc.autoTable(autoTableShared({
+        startY: y,
+        head: [['Status', 'Severity', 'Module', 'Check', 'Details', 'Recommendation']],
+        body: tableBody,
+        columnStyles: {
+          0: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+          1: { cellWidth: 16, halign: 'center', fontStyle: 'bold' },
+          2: { cellWidth: 18 },
+          3: { cellWidth: 32 },
+          4: { cellWidth: 50 },
+          5: { cellWidth: usable - 14 - 16 - 18 - 32 - 50 }
+        },
+        didParseCell: function(data) {
+          if (data.section !== 'body') return;
+          if (data.column.index === 0) {
+            data.cell.styles.textColor = statusColor(data.cell.raw);
+          }
+          if (data.column.index === 1) {
+            data.cell.styles.textColor = severityBadgeColor(data.cell.raw);
+          }
+        }
+      }));
       y = doc.lastAutoTable.finalY + 8;
     }
 
-    /* ── Footer on last page ──────────────────────── */
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-    doc.setTextColor.apply(doc, colors.muted);
-    var footY = doc.internal.pageSize.getHeight() - 8;
-    doc.text('Generated by Website Auditor  •  ' + window.location.href, margin, footY);
-    doc.text('Page ' + doc.internal.getNumberOfPages() + ' of ' + doc.internal.getNumberOfPages(), pageW - margin, footY, { align: 'right' });
+    /* ── AI Visibility ───────────────────────────── */
+    var ai = reportData.ai_visibility;
+    if (ai && ai.overall_score != null) {
+      newSection('AI Visibility', 'Platform-by-platform appearance in AI search results');
 
-    /* ── Add page numbers to all pages ────────────── */
+      /* Summary cards row */
+      ensureSpace(26);
+      var aiScoreColor = ai.overall_score >= 50 ? colors.green : (ai.overall_score >= 25 ? colors.yellow : colors.red);
+      var sumW = (usable - 8) / 3;
+      var sumH = 22;
+      var bizInfo = ai.business_info || {};
+      var sumCards = [
+        { value: ai.overall_score + '%', label: 'Overall AI Visibility', color: aiScoreColor },
+        { value: (ai.total_appearances || 0) + '/' + (ai.total_queries || 0), label: 'Appearances in AI Results', color: colors.white },
+        { value: bizInfo.business_name || '—', label: ((bizInfo.sector || '') + (bizInfo.location ? ' — ' + bizInfo.location : '')) || 'Business', color: colors.white }
+      ];
+      sumCards.forEach(function(c, i) {
+        var cx = margin + i * (sumW + 4);
+        roundRect(cx, y, sumW, sumH, 2, colors.cardBg);
+        doc.setFontSize(c.value.length > 18 ? 9 : 13); doc.setFont('helvetica', 'bold');
+        doc.setTextColor.apply(doc, c.color);
+        doc.text(truncate(c.value, 32), cx + sumW / 2, y + 10, { align: 'center' });
+        doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+        doc.setTextColor.apply(doc, colors.muted);
+        doc.text(truncate(c.label, 38), cx + sumW / 2, y + 17, { align: 'center' });
+      });
+      y += sumH + 6;
+
+      /* Platform scores table */
+      var platforms = ai.platform_scores || {};
+      var platformRows = [];
+      Object.keys(platforms).forEach(function(pname) {
+        var p = platforms[pname];
+        platformRows.push([
+          pname,
+          p.score + '%',
+          (p.appearances || 0) + '/' + (p.total || 0)
+        ]);
+      });
+      if (platformRows.length > 0) {
+        ensureSpace(8);
+        doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+        doc.setTextColor.apply(doc, colors.white);
+        doc.text('Platform Scores', margin, y + 4);
+        y += 7;
+        doc.autoTable(autoTableShared({
+          startY: y,
+          head: [['Platform', 'Score', 'Appearances']],
+          body: platformRows,
+          columnStyles: {
+            0: { cellWidth: usable * 0.45, fontStyle: 'bold' },
+            1: { cellWidth: usable * 0.25, halign: 'right', fontStyle: 'bold' },
+            2: { cellWidth: usable * 0.30, halign: 'right' }
+          },
+          didParseCell: function(data) {
+            if (data.section === 'body' && data.column.index === 1) {
+              var n = parseInt((data.cell.raw || '').toString(), 10);
+              if (!isNaN(n)) {
+                data.cell.styles.textColor = n >= 50 ? colors.green : (n >= 25 ? colors.yellow : colors.red);
+              }
+            }
+          }
+        }));
+        y = doc.lastAutoTable.finalY + 6;
+      }
+
+      /* All AI query results */
+      var aiAll = ai.all_results || [];
+      if (aiAll.length > 0) {
+        ensureSpace(8);
+        doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+        doc.setTextColor.apply(doc, colors.white);
+        doc.text('Query Results (' + aiAll.length + ')', margin, y + 4);
+        y += 7;
+
+        var aiBody = aiAll.map(function(row) {
+          return [
+            row.platform || '',
+            truncate(row.query || '', 70),
+            truncate(row.recommended || '', 110) + (row.is_real === false ? ' (sim)' : ''),
+            row.client_appears ? 'Yes' : 'No',
+            row.position ? String(row.position) : 'N/A',
+            truncate(row.competitors || '', 90),
+            (row.visibility_score != null ? row.visibility_score + '%' : '—')
+          ];
+        });
+
+        doc.autoTable(autoTableShared({
+          startY: y,
+          head: [['Platform', 'Query', 'Recommended', 'Found', 'Pos', 'Competitors', 'Score']],
+          body: aiBody,
+          styles: {
+            fontSize: 6.5,
+            cellPadding: 2,
+            textColor: colors.text,
+            lineColor: colors.border,
+            lineWidth: 0.2,
+            overflow: 'linebreak',
+            font: 'helvetica'
+          },
+          columnStyles: {
+            0: { cellWidth: 18, fontStyle: 'bold' },
+            1: { cellWidth: 32 },
+            2: { cellWidth: 42 },
+            3: { cellWidth: 12, halign: 'center', fontStyle: 'bold' },
+            4: { cellWidth: 10, halign: 'center' },
+            5: { cellWidth: 38 },
+            6: { cellWidth: usable - 18 - 32 - 42 - 12 - 10 - 38, halign: 'right', fontStyle: 'bold' }
+          },
+          didParseCell: function(data) {
+            if (data.section !== 'body') return;
+            if (data.column.index === 3) {
+              var v = (data.cell.raw || '').toString();
+              data.cell.styles.textColor = v === 'Yes' ? colors.green : colors.red;
+            }
+            if (data.column.index === 6) {
+              var n = parseInt((data.cell.raw || '').toString(), 10);
+              if (!isNaN(n)) {
+                data.cell.styles.textColor = n >= 75 ? colors.green : (n >= 50 ? colors.yellow : colors.red);
+              }
+            }
+          }
+        }));
+        y = doc.lastAutoTable.finalY + 6;
+      }
+    }
+
+    /* ── Footer + page numbers on every page ─────── */
     var totalPages = doc.internal.getNumberOfPages();
+    var footY = pageH - 6;
     for (var i = 1; i <= totalPages; i++) {
       doc.setPage(i);
       doc.setFontSize(7); doc.setFont('helvetica', 'normal');
       doc.setTextColor.apply(doc, colors.muted);
+      doc.text('Generated by Website Auditor  •  ' + domain, margin, footY);
       doc.text('Page ' + i + ' of ' + totalPages, pageW - margin, footY, { align: 'right' });
-      if (i < totalPages) {
-        doc.text('Generated by Website Auditor', margin, footY);
-      }
     }
 
     doc.save('audit_' + reportData.run_id + '.pdf');
