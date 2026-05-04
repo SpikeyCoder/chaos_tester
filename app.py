@@ -36,6 +36,13 @@ from .models import TestRun
 from . import supabase_client as supa
 from . import wa_auth
 
+# Rate limiting: Flask-Limiter caps abusive callers without affecting normal
+# dashboard usage. Applied per-IP to the three open POST endpoints that
+# accept user-supplied payloads. /api/ai-query has its own subscription
+# gate (wa_auth.is_entitled) and is not double-gated here.
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 # -- Setup ---------------------------------------------------------
 
 BASE_DIR = Path(__file__).parent
@@ -64,6 +71,20 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # 5 MB request body limit (screenshots)
 app.config["GOOGLE_PLACES_API_KEY"] = os.environ.get("GOOGLE_PLACES_API_KEY", "")
+
+# Per-IP rate limits. Storage backend defaults to in-memory; Cloud Run
+# runs at low concurrency for this app, so in-memory is acceptable for
+# v1. Switch to a Redis backend (Upstash, Memorystore) once horizontal
+# scaling is enabled. See pentest 2026-05-04 finding WA-2026-05-04-01.
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    # Default cap that applies to every route unless explicitly overridden.
+    default_limits=["120 per minute", "2000 per hour"],
+    headers_enabled=True,  # adds X-RateLimit-* response headers
+    swallow_errors=True,    # never let the limiter take down the app
+    storage_uri=os.environ.get("RATE_LIMIT_STORAGE_URI", "memory://"),
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(message)s")
 logger = logging.getLogger("chaos_tester")
@@ -308,6 +329,7 @@ def index():
     return render_template("dashboard.html", status=status)
 
 
+@limiter.limit("3 per minute")
 @app.route("/run", methods=["POST"])
 def start_run():
     global _current_status
@@ -746,6 +768,7 @@ def api_ai_query():
     return jsonify({"query": query, "results": results})
 
 
+@limiter.limit("5 per minute; 30 per hour")
 @app.route("/api/bug-report", methods=["POST"])
 def api_bug_report():
     """Create a Trello card from a bug report or feature request."""
@@ -850,6 +873,7 @@ def api_bug_report():
         return jsonify({"error": "Internal server error"}), 500
 
 
+@limiter.limit("10 per minute; 100 per hour")
 @app.route("/api/detect-business", methods=["POST"])
 def detect_business():
     """Quick-detect business name, location, and sector from a URL.
