@@ -653,15 +653,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .hero-search input[type="url"]::placeholder { color: var(--text-muted); }
 .hero-search input[type="url"]:focus { box-shadow: none; border: none; }
 .hero-search .btn-audit {
+    /* a11y: bg uses #2563eb (blue-600) for white-on-blue contrast 5.17:1 (WCAG AA pass).
+       Previously used var(--accent) #3b82f6 = 3.68:1 (fails AA for normal text). */
     flex-shrink: 0; padding: 14px 28px; min-height: 48px;
-    background: var(--accent); color: #fff;
+    background: #2563eb; color: #fff;
     border: none; border-radius: var(--radius-md);
     font-size: 1rem; font-weight: 600;
     cursor: pointer; transition: all .2s;
     white-space: nowrap;
 }
 .hero-search .btn-audit:hover {
-    background: var(--accent-hover);
+    background: #1d4ed8;
     box-shadow: 0 4px 16px rgba(59,130,246,0.4);
 }
 .trust-badges {
