@@ -350,8 +350,21 @@ function detectBusiness() {
     },
     body: JSON.stringify({ url: url })
   })
-  .then(function(r) { return r.json(); })
+  .then(function(r) {
+    if (r.status === 429) {
+      return r.json().then(function(body) {
+        _detectInFlight = false;
+        if (document.getElementById('base_url').value.trim() !== url) return null;
+        hideAuditSpinner();
+        showRateLimitMessage(body.message || 'Too many requests. Please try again in a moment.');
+        showBizOverride(true);
+        return null;
+      });
+    }
+    return r.json();
+  })
   .then(function(data) {
+    if (!data) return;
     _detectInFlight = false;
     /* If the URL changed while the request was in flight, discard this result */
     if (document.getElementById('base_url').value.trim() !== url) return;
@@ -550,15 +563,92 @@ function detectBusiness() {
   }
 })();
 
-/* -- Show loading indicator on form submit ---- */
-document.getElementById('runForm').addEventListener('submit', function() {
+/* Lightweight banner used to surface rate-limit (HTTP 429) responses to the
+   user instead of letting the browser render the bare JSON error page. */
+function showRateLimitMessage(text) {
+  var el = document.getElementById('rate-limit-banner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'rate-limit-banner';
+    el.setAttribute('role', 'alert');
+    el.style.cssText = 'max-width:680px;margin:12px auto 0;padding:12px 16px;' +
+      'background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.3);' +
+      'border-radius:10px;color:#f87171;font-size:0.9rem;line-height:1.4;' +
+      'font-weight:600;text-align:center;';
+    var hero = document.getElementById('audit') || document.body;
+    hero.appendChild(el);
+  }
+  el.textContent = text;
+  el.style.display = 'block';
+}
+
+function hideRateLimitMessage() {
+  var el = document.getElementById('rate-limit-banner');
+  if (el) el.style.display = 'none';
+}
+
+/* -- Intercept form submit so we can handle rate limits gracefully ---- */
+document.getElementById('runForm').addEventListener('submit', function(e) {
   /* Funnel: user successfully submitted the audit form. Fire once per page
      load so re-submits after server-side validation don't double-count. */
   if (!_funnelAuditStartedFired) {
     _funnelAuditStartedFired = true;
     trackFunnelEvent('funnel/audit-started');
   }
+
+  e.preventDefault();
+  hideRateLimitMessage();
   var indicator = document.getElementById('loading-indicator');
   if (indicator) indicator.style.display = 'block';
   showAuditSpinner();
+
+  var form = this;
+  var payload = {};
+  for (var i = 0; i < form.elements.length; i++) {
+    var el = form.elements[i];
+    if (!el.name) continue;
+    payload[el.name] = el.value;
+  }
+
+  fetch('/run', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r) {
+    if (r.status === 429) {
+      r.json().then(function(body) {
+        if (indicator) indicator.style.display = 'none';
+        hideAuditSpinner();
+        showRateLimitMessage(body.message || 'Too many requests. Please try again in a moment.');
+      }).catch(function() {
+        if (indicator) indicator.style.display = 'none';
+        hideAuditSpinner();
+        showRateLimitMessage('Too many requests. Please try again in a moment.');
+      });
+      return;
+    }
+    if (r.status === 202) {
+      window.location.href = '/progress';
+      return;
+    }
+    /* Other errors: surface server message in the same banner. */
+    r.json().then(function(body) {
+      if (indicator) indicator.style.display = 'none';
+      hideAuditSpinner();
+      showRateLimitMessage((body && (body.message || body.error)) || 'Failed to start audit. Please try again.');
+    }).catch(function() {
+      if (indicator) indicator.style.display = 'none';
+      hideAuditSpinner();
+      showRateLimitMessage('Failed to start audit. Please try again.');
+    });
+  })
+  .catch(function() {
+    if (indicator) indicator.style.display = 'none';
+    hideAuditSpinner();
+    showRateLimitMessage('Network error. Please check your connection and try again.');
+  });
 });

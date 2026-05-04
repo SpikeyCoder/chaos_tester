@@ -956,6 +956,14 @@ def method_not_allowed(e):
         return render_template("404.html"), 404
     return jsonify({"error": "Method not allowed"}), 405
 
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({
+        "error": "rate_limited",
+        "message": "Too many requests. Please try again in a moment.",
+        "retry_after": e.description or 60
+    }), 429, {"Retry-After": str(e.description or 60)}
+
 @app.errorhandler(500)
 def internal_server_error(e):
     logger.exception("Internal server error")
