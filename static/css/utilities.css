@@ -1,0 +1,200 @@
+/* ────────────────────────────────────────────────────────────────────────
+ * utilities.css — utility & component classes for the inline-style refactor
+ * ────────────────────────────────────────────────────────────────────────
+ * Pen-test 2026-05-05 finding WA-2026-05-05-02 (drop CSP `style-src
+ * 'unsafe-inline'`). This stylesheet ships the class library that the
+ * subsequent template refactors swap in for inline `style="..."` attributes.
+ *
+ * Classes are sized off the static-pattern frequency table in
+ * `compliance/inline-style-audit-2026-05-05.md`. Anything in this file is
+ * intentionally project-scoped (no Tailwind-style explosion of every
+ * possible permutation); each rule replaces a real inline pattern that
+ * occurs ≥5 times in the templates.
+ *
+ * Naming convention:
+ *   .u-*              utility — single-purpose, low-specificity
+ *   .card-*           card-shaped components
+ *   .icon-circle      circular avatar / icon container
+ *   .status-card      dynamic-color border card; template sets --status-color
+ *
+ * The "Phase 3" status-card class consumes a CSS custom property so
+ * template-interpolated dynamic colors can be expressed as a single token
+ * instead of a full inline declaration:
+ *
+ *   <div class="status-card" style="--status-color: {{ pdata.color }}">
+ *
+ * That keeps `style=` lean and lets the upcoming Phase 4 CSP tightening
+ * pin the inline value via `'unsafe-hashes'` or move to a per-request
+ * `<style nonce="…">` block.
+ *
+ * Loaded from templates/base.html alongside base.css, so every page in
+ * the app has access to these classes.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+
+/* ── Display ───────────────────────────────────────────────────────── */
+/* Replaces inline `style="display:none"` (17 occurrences in templates). */
+.u-hidden { display: none; }
+
+
+/* ── Cursor ────────────────────────────────────────────────────────── */
+.u-cursor-pointer { cursor: pointer; }
+
+
+/* ── Vertical alignment ────────────────────────────────────────────── */
+.u-valign-middle { vertical-align: middle; }
+
+
+/* ── Margin scale (4 / 8 / 16 / 24 px — matches existing site scale) ── */
+.u-mt-4 { margin-top:    16px; }
+
+.u-mb-1 { margin-bottom:  4px; }
+.u-mb-2 { margin-bottom:  8px; }
+.u-mb-4 { margin-bottom: 16px; }
+.u-mb-6 { margin-bottom: 24px; }
+
+
+/* ── Color tokens ──────────────────────────────────────────────────── */
+.u-color-accent { color: var(--accent); }
+.u-color-text   { color: var(--text); }
+.u-color-muted  { color: var(--text-muted); }
+
+
+/* ── Text styles ───────────────────────────────────────────────────── */
+
+/* Tiny muted inline-block with rotation-ready transition.
+   Used by chevron / disclosure indicators — 11 occurrences. */
+.u-text-tiny-muted {
+  color: var(--text-muted);
+  display: inline-block;
+  font-size: 0.7rem;
+  transition: transform .2s;
+}
+
+/* Small muted text — caption / metadata pattern (7 occurrences). */
+.u-text-sm-muted {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* Semibold body text — 7 occurrences. */
+.u-text-base-semibold {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Section label (uppercase-style heading variant) — 6 occurrences. */
+.u-section-label {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Captions sitting right below a value with 4px breathing room. */
+.u-caption-sm {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+.u-caption-xs {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  margin-top: 4px;
+}
+
+
+/* ── Flex row primitives ──────────────────────────────────────────── */
+
+/* `align-items:center; display:flex; gap:8px` — 6 occurrences. */
+.u-flex-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+/* Same as .u-flex-row but tighter gap + medium weight — 11 occurrences. */
+.u-flex-row-medium {
+  align-items: center;
+  display: flex;
+  font-weight: 500;
+  gap: 6px;
+}
+
+/* Heading-ish flex row with bottom margin — 5 occurrences. */
+.u-flex-row-semibold-mb-2 {
+  align-items: center;
+  display: flex;
+  font-weight: 600;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+
+/* ── Wrappable label cells (table / list contexts) ────────────────── */
+/* `max-width:NNNpx; white-space:normal; word-wrap:break-word` */
+.u-wrap-220 { max-width: 220px; white-space: normal; word-wrap: break-word; }
+.u-wrap-260 { max-width: 260px; white-space: normal; word-wrap: break-word; }
+
+
+/* ── Sizing primitives ────────────────────────────────────────────── */
+/* Severity bar / score-pill — `height:8px; width:60px` (6 occurrences). */
+.u-pill-8x60 {
+  height: 8px;
+  width: 60px;
+}
+
+
+/* ── Card components ───────────────────────────────────────────────── */
+
+/* `align-items:center; background:var(--surface,...); border-radius:10px;
+   border:1px solid var(--border)` — flat card primitive (6 occurrences). */
+.card-flat {
+  align-items: center;
+  background: var(--surface, rgba(30, 41, 59, 0.5));
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+}
+
+/* Centered metric / stat card — 6 occurrences. */
+.card-centered {
+  background: var(--surface2);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+
+/* ── Icon circle ──────────────────────────────────────────────────── */
+/* Round, muted-grey background, centered icon glyph — 6 occurrences. */
+.icon-circle {
+  align-items: center;
+  background: var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  display: flex;
+  flex-shrink: 0;
+  justify-content: center;
+}
+
+
+/* ── Status card (dynamic-color via CSS custom property) ──────────── */
+/* Phase 3 of the WA-2026-05-05-02 refactor. Templates set
+ *   style="--status-color: {{ pdata.color }}"
+ * and let CSS apply it via var() instead of interpolating a full CSS
+ * declaration into the inline `style=` attribute. After Phase 4, the
+ * final --status-color assignments are the only inline-style attribute
+ * shape left, which is small and bounded enough to allowlist by
+ * 'unsafe-hashes' or move into a per-request <style nonce="…"> block. */
+.status-card {
+  background: var(--surface2);
+  border-left: 4px solid var(--status-color, var(--border));
+  border-radius: 10px;
+  padding: 16px;
+}
+
+
+/* ── Sentinel: zero-content rule that announces utilities loaded ──── */
+/* (Useful smoke test in DevTools: getComputedStyle of `.u-hidden` →
+ *  display === 'none' confirms the file shipped.) */
