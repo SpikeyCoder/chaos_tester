@@ -42,3 +42,9 @@ Thumbs.db
 
 # Claude Code worktrees (transient working state, never commit)
 .claude/worktrees/
+
+# Node — root-level package.json declares no dependencies; node_modules
+# should never be committed here. The /frontend project has its own
+# node_modules entry in /frontend/.gitignore (or its own scope).
+node_modules/
+package-lock.json
