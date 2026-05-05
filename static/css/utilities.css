@@ -198,3 +198,53 @@
 /* ── Sentinel: zero-content rule that announces utilities loaded ──── */
 /* (Useful smoke test in DevTools: getComputedStyle of `.u-hidden` →
  *  display === 'none' confirms the file shipped.) */
+
+
+/* ── Additional utilities surfaced by the sample_report.html refactor ── */
+
+/* Smaller muted text — sits between .u-text-tiny-muted and .u-text-sm-muted. */
+.u-text-xs-muted   { color: var(--text-muted); font-size: 0.8rem;  }
+.u-text-xs-accent  { color: var(--accent);     font-size: 0.8rem;  }
+
+/* Inline emphasis — colored, semibold. Used for inline status callouts. */
+.u-text-blue-semibold   { color: #3b82f6; font-weight: 600; }
+.u-text-red-semibold    { color: #ef4444; font-weight: 600; }
+.u-text-green-semibold  { color: #10a37f; font-weight: 600; }
+
+/* Big red statistic — typically a failed-check count or risk score. */
+.u-stat-red {
+  color: var(--red);
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+/* Severity-bar height variants (companion to .u-pill-8x60). */
+.u-pill-h6 { height: 6px; }
+
+/* Mono-style tiny text that wraps mid-token (URLs, hashes, IDs). */
+.u-text-mono-tiny {
+  font-size: 0.78rem;
+  word-break: break-all;
+}
+
+/* Compact recommendation card — like .status-card but tighter padding /
+   smaller radius. Templates set --status-color the same way. */
+.status-card-sm {
+  background: var(--surface2);
+  border-left: 4px solid var(--status-color, var(--border));
+  border-radius: 8px;
+  margin-bottom: 8px;
+  padding: 12px 16px;
+}
+
+/* Centered text helpers (rare but appear ≥2× in sample_report). */
+.u-text-center { text-align: center; }
+
+/* Width-0 bar fill — initial state for an animated progress bar. The
+   template provides --bar-color for the fill hue; the bar's actual
+   width is animated by JS and remains the only legitimate inline
+   `style="width: NN%"` pattern. */
+.u-bar-fill {
+  background: var(--bar-color, var(--red));
+  width: 0%;
+}
