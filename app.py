@@ -154,7 +154,20 @@ def _set_security_headers(response):
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self' https://cdnjs.cloudflare.com https://gc.zgo.at https://maps.googleapis.com; "
+        # WA-2026-05-05-02 phase 0: split style-src into element- and
+        # attribute-scoped directives. style-src-elem is locked down to
+        # 'self' (closes any future <style> injection regression);
+        # style-src-attr keeps 'unsafe-inline' for now while the
+        # template refactor (templates/* — see
+        # compliance/inline-style-audit-2026-05-05.md) replaces inline
+        # style="..." attributes with classes. Once that refactor lands,
+        # phase 4 drops 'unsafe-inline' from style-src-attr too.
+        # Browser support: Chrome 75+, Firefox 77+, Safari 15.4+. The
+        # legacy "style-src" line below is retained as a compatibility
+        # fallback so older clients keep their existing (looser) policy.
         "style-src 'self' 'unsafe-inline'; "
+        "style-src-elem 'self'; "
+        "style-src-attr 'self' 'unsafe-inline'; "
         "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com; "
         "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app https://website-auditor.goatcounter.com https://maps.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com;"
