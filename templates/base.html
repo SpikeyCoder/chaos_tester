@@ -57,6 +57,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <!-- Utility & component classes for the WA-2026-05-05-02 inline-style
+         refactor. See compliance/inline-style-audit-2026-05-05.md. -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/utilities.css') }}">
 
 {% block extra_head %}{% endblock %}
 <!-- Google Maps JavaScript API with Places library
