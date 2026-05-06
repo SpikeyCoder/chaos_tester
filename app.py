@@ -38,15 +38,26 @@ from . import supabase_client as supa
 # Build-time-computed sha256 hashes of every inline `style="..."` attribute
 # body in templates/. Refreshed by scripts/compute_style_hashes.py and run
 # from .github/workflows/deploy-cloud-run.yml before each Cloud Run deploy.
+# We load the file via the filesystem (regex-extracted) rather than a
+# Python import, because gunicorn imports this module as `chaos_tester.app`
+# but Cloud Run's --source-build layout may place chaos_tester_csp_style_hashes
+# in different relative positions across build types (Buildpacks vs.
+# Dockerfile). A direct file read is portable and never raises ImportError.
 # Pen-test 2026-05-05 finding WA-2026-05-05-02 phase 4.
+import re as _csp_re
+import os.path as _csp_os
+_STYLE_HASHES: list[str] = []
+_csp_hash_path = _csp_os.join(_csp_os.dirname(_csp_os.abspath(__file__)), 'chaos_tester_csp_style_hashes.py')
 try:
-    from .chaos_tester_csp_style_hashes import STYLE_HASHES as _STYLE_HASHES
+    with open(_csp_hash_path, 'r', encoding='utf-8') as _csp_f:
+        _csp_blob = _csp_f.read()
+    _STYLE_HASHES = _csp_re.findall(r"'sha256-[A-Za-z0-9+/=]+'", _csp_blob)
 except Exception:
-    # During first-deploy bootstrapping the file may not exist yet; we
-    # degrade to an empty list so the report-only header just becomes
-    # equivalent to 'self' without 'unsafe-hashes'. The CI step ensures
-    # this never silently happens in steady state.
-    _STYLE_HASHES: list[str] = []
+    # During first-deploy bootstrapping the file may not exist yet, or
+    # may be at a non-default path. Stay empty; the report-only header
+    # still emits with no hashes (so violation reports surface every
+    # inline style — useful for detecting the bootstrap state itself).
+    _STYLE_HASHES = []
 from . import wa_auth
 
 # Rate limiting: Flask-Limiter caps abusive callers without affecting normal
@@ -156,6 +167,11 @@ app.jinja_env.globals["csrf_token"] = _generate_csrf_token
 def _set_security_headers(response):
     """Attach security + CORS headers to every response."""
     response.headers["X-Content-Type-Options"] = "nosniff"
+    # Phase 4-A deploy-verification sentinel. The presence of this header
+    # confirms the latest Cloud Run revision is actually serving traffic
+    # (vs. silently falling back to a prior revision after a startup
+    # failure). Will be removed in Phase 4-B once we trust the rollout.
+    response.headers["X-WA-CSP-Phase"] = f"4A-hashes={len(_STYLE_HASHES)}"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
