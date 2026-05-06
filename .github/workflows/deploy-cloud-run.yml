@@ -50,6 +50,19 @@ jobs:
         run: |
           python3 scripts/compute_style_hashes.py --check
 
+      - name: Check CSP header byte budget
+        # GFE silently strips response headers whose value exceeds
+        # ~8,192 bytes. The Content-Security-Policy-Report-Only header
+        # is the binding constraint because every inline `style="..."`
+        # attribute on the site contributes a sha256 token to its
+        # `style-src-attr 'unsafe-hashes'` allowlist. This step fails
+        # the build if the reconstructed header would exceed our
+        # configured budget (8,000 bytes default, leaving ~192 bytes
+        # of safety margin under the 8,192-byte GFE hard limit).
+        # See compliance/inline-style-audit-2026-05-05.md.
+        run: |
+          python3 scripts/check_csp_header_size.py
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE }} \
