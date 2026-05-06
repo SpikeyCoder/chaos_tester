@@ -7,16 +7,16 @@
 {% block content %}
 <!-- Breadcrumb Navigation -->
 <nav aria-label="Breadcrumb" style="margin-bottom:16px;font-size:0.85rem;color:var(--text-muted);">
-  <a href="/" style="color:var(--accent);">Home</a>
-  <span style="margin:0 6px;">›</span>
-  <a href="/latest" style="color:var(--accent);">Dashboard</a>
-  <span style="margin:0 6px;">›</span>
+  <a class="u-color-accent" href="/">Home</a>
+  <span class="u-mx-2">›</span>
+  <a class="u-color-accent" href="/latest">Dashboard</a>
+  <span class="u-mx-2">›</span>
   <span>Report for <code>{{ report.base_url[:50] }}</code></span>
 </nav>
 
 <!-- -- Report Top Bar -------------------------------------- -->
 <div class="report-top-bar fade-up">
-  <div style="display:flex;align-items:center;gap:16px;">
+  <div class="u-flex-row-gap-16">
     <a href="/" class="back-link" aria-label="Back to Dashboard">← Back</a>
     <div class="report-title-group">
       <h1>Audit Report</h1>
@@ -137,13 +137,13 @@
     <div style="display:flex;align-items:flex-start;gap:14px;background:var(--surface2);border-radius:12px;padding:16px 18px;border:1px solid var(--border);">
       <div style="flex-shrink:0;width:34px;height:34px;border-radius:50%;background:{{ badge_bg }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:{{ badge_color }};">{{ loop.index }}</div>
       <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+        <div class="u-flex-row" style="flex-wrap:wrap;margin-bottom:6px;">
           <div style="font-weight:600;font-size:0.98rem;color:var(--text);">{{ item.name }}</div>
           <span class="badge badge-{{ item.severity }}" style="font-size:0.7rem;">{{ item.severity }}</span>
         </div>
         <div style="color:var(--text-muted);font-size:0.87rem;line-height:1.5;">{{ impact_text|safe }}</div>
         <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <a href="#result-row-{{ row_idx.n }}" style="display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-size:0.85rem;font-weight:600;text-decoration:none;">Fix this &rarr;</a>
+          <a class="u-color-accent" style="display:inline-flex;align-items:center;gap:4px;font-size:0.85rem;font-weight:600;text-decoration:none;" href="#result-row-{{ row_idx.n }}">Fix this &rarr;</a>
           <span style="padding:3px 9px;border-radius:6px;font-size:0.72rem;font-weight:600;background:{{ effort_bg }};color:{{ effort_color }};">{{ effort }}</span>
         </div>
       </div>
@@ -205,28 +205,28 @@
   {% endif %}
 
   <div class="exec-metrics">
-    <div class="exec-metric-card" style="cursor:pointer;" title="View all issues">
+    <div class="exec-metric-card u-cursor-pointer" title="View all issues">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-warn">⚠</div>
       </div>
       <div class="exec-metric-value">{{ total_issues }}</div>
       <div class="exec-metric-label">Total Issues Found</div>
     </div>
-    <div class="exec-metric-card" style="cursor:pointer;" title="View critical issues">
+    <div class="exec-metric-card u-cursor-pointer" title="View critical issues">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-crit">✕</div>
       </div>
       <div class="exec-metric-value">{{ critical_issues }}</div>
       <div class="exec-metric-label">Critical Issues</div>
     </div>
-    <div class="exec-metric-card" style="cursor:pointer;" title="View passed checks">
+    <div class="exec-metric-card u-cursor-pointer" title="View passed checks">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-pass">✓</div>
       </div>
       <div class="exec-metric-value">{{ checks_passed }}</div>
       <div class="exec-metric-label">Checks Passed</div>
     </div>
-    <div class="exec-metric-card" style="cursor:pointer;" title="View detailed results">
+    <div class="exec-metric-card u-cursor-pointer" title="View detailed results">
       <div class="exec-metric-top">
         <div class="exec-metric-icon icon-time">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" focusable="false"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -294,13 +294,13 @@
     {% set recs = sdata.get("recommendations", []) %}
     {% if recs %}
     <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
-      <h3 style="font-size:1rem;font-weight:600;margin:0 0 12px;">Top Recommendations</h3>
+      <h3 class="u-m-0-mb-3" style="font-size:1rem;font-weight:600;">Top Recommendations</h3>
       {% for rec in recs[:3] %}
-      <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:8px;border-left:4px solid {% if rec.score is not none and rec.score < 0.5 %}var(--red){% elif rec.score is not none and rec.score < 0.9 %}var(--yellow){% else %}var(--green){% endif %};">
-        <div style="font-weight:600;font-size:0.9rem;">{{ rec.title }}</div>
-        <div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;word-wrap:break-word;overflow-wrap:break-word;">{{ rec.description }}</div>
+      <div class="status-card-sm" style="--status-color: {% if rec.score is not none and rec.score < 0.5 %}var(--red){% elif rec.score is not none and rec.score < 0.9 %}var(--yellow){% else %}var(--green){% endif %}">
+        <div class="u-text-base-semibold">{{ rec.title }}</div>
+        <div class="u-caption-xs u-wordwrap-break">{{ rec.description }}</div>
         {% if rec.savings_ms > 0 %}
-        <div style="color:var(--accent);font-size:0.8rem;margin-top:4px;">Potential savings: {{ "%.1f"|format(rec.savings_ms / 1000) }}s</div>
+        <div class="u-text-xs-accent" style="margin-top:4px;">Potential savings: {{ "%.1f"|format(rec.savings_ms / 1000) }}s</div>
         {% endif %}
       </div>
       {% endfor %}
@@ -330,7 +330,7 @@
   <form style="margin-bottom:16px;">
     <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
       <div class="filter-group">
-        <span class="text-muted text-sm" style="margin-right:4px;">Filter:</span>
+        <span class="text-muted text-sm u-mr-1">Filter:</span>
         <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="all" aria-pressed="false" aria-label="Show all test results">All</button>
         <button type="button" class="btn btn-secondary text-sm filter-btn active" data-filter="issues" aria-pressed="true" aria-label="Show issues only">Issues Only</button>
         <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="failed" aria-pressed="false" aria-label="Show only failed tests">Failed</button>
@@ -338,7 +338,7 @@
         <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="passed" aria-pressed="false" aria-label="Show only passed tests">Passed</button>
       </div>
       <div class="filter-group">
-        <span class="text-muted text-sm" style="margin-right:4px;">Module:</span>
+        <span class="text-muted text-sm u-mr-1">Module:</span>
         <button type="button" class="btn btn-secondary text-sm module-btn active" data-module="all" aria-pressed="true" title="All test modules">All</button>
         <button type="button" class="btn btn-secondary text-sm module-btn" data-module="availability" aria-pressed="false" title="Page Availability - Whether all pages load correctly">Avail</button>
         <button type="button" class="btn btn-secondary text-sm module-btn" data-module="links" aria-pressed="false" title="Broken Links - Detect 404s and redirect issues">Links</button>
@@ -351,7 +351,7 @@
   </form>
   {# Show first 10 issue rows by default; remainder revealed by "Show All" button #}
   {% set _issue_counter = namespace(n=0) %}
-  <div id="detailed-results-wrapper" style="overflow-x:auto;max-height:none;">
+  <div class="u-overflow-x-auto u-overflow-y-none" id="detailed-results-wrapper">
     <table id="resultsTable">
       <thead>
         <tr>
@@ -382,18 +382,18 @@
             <div style="color:var(--text-muted);font-size:0.75rem;margin-top:2px;">{{ labels.get(r.module, r.module) }}</div>
           </td>
           <td data-label="Test">
-            <div style="font-weight:500;display:flex;align-items:center;gap:6px;">
-              <span class="expand-chevron" style="display:inline-block;transition:transform .2s;color:var(--text-muted);font-size:0.7rem;">&#9654;</span>
+            <div class="u-flex-row-medium">
+              <span class="expand-chevron u-text-tiny-muted">&#9654;</span>
               {{ r.name }}
             </div>
-            {% if r.description %}<div class="text-muted text-sm" style="word-wrap:break-word;overflow-wrap:break-word;">{{ r.description }}</div>{% endif %}
+            {% if r.description %}<div class="text-muted text-sm u-wordwrap-break">{{ r.description }}</div>{% endif %}
           </td>
-          <td data-label="" class="text-sm cell-details result-detail-cell" style="display:none;">
-            {% if r.details %}<div style="margin-bottom:4px;word-wrap:break-word;overflow-wrap:break-word;">{{ r.details }}</div>{% endif %}
+          <td class="text-sm cell-details result-detail-cell u-hidden" data-label="">
+            {% if r.details %}<div class="u-mb-1 u-wordwrap-break">{{ r.details }}</div>{% endif %}
             {% if r.recommendation %}
-            <div style="color:var(--accent);font-size:0.8rem;word-wrap:break-word;overflow-wrap:break-word;">Tip: {{ r.recommendation }}</div>
+            <div class="u-text-xs-accent u-wordwrap-break">Tip: {{ r.recommendation }}</div>
             {% endif %}
-            {% if r.url %}<div class="text-muted" style="font-size:0.78rem;word-break:break-all;">{{ r.url }}</div>{% endif %}
+            {% if r.url %}<div class="text-muted u-text-mono-tiny">{{ r.url }}</div>{% endif %}
           </td>
           <td data-label="Time" class="mono text-sm text-muted">{{ r.duration_ms|round(0)|int }}ms</td>
         </tr>
@@ -401,7 +401,7 @@
       </tbody>
     </table>
   </div>
-  <div style="text-align:center;padding:12px 0;" id="show-all-results-wrap"{% if total_issues <= 10 %} hidden{% endif %}>
+  <div class="u-text-center" id="show-all-results-wrap"{% if total_issues <= 10 %} hidden{% endif %}>
     <button type="button" class="btn btn-secondary text-sm" id="show-all-toggle-btn" data-issue-total="{{ total_issues }}" aria-expanded="false">
       Show All {{ total_issues }} Results
     </button>
@@ -419,7 +419,7 @@
   <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:16px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start;">
     <div style="font-size:1.2rem;flex-shrink:0;">!</div>
     <div>
-      <div style="font-weight:600;color:#92400e;margin-bottom:4px;">Simulated Data — No API Key Configured</div>
+      <div class="u-mb-1" style="font-weight:600;color:#92400e;">Simulated Data — No API Key Configured</div>
       <div style="color:#b45309;font-size:0.9rem;">These results are generated placeholders, not real AI platform responses. Set the <code style="background:rgba(0,0,0,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;">PERPLEXITY_API_KEY</code> environment variable to get actual AI visibility data.</div>
     </div>
   </div>
@@ -427,31 +427,31 @@
 
   <!-- Summary Score -->
   <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
-    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+    <div class="card-centered">
       <div style="font-size:2.5rem;font-weight:700;color:{% if ai.overall_score >= 50 %}var(--green){% elif ai.overall_score >= 25 %}var(--yellow){% else %}var(--red){% endif %};">{{ ai.overall_score }}%</div>
-      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Overall AI Visibility</div>
+      <div class="u-caption-sm">Overall AI Visibility</div>
     </div>
-    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+    <div class="card-centered">
       <div style="font-size:2.5rem;font-weight:700;">{{ ai.total_appearances }}/{{ ai.total_queries }}</div>
-      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Appearances in AI Results</div>
+      <div class="u-caption-sm">Appearances in AI Results</div>
     </div>
-    <div style="background:var(--surface2);border-radius:12px;padding:20px;text-align:center;">
+    <div class="card-centered">
       <div style="font-size:1.1rem;font-weight:600;">{{ ai.business_info.business_name }}</div>
-      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">{{ ai.business_info.sector|title }} &mdash; {{ ai.business_info.location }}</div>
+      <div class="u-caption-sm">{{ ai.business_info.sector|title }} &mdash; {{ ai.business_info.location }}</div>
     </div>
   </div>
 
   <!-- Platform Scores -->
   <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;margin-bottom:24px;">
     {% for pname, pdata in ai.platform_scores.items() %}
-    <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:4px solid {{ pdata.color }};">
-      <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-        <img src="{{ pdata.logo_url }}" width="20" height="20" alt="{{ pname }}" style="vertical-align:middle;">
+    <div class="status-card" style="--status-color: {{ pdata.color }}">
+      <div class="u-flex-row-semibold-mb-2">
+        <img class="u-valign-middle" src="{{ pdata.logo_url }}" width="20" height="20" alt="{{ pname }}">
         {{ pname }}
       </div>
       <div style="font-size:1.8rem;font-weight:700;color:{% if pdata.score >= 50 %}var(--green){% elif pdata.score >= 25 %}var(--yellow){% else %}var(--red){% endif %};">{{ pdata.score }}%</div>
-      <div style="color:var(--text-muted);font-size:0.8rem;">{{ pdata.appearances }}/{{ pdata.total }} queries</div>
-      <div class="progress-bar-bg mt-1" style="height:6px;">
+      <div class="u-text-xs-muted">{{ pdata.appearances }}/{{ pdata.total }} queries</div>
+      <div class="progress-bar-bg mt-1 u-pill-h6">
         <div class="progress-bar-fill" style="width:{{ pdata.score }}%;background:{{ pdata.color }};"></div>
       </div>
     </div>
@@ -460,7 +460,7 @@
 
   <!-- AI Visibility Recommendations -->
   <div id="ai-recommendations" style="margin-bottom:24px;border:1px solid var(--border);border-radius:12px;padding:20px;background:linear-gradient(135deg, rgba(99,102,241,0.05), rgba(16,185,129,0.05));">
-    <h3 style="font-size:1rem;font-weight:700;margin:0 0 12px;">Top Actions to Improve AI Visibility</h3>
+    <h3 class="u-m-0-mb-3" style="font-size:1rem;font-weight:700;">Top Actions to Improve AI Visibility</h3>
     <div id="ai-recs-list"></div>
   </div>
 
@@ -468,23 +468,23 @@
   {% if ai_query_entitled %}
   <div style="margin-bottom:24px;background:var(--surface2);border-radius:12px;padding:20px;">
     <h3 style="font-size:1rem;font-weight:700;margin:0 0 4px;">Run a Custom Query</h3>
-    <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 12px;">Enter any search query to see how AI platforms respond. The query runs against all 4 AI models.</p>
+    <p class="u-m-0-mb-3" style="color:var(--text-muted);font-size:0.82rem;">Enter any search query to see how AI platforms respond. The query runs against all 4 AI models.</p>
     <div style="display:flex;gap:8px;align-items:stretch;">
       <input type="text" id="custom-ai-query" placeholder="e.g. best plumber in Seattle" style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:0.9rem;">
       <button type="button" class="btn btn-primary" id="custom-ai-btn" style="white-space:nowrap;" aria-label="Run custom AI query">Run Query</button>
     </div>
-    <div id="custom-ai-status" style="display:none;margin-top:12px;color:var(--text-muted);font-size:0.85rem;">
+    <div class="u-hidden" style="margin-top:12px;color:var(--text-muted);font-size:0.85rem;" id="custom-ai-status">
       <span style="display:inline-block;animation:spin 1s linear infinite;">⏳</span>
       Querying AI platforms...
     </div>
-    <div id="custom-ai-error" style="display:none;margin-top:12px;color:var(--red);font-size:0.85rem;"></div>
-    <div id="custom-ai-results" style="display:none;margin-top:16px;"></div>
+    <div class="u-hidden" style="margin-top:12px;color:var(--red);font-size:0.85rem;" id="custom-ai-error"></div>
+    <div class="u-hidden" style="margin-top:16px;" id="custom-ai-results"></div>
   </div>
   {% else %}
   <!-- Custom AI Query — locked behind API subscription -->
   <div class="ai-query-upsell" style="margin-bottom:24px;background:linear-gradient(to right, rgba(99,102,241,0.10) 0%, rgba(168,85,247,0.10) 50%, rgba(236,72,153,0.10) 100%);border:1px solid rgba(99,102,241,0.20);border-radius:16px;padding:32px;">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;">
-      <div style="display:flex;align-items:center;gap:16px;">
+      <div class="u-flex-row-gap-16">
         <div style="padding:12px;background:rgba(99,102,241,0.20);border-radius:8px;display:inline-flex;">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
@@ -512,7 +512,7 @@
 
   <!-- Results Table (condensed: first 5 visible, scrollable) -->
   <div style="position:relative;">
-    <div id="ai-results-table" style="overflow-x:auto;max-height:none;">
+    <div class="u-overflow-x-auto u-overflow-y-none" id="ai-results-table">
       <table id="aiResultsTable">
         <thead>
           <tr>
@@ -529,12 +529,12 @@
           {% for row in ai.all_results %}
           <tr class="ai-result-row" {% if loop.index > 5 %}style="display:none;"{% endif %}>
             <td data-label="Platform"><span style="color:{{ row.platform_color }};font-weight:600;display:inline-flex;align-items:center;gap:5px;">
-              <img src="{{ row.platform_logo_url }}" width="18" height="18" alt="" style="vertical-align:middle;">
+              <img class="u-valign-middle" src="{{ row.platform_logo_url }}" width="18" height="18" alt="">
               {{ row.platform }}
             </span>
             </td>
-            <td data-label="Query" style="max-width:220px;white-space:normal;word-wrap:break-word;">{{ row.query }}</td>
-            <td data-label="Recommended" style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.recommended }}{% if not row.is_real %}<span style="display:inline-block;margin-left:8px;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-size:0.75rem;font-weight:600;">(simulated)</span>{% endif %}</td>
+            <td class="u-wrap-220" data-label="Query">{{ row.query }}</td>
+            <td class="u-wrap-260" data-label="Recommended">{{ row.recommended }}{% if not row.is_real %}<span style="display:inline-block;margin-left:8px;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-size:0.75rem;font-weight:600;">(simulated)</span>{% endif %}</td>
             <td data-label="Found">
               {% if row.client_appears %}
                 <span class="badge badge-passed">Yes</span>
@@ -543,10 +543,10 @@
               {% endif %}
             </td>
             <td data-label="Position">{{ row.position if row.position else "N/A" }}</td>
-            <td data-label="Competitors" style="max-width:260px;white-space:normal;word-wrap:break-word;">{{ row.competitors }}</td>
+            <td class="u-wrap-260" data-label="Competitors">{{ row.competitors }}</td>
             <td data-label="Score">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <div class="progress-bar-bg" style="height:8px;width:60px;">
+              <div class="u-flex-row">
+                <div class="progress-bar-bg u-pill-8x60">
                   <div class="progress-bar-fill" style="width:{{ row.visibility_score }}%;background:{% if row.visibility_score >= 75 %}var(--green){% elif row.visibility_score >= 50 %}var(--yellow){% else %}var(--red){% endif %};"></div>
                 </div>
                 <span>{{ row.visibility_score }}%</span>
@@ -558,7 +558,7 @@
       </table>
     </div>
     {% if ai.all_results|length > 5 %}
-    <div id="ai-show-more-bar" style="text-align:center;padding:12px 0;">
+    <div class="u-text-center" id="ai-show-more-bar">
       <button type="button" class="btn btn-secondary text-sm" id="ai-toggle-btn">
         Show All {{ ai.all_results|length }} Results ▼
       </button>
@@ -583,7 +583,7 @@
       <p style="margin:0;font-size:0.82rem;color:var(--text-muted);">Compare scores over time &middot; {{ domain_history|length }} audit{{ 's' if domain_history|length != 1 }} on record</p>
     </div>
   </div>
-  <div style="overflow-x:auto;">
+  <div class="u-overflow-x-auto">
     <table>
       <thead>
         <tr>
@@ -615,7 +615,7 @@
           <td class="text-sm text-muted">{{ h.duration_s|default(0)|round(1) }}s</td>
           <td>
             {% if h.id != report.get('hash_id', '') %}
-            <a href="/report/{{ h.id }}" class="text-sm" style="color:var(--accent);text-decoration:none;">View &rarr;</a>
+            <a class="text-sm u-color-accent" style="text-decoration:none;" href="/report/{{ h.id }}">View &rarr;</a>
             {% endif %}
           </td>
         </tr>
@@ -626,7 +626,7 @@
   {% if report.get('hash_id') %}
   <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);text-align:center;">
     <span class="text-muted text-sm">Permanent link: </span>
-    <a href="/report/{{ report.hash_id }}" class="text-sm" style="color:var(--accent);">website-auditor.io/report/{{ report.hash_id }}</a>
+    <a class="text-sm u-color-accent" href="/report/{{ report.hash_id }}">website-auditor.io/report/{{ report.hash_id }}</a>
   </div>
   {% endif %}
 </div>
