@@ -6,7 +6,7 @@
 {% endblock %}
 {% block content %}
 <!-- Breadcrumb Navigation -->
-<nav aria-label="Breadcrumb" style="margin-bottom:16px;font-size:0.85rem;color:var(--text-muted);">
+<nav class="u-mb-4-v u-text-sm-muted" aria-label="Breadcrumb">
   <a class="u-color-accent" href="/">Home</a>
   <span class="u-mx-2">›</span>
   <a class="u-color-accent" href="/latest">Dashboard</a>
@@ -77,17 +77,17 @@
   {% endfor %}
 {% endfor %}
 {% if ranked|length > 0 %}
-<div id="sect-fix-first" class="card fade-up" style="margin-bottom:24px;border:1px solid rgba(249,115,22,0.35);background:linear-gradient(135deg, rgba(249,115,22,0.08), rgba(239,68,68,0.05));" role="region" aria-labelledby="fix-first-heading">
+<div class="card fade-up u-mb-6-no-semi" style="border:1px solid rgba(249,115,22,0.35);background:linear-gradient(135deg, rgba(249,115,22,0.08), rgba(239,68,68,0.05));" id="sect-fix-first" role="region" aria-labelledby="fix-first-heading">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
     <div style="width:40px;height:40px;border-radius:10px;background:rgba(249,115,22,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
     </div>
     <div>
-      <h2 id="fix-first-heading" style="margin:0;font-size:1.2rem;font-weight:700;color:#fff;">Fix These 3 Things First</h2>
-      <div style="color:var(--text-muted);font-size:0.85rem;margin-top:2px;">{{ ranked|length }} issue{{ 's' if ranked|length != 1 }} found &mdash; start here for the biggest business impact</div>
+      <h2 class="u-metric-value" id="fix-first-heading">Fix These 3 Things First</h2>
+      <div class="u-color-muted u-text-085" style="margin-top:2px;">{{ ranked|length }} issue{{ 's' if ranked|length != 1 }} found &mdash; start here for the biggest business impact</div>
     </div>
   </div>
-  <div style="display:grid;gap:12px;margin-top:16px;">
+  <div class="u-mt-4-v" style="display:grid;gap:12px;">
     {% for item in ranked[:3] %}
     {# Plain-English business impact, keyed on module (and severity for nuance) #}
     {% if item.module == 'security' %}
@@ -138,13 +138,13 @@
       <div style="flex-shrink:0;width:34px;height:34px;border-radius:50%;background:{{ badge_bg }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:{{ badge_color }};">{{ loop.index }}</div>
       <div style="flex:1;min-width:0;">
         <div class="u-flex-row" style="flex-wrap:wrap;margin-bottom:6px;">
-          <div style="font-weight:600;font-size:0.98rem;color:var(--text);">{{ item.name }}</div>
+          <div class="u-fw-600" style="font-size:0.98rem;color:var(--text);">{{ item.name }}</div>
           <span class="badge badge-{{ item.severity }}" style="font-size:0.7rem;">{{ item.severity }}</span>
         </div>
-        <div style="color:var(--text-muted);font-size:0.87rem;line-height:1.5;">{{ impact_text|safe }}</div>
-        <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <a class="u-color-accent" style="display:inline-flex;align-items:center;gap:4px;font-size:0.85rem;font-weight:600;text-decoration:none;" href="#result-row-{{ row_idx.n }}">Fix this &rarr;</a>
-          <span style="padding:3px 9px;border-radius:6px;font-size:0.72rem;font-weight:600;background:{{ effort_bg }};color:{{ effort_color }};">{{ effort }}</span>
+        <div class="u-color-muted" style="font-size:0.87rem;line-height:1.5;">{{ impact_text|safe }}</div>
+        <div class="u-flex-row-gap-10" style="margin-top:10px;flex-wrap:wrap;">
+          <a class="u-color-accent u-fw-600 u-text-085 u-no-decoration" style="display:inline-flex;align-items:center;gap:4px;" href="#result-row-{{ row_idx.n }}">Fix this &rarr;</a>
+          <span class="u-fw-600" style="padding:3px 9px;border-radius:6px;font-size:0.72rem;background:{{ effort_bg }};color:{{ effort_color }};">{{ effort }}</span>
         </div>
       </div>
     </div>
@@ -152,7 +152,7 @@
   </div>
   {% if ranked|length > 3 %}
   <div style="margin-top:14px;text-align:center;">
-    <a href="#sect-results" style="color:var(--text-muted);font-size:0.82rem;text-decoration:none;">See the other {{ ranked|length - 3 }} issue{{ 's' if ranked|length - 3 != 1 }} below &darr;</a>
+    <a class="u-color-muted u-text-082 u-no-decoration" href="#sect-results">See the other {{ ranked|length - 3 }} issue{{ 's' if ranked|length - 3 != 1 }} below &darr;</a>
   </div>
   {% endif %}
 </div>
@@ -173,7 +173,7 @@
       <div class="exec-subtitle">Overall website health and critical findings</div>
     </div>
     <div class="exec-score">
-      <div class="score-number" style="color:{% if overall_score >= 90 %}var(--green){% elif overall_score >= 70 %}#f97316{% else %}var(--red){% endif %}">{{ overall_score }}</div>
+      <div class="score-number" style="color:{% if overall_score >= 90 %}var(--green){% elif overall_score >= 70 %}#f97316{% else %}var(--red){% endif %};">{{ overall_score }}</div>
       <div class="score-label">Overall Score</div>
     </div>
   </div>
@@ -239,14 +239,14 @@
 </div>
 
 <!-- -- Snapshot Summary (circular gauges) -------------------- -->
-<div class="section-summary card fade-up" style="margin-bottom:24px;" role="region" aria-label="Section summary scores">
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+<div class="section-summary card fade-up u-mb-6-no-semi" role="region" aria-label="Section summary scores">
+  <div class="u-flex-row-gap-12">
     <div style="width:40px;height:40px;border-radius:10px;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2a10 10 0 0 1 7.07 2.93"/></svg>
     </div>
     <div>
-      <h2 style="margin:0;font-size:1.2rem;font-weight:700;color:#fff;">Snapshot Summary</h2>
-      <p style="margin:0;font-size:0.82rem;color:var(--text-muted);">Core Web Vitals and performance metrics</p>
+      <h2 class="u-metric-value">Snapshot Summary</h2>
+      <p class="u-color-muted u-text-082 u-m-0">Core Web Vitals and performance metrics</p>
     </div>
   </div>
   <div class="section-gauges" id="sectionGauges">
@@ -258,8 +258,8 @@
 <!-- -- Performance Dashboard -------------------------------- -->
 {% set perf = report.get("performance_metrics", {}) if report.get("performance_metrics") else {} %}
 {% set has_perf_data = perf and (perf.get("mobile", {}).get("score") is not none or perf.get("desktop", {}).get("score") is not none) %}
-<div id="sect-performance" class="card" style="margin-bottom:24px">
-  <h2 style="margin:0 0 16px">Performance Metrics</h2>
+<div class="card u-mb-6-no-semi" id="sect-performance">
+  <h2 class="u-mt-0-mb-3">Performance Metrics</h2>
   {% if has_perf_data %}
   <div class="perf-tabs" role="tablist" aria-label="Performance strategy">
     <button type="button" role="tab" class="perf-tab active" id="tab-mobile" aria-label="View mobile performance metrics" aria-selected="true" aria-controls="panel-mobile">📱 Mobile</button>
@@ -267,15 +267,15 @@
   </div>
   {% for strategy in ["mobile","desktop"] %}
   {% set sdata = perf.get(strategy, {}) %}
-  <div class="perf-panel" id="panel-{{strategy}}" style="{% if strategy=='desktop' %}display:none{% endif %}">
+  <div class="perf-panel" id="panel-{{strategy}}" style="{% if strategy=='desktop' %}display:none{% endif %};">
     {% if sdata and sdata.get("score") is not none %}
     <!-- Overall Score Gauge -->
-    <div style="text-align:center;margin-bottom:20px">
+    <div class="u-text-center-mb-5">
       <div class="gauge-container gauge-main"
            data-type="overall"
            data-value="{{ (sdata.score * 100)|int }}"
            data-display="{{ (sdata.score * 100)|int }}"></div>
-      <div style="color:var(--text-muted);font-size:13px;margin-top:2px">Overall Score</div>
+      <div class="u-color-muted u-tiny-2">Overall Score</div>
     </div>
     <!-- Individual Metric Gauges -->
     <div class="perf-grid">
@@ -293,10 +293,10 @@
     <!-- Top 3 Performance Recommendations -->
     {% set recs = sdata.get("recommendations", []) %}
     {% if recs %}
-    <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
-      <h3 class="u-m-0-mb-3" style="font-size:1rem;font-weight:600;">Top Recommendations</h3>
+    <div class="u-mt-5-bordertop">
+      <h3 class="u-m-0-mb-3 u-text-base-semi">Top Recommendations</h3>
       {% for rec in recs[:3] %}
-      <div class="status-card-sm" style="--status-color: {% if rec.score is not none and rec.score < 0.5 %}var(--red){% elif rec.score is not none and rec.score < 0.9 %}var(--yellow){% else %}var(--green){% endif %}">
+      <div class="status-card-sm" style="--status-color: {% if rec.score is not none and rec.score < 0.5 %}var(--red){% elif rec.score is not none and rec.score < 0.9 %}var(--yellow){% else %}var(--green){% endif %};">
         <div class="u-text-base-semibold">{{ rec.title }}</div>
         <div class="u-caption-xs u-wordwrap-break">{{ rec.description }}</div>
         {% if rec.savings_ms > 0 %}
@@ -308,7 +308,7 @@
     {% endif %}
 
     {% else %}
-    <p style="color:var(--text-muted);text-align:center;padding:24px 0">
+    <p class="u-color-muted" style="text-align:center;padding:24px 0;">
       No {{strategy}} performance data available. Performance metrics require a Lighthouse integration which is not yet enabled for this audit.
     </p>
     {% endif %}
@@ -316,9 +316,9 @@
   {% endfor %}
   {% else %}
   <div style="background:var(--surface);border:1px dashed var(--border);border-radius:8px;padding:32px 24px;text-align:center;">
-    <div style="font-size:2rem;margin-bottom:12px;">⚡</div>
-    <p style="color:var(--text);font-weight:600;margin-bottom:8px;">No performance data available for this scan</p>
-    <p style="color:var(--text-muted);font-size:0.9rem;line-height:1.5;">Try re-running your audit to collect Lighthouse performance scores, individual metric gauges, and optimization recommendations.</p>
+    <div class="u-mb-3" style="font-size:2rem;">⚡</div>
+    <p class="u-fw-600" style="color:var(--text);margin-bottom:8px;">No performance data available for this scan</p>
+    <p class="u-color-muted" style="font-size:0.9rem;line-height:1.5;">Try re-running your audit to collect Lighthouse performance scores, individual metric gauges, and optimization recommendations.</p>
   </div>
   {% endif %}
 </div>
@@ -327,8 +327,8 @@
 <div class="card" id="sect-results">
   <h2 id="detailed-results-heading">Detailed Results ({{ report.results|length }})</h2>
   <!-- Filter bar (inside Detailed Results) -->
-  <form style="margin-bottom:16px;">
-    <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+  <form class="u-mb-4-v">
+    <div class="filter-bar u-flex-wrap-row">
       <div class="filter-group">
         <span class="text-muted text-sm u-mr-1">Filter:</span>
         <button type="button" class="btn btn-secondary text-sm filter-btn" data-filter="all" aria-pressed="false" aria-label="Show all test results">All</button>
@@ -355,13 +355,13 @@
     <table id="resultsTable">
       <thead>
         <tr>
-          <th style="width:50px">#</th>
+          <th class="u-w-50">#</th>
           <th>Status</th>
           <th>Severity</th>
           <th>Module</th>
           <th>Test</th>
           <th>Details</th>
-          <th style="width:80px">Time</th>
+          <th class="u-w-80">Time</th>
         </tr>
       </thead>
       <tbody>
@@ -371,15 +371,15 @@
         {% if is_issue %}{% set _issue_counter.n = _issue_counter.n + 1 %}{% endif %}
         {% set issue_idx = _issue_counter.n if is_issue else 0 %}
         {% set hide_initial = (not is_issue) or (is_issue and issue_idx > 10) %}
-        <tr class="result-row{% if is_issue and issue_idx > 10 %} result-row-overflow{% endif %}" id="result-row-{{ loop.index }}" data-status="{{ r.status }}" data-module="{{ r.module }}" data-severity="{{ r.severity }}" data-is-issue="{{ 'true' if is_issue else 'false' }}" data-issue-index="{{ issue_idx }}" style="cursor:pointer;{% if hide_initial %}display:none;{% endif %}">
+        <tr class="result-row{% if is_issue and issue_idx > 10 %} result-row-overflow{% endif %}" id="result-row-{{ loop.index }}" data-status="{{ r.status }}" data-module="{{ r.module }}" data-severity="{{ r.severity }}" data-is-issue="{{ 'true' if is_issue else 'false' }}" data-issue-index="{{ issue_idx }}" style="cursor:pointer;{% if hide_initial %}display:none;{% endif %};">
           <td class="text-muted mono text-sm cell-index">{{ loop.index }}</td>
           <td data-label="Status"><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
           <td data-label="Severity"><span class="badge badge-{{ r.severity }}">{{ r.severity }}</span></td>
           <td data-label="Module" class="text-sm">
             {% set mc = {'availability':'#3b82f6','links':'#a855f7','forms':'#06b6d4','chaos':'#f97316','auth':'#eab308','security':'#ef4444'} %}
             {% set labels = {'availability':'Page Availability','links':'Broken Links','forms':'Form Usability','chaos':'Stress Testing','auth':'Auth & Sessions','security':'Security Headers'} %}
-            <div><span style="color:{{ mc.get(r.module, '#8b8fa3') }};font-weight:600;">{{ r.module }}</span></div>
-            <div style="color:var(--text-muted);font-size:0.75rem;margin-top:2px;">{{ labels.get(r.module, r.module) }}</div>
+            <div><span class="u-fw-600" style="color:{{ mc.get(r.module, '#8b8fa3') }};">{{ r.module }}</span></div>
+            <div class="u-color-muted" style="font-size:0.75rem;margin-top:2px;">{{ labels.get(r.module, r.module) }}</div>
           </td>
           <td data-label="Test">
             <div class="u-flex-row-medium">
@@ -419,37 +419,37 @@
   <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:16px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start;">
     <div style="font-size:1.2rem;flex-shrink:0;">!</div>
     <div>
-      <div class="u-mb-1" style="font-weight:600;color:#92400e;">Simulated Data — No API Key Configured</div>
+      <div class="u-mb-1 u-fw-600" style="color:#92400e;">Simulated Data — No API Key Configured</div>
       <div style="color:#b45309;font-size:0.9rem;">These results are generated placeholders, not real AI platform responses. Set the <code style="background:rgba(0,0,0,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;">PERPLEXITY_API_KEY</code> environment variable to get actual AI visibility data.</div>
     </div>
   </div>
   {% endif %}
 
   <!-- Summary Score -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
+  <div class="u-grid-200">
     <div class="card-centered">
-      <div style="font-size:2.5rem;font-weight:700;color:{% if ai.overall_score >= 50 %}var(--green){% elif ai.overall_score >= 25 %}var(--yellow){% else %}var(--red){% endif %};">{{ ai.overall_score }}%</div>
+      <div class="u-stat-2-5" style="color:{% if ai.overall_score >= 50 %}var(--green){% elif ai.overall_score >= 25 %}var(--yellow){% else %}var(--red){% endif %};">{{ ai.overall_score }}%</div>
       <div class="u-caption-sm">Overall AI Visibility</div>
     </div>
     <div class="card-centered">
-      <div style="font-size:2.5rem;font-weight:700;">{{ ai.total_appearances }}/{{ ai.total_queries }}</div>
+      <div class="u-stat-2-5">{{ ai.total_appearances }}/{{ ai.total_queries }}</div>
       <div class="u-caption-sm">Appearances in AI Results</div>
     </div>
     <div class="card-centered">
-      <div style="font-size:1.1rem;font-weight:600;">{{ ai.business_info.business_name }}</div>
+      <div class="u-text-1-1rem-semibold">{{ ai.business_info.business_name }}</div>
       <div class="u-caption-sm">{{ ai.business_info.sector|title }} &mdash; {{ ai.business_info.location }}</div>
     </div>
   </div>
 
   <!-- Platform Scores -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;margin-bottom:24px;">
+  <div class="u-grid-180">
     {% for pname, pdata in ai.platform_scores.items() %}
-    <div class="status-card" style="--status-color: {{ pdata.color }}">
+    <div class="status-card" style="--status-color: {{ pdata.color }};">
       <div class="u-flex-row-semibold-mb-2">
         <img class="u-valign-middle" src="{{ pdata.logo_url }}" width="20" height="20" alt="{{ pname }}">
         {{ pname }}
       </div>
-      <div style="font-size:1.8rem;font-weight:700;color:{% if pdata.score >= 50 %}var(--green){% elif pdata.score >= 25 %}var(--yellow){% else %}var(--red){% endif %};">{{ pdata.score }}%</div>
+      <div class="u-text-1-8" style="font-weight:700;color:{% if pdata.score >= 50 %}var(--green){% elif pdata.score >= 25 %}var(--yellow){% else %}var(--red){% endif %};">{{ pdata.score }}%</div>
       <div class="u-text-xs-muted">{{ pdata.appearances }}/{{ pdata.total }} queries</div>
       <div class="progress-bar-bg mt-1 u-pill-h6">
         <div class="progress-bar-fill" style="width:{{ pdata.score }}%;background:{{ pdata.color }};"></div>
@@ -459,31 +459,31 @@
   </div>
 
   <!-- AI Visibility Recommendations -->
-  <div id="ai-recommendations" style="margin-bottom:24px;border:1px solid var(--border);border-radius:12px;padding:20px;background:linear-gradient(135deg, rgba(99,102,241,0.05), rgba(16,185,129,0.05));">
-    <h3 class="u-m-0-mb-3" style="font-size:1rem;font-weight:700;">Top Actions to Improve AI Visibility</h3>
+  <div class="u-mb-6-no-semi u-card-fancy" id="ai-recommendations">
+    <h3 class="u-m-0-mb-3 u-text-base-bold">Top Actions to Improve AI Visibility</h3>
     <div id="ai-recs-list"></div>
   </div>
 
   <!-- Custom AI Query -->
   {% if ai_query_entitled %}
-  <div style="margin-bottom:24px;background:var(--surface2);border-radius:12px;padding:20px;">
-    <h3 style="font-size:1rem;font-weight:700;margin:0 0 4px;">Run a Custom Query</h3>
-    <p class="u-m-0-mb-3" style="color:var(--text-muted);font-size:0.82rem;">Enter any search query to see how AI platforms respond. The query runs against all 4 AI models.</p>
-    <div style="display:flex;gap:8px;align-items:stretch;">
-      <input type="text" id="custom-ai-query" placeholder="e.g. best plumber in Seattle" style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:0.9rem;">
-      <button type="button" class="btn btn-primary" id="custom-ai-btn" style="white-space:nowrap;" aria-label="Run custom AI query">Run Query</button>
+  <div class="u-mb-6-no-semi u-card-info">
+    <h3 class="u-text-1rem-bold-mb-1">Run a Custom Query</h3>
+    <p class="u-m-0-mb-3 u-color-muted u-text-082">Enter any search query to see how AI platforms respond. The query runs against all 4 AI models.</p>
+    <div class="u-flex-row-stretch">
+      <input class="u-form-input" type="text" id="custom-ai-query" placeholder="e.g. best plumber in Seattle">
+      <button class="btn btn-primary u-white-space-nowrap" type="button" id="custom-ai-btn" aria-label="Run custom AI query">Run Query</button>
     </div>
-    <div class="u-hidden" style="margin-top:12px;color:var(--text-muted);font-size:0.85rem;" id="custom-ai-status">
+    <div class="u-hidden u-mt-3 u-color-muted u-text-085" id="custom-ai-status">
       <span style="display:inline-block;animation:spin 1s linear infinite;">⏳</span>
       Querying AI platforms...
     </div>
-    <div class="u-hidden" style="margin-top:12px;color:var(--red);font-size:0.85rem;" id="custom-ai-error"></div>
-    <div class="u-hidden" style="margin-top:16px;" id="custom-ai-results"></div>
+    <div class="u-hidden u-mt-3 u-color-red u-text-085" id="custom-ai-error"></div>
+    <div class="u-hidden u-mt-4-v" id="custom-ai-results"></div>
   </div>
   {% else %}
   <!-- Custom AI Query — locked behind API subscription -->
-  <div class="ai-query-upsell" style="margin-bottom:24px;background:linear-gradient(to right, rgba(99,102,241,0.10) 0%, rgba(168,85,247,0.10) 50%, rgba(236,72,153,0.10) 100%);border:1px solid rgba(99,102,241,0.20);border-radius:16px;padding:32px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;">
+  <div class="ai-query-upsell u-mb-6-no-semi" style="background:linear-gradient(to right, rgba(99,102,241,0.10) 0%, rgba(168,85,247,0.10) 50%, rgba(236,72,153,0.10) 100%);border:1px solid rgba(99,102,241,0.20);border-radius:16px;padding:32px;">
+    <div class="u-flex-between" style="flex-wrap:wrap;gap:24px;">
       <div class="u-flex-row-gap-16">
         <div style="padding:12px;background:rgba(99,102,241,0.20);border-radius:8px;display:inline-flex;">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
@@ -492,15 +492,15 @@
         </div>
         <div>
           <h3 style="margin:0 0 4px;font-size:1.5rem;font-weight:700;color:#fff;">Want to create your own custom searches?</h3>
-          <p style="margin:0;color:#94a3b8;font-size:1rem;">Search across all AI models with custom queries to find exactly what you need</p>
+          <p class="u-m-0" style="color:#94a3b8;font-size:1rem;">Search across all AI models with custom queries to find exactly what you need</p>
         </div>
       </div>
-      <a href="https://api.website-auditor.io/admin_portal/?return_to={{ return_to_url|urlencode }}"
-         style="display:inline-flex;align-items:center;background:#6366f1;color:#fff;font-weight:500;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:15px;"
+      <a class="u-no-decoration" style="display:inline-flex;align-items:center;background:#6366f1;color:#fff;font-weight:500;padding:10px 18px;border-radius:8px;font-size:15px;" href="https://api.website-auditor.io/admin_portal/?return_to={{ return_to_url|urlencode }}"
+        
          onmouseover="this.style.background='#4f46e5'"
          onmouseout="this.style.background='#6366f1'">
         Click Here
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px;" aria-hidden="true" focusable="false">
+        <svg class="u-ml-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
           <polyline points="15 3 21 3 21 9"/>
           <line x1="10" y1="14" x2="21" y2="3"/>
@@ -511,7 +511,7 @@
   {% endif %}
 
   <!-- Results Table (condensed: first 5 visible, scrollable) -->
-  <div style="position:relative;">
+  <div class="u-position-rel">
     <div class="u-overflow-x-auto u-overflow-y-none" id="ai-results-table">
       <table id="aiResultsTable">
         <thead>
@@ -528,13 +528,13 @@
         <tbody>
           {% for row in ai.all_results %}
           <tr class="ai-result-row" {% if loop.index > 5 %}style="display:none;"{% endif %}>
-            <td data-label="Platform"><span style="color:{{ row.platform_color }};font-weight:600;display:inline-flex;align-items:center;gap:5px;">
+            <td data-label="Platform"><span class="u-fw-600" style="color:{{ row.platform_color }};display:inline-flex;align-items:center;gap:5px;">
               <img class="u-valign-middle" src="{{ row.platform_logo_url }}" width="18" height="18" alt="">
               {{ row.platform }}
             </span>
             </td>
             <td class="u-wrap-220" data-label="Query">{{ row.query }}</td>
-            <td class="u-wrap-260" data-label="Recommended">{{ row.recommended }}{% if not row.is_real %}<span style="display:inline-block;margin-left:8px;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-size:0.75rem;font-weight:600;">(simulated)</span>{% endif %}</td>
+            <td class="u-wrap-260" data-label="Recommended">{{ row.recommended }}{% if not row.is_real %}<span class="u-ml-2 u-fw-600" style="display:inline-block;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-size:0.75rem;">(simulated)</span>{% endif %}</td>
             <td data-label="Found">
               {% if row.client_appears %}
                 <span class="badge badge-passed">Yes</span>
@@ -567,20 +567,20 @@
   </div>
 
   {% else %}
-  <p style="color:var(--text-muted);text-align:center;padding:32px 0;">AI Visibility data not available for this report. Run a new audit to generate AI visibility analysis.</p>
+  <p class="u-color-muted" style="text-align:center;padding:32px 0;">AI Visibility data not available for this report. Run a new audit to generate AI visibility analysis.</p>
   {% endif %}
 </div>
 
 <!-- -- Domain Audit History ----------------------------------------- -->
 {% if domain_history and domain_history|length > 1 %}
 <div class="card fade-up" style="margin-top:24px;" id="sect-history">
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+  <div class="u-mb-4-v" style="display:flex;align-items:center;gap:12px;">
     <div style="width:40px;height:40px;border-radius:10px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
     </div>
     <div>
-      <h2 style="margin:0;font-size:1.2rem;font-weight:700;">Audit History for {{ domain }}</h2>
-      <p style="margin:0;font-size:0.82rem;color:var(--text-muted);">Compare scores over time &middot; {{ domain_history|length }} audit{{ 's' if domain_history|length != 1 }} on record</p>
+      <h2 class="u-m-0 u-text-1-2-bold">Audit History for {{ domain }}</h2>
+      <p class="u-color-muted u-text-082 u-m-0">Compare scores over time &middot; {{ domain_history|length }} audit{{ 's' if domain_history|length != 1 }} on record</p>
     </div>
   </div>
   <div class="u-overflow-x-auto">
@@ -598,7 +598,7 @@
       </thead>
       <tbody>
         {% for h in domain_history %}
-        <tr style="{% if h.id == report.get('hash_id', '') %}background:rgba(59,130,246,0.08);{% endif %}">
+        <tr style="{% if h.id == report.get('hash_id', '') %}background:rgba(59,130,246,0.08);{% endif %};">
           <td class="text-sm">
             <span data-utc="{{ h.started_at }}" data-utc-format="datetime">{{ h.started_at[:16] }}</span>
             {% if h.id == report.get('hash_id', '') %}<span class="badge badge-info" style="font-size:0.7rem;margin-left:6px;">current</span>{% endif %}
@@ -610,12 +610,12 @@
             </span>
           </td>
           <td class="text-sm">{{ h.total_tests|default('-') }}</td>
-          <td class="text-sm" style="color:var(--green);">{{ h.passed|default('-') }}</td>
-          <td class="text-sm" style="color:var(--red);">{{ h.failed|default('-') }}</td>
+          <td class="text-sm u-text-green-var">{{ h.passed|default('-') }}</td>
+          <td class="text-sm u-color-red">{{ h.failed|default('-') }}</td>
           <td class="text-sm text-muted">{{ h.duration_s|default(0)|round(1) }}s</td>
           <td>
             {% if h.id != report.get('hash_id', '') %}
-            <a class="text-sm u-color-accent" style="text-decoration:none;" href="/report/{{ h.id }}">View &rarr;</a>
+            <a class="text-sm u-color-accent u-no-decoration" href="/report/{{ h.id }}">View &rarr;</a>
             {% endif %}
           </td>
         </tr>
@@ -624,7 +624,7 @@
     </table>
   </div>
   {% if report.get('hash_id') %}
-  <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);text-align:center;">
+  <div class="u-mt-3" style="padding-top:12px;border-top:1px solid var(--border);text-align:center;">
     <span class="text-muted text-sm">Permanent link: </span>
     <a class="text-sm u-color-accent" href="/report/{{ report.hash_id }}">website-auditor.io/report/{{ report.hash_id }}</a>
   </div>

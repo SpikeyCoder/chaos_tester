@@ -6,75 +6,74 @@
 {% endblock %}
 {% block content %}
 <!-- Progress Stepper -->
-<nav aria-label="Audit progress" style="margin-bottom:24px;">
+<nav class="u-mb-6-no-semi" aria-label="Audit progress">
   <div style="display:flex;align-items:center;justify-content:center;gap:0;max-width:500px;margin:0 auto;">
-    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">
-      <div style="width:36px;height:36px;border-radius:50%;background:rgba(74,222,128,0.15);color:#4ade80;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">✓</div>
-      <span style="font-size:0.78rem;color:#4ade80;font-weight:600;">Paste URL</span>
+    <div class="u-flex-col-center">
+      <div class="u-color-success-light u-text-085" style="width:36px;height:36px;border-radius:50%;background:rgba(74,222,128,0.15);display:flex;align-items:center;justify-content:center;font-weight:700;">✓</div>
+      <span class="u-color-success-light u-fw-600" style="font-size:0.78rem;">Paste URL</span>
     </div>
     <div style="flex:1;height:2px;background:linear-gradient(90deg,#4ade80,var(--accent));margin-top:-20px;"></div>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;" class="pulse-dot">2</div>
-      <span class="u-color-accent" style="font-size:0.78rem;font-weight:600">Scanning</span>
+    <div class="u-flex-col-center">
+      <div class="pulse-dot u-text-085" style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">2</div>
+      <span class="u-color-accent u-fw-600" style="font-size:0.78rem;">Scanning</span>
     </div>
     <div style="flex:1;height:2px;background:var(--border);margin-top:-20px;"></div>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">
-      <div class="u-color-muted" style="width:36px;height:36px;border-radius:50%;background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem">3</div>
-      <span class="u-text-mono-78" style="font-weight:500">Report</span>
+    <div class="u-flex-col-center">
+      <div class="u-color-muted u-text-085" style="width:36px;height:36px;border-radius:50%;background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;">3</div>
+      <span class="u-text-mono-78" style="font-weight:500;">Report</span>
     </div>
   </div>
 </nav>
 
 <div class="card">
-  <h1 style="font-size:1.3rem;margin:0 0 8px;"><span class="spinner" id="runSpinner" aria-hidden="true"></span> Test Run in Progress</h1>
+  <h1 class="u-text-1-3" style="margin:0 0 8px;"><span class="spinner" id="runSpinner" aria-hidden="true"></span> Test Run in Progress</h1>
 
   <!-- Enhanced progress bar with gradient -->
-  <div class="u-mt-4-v" style="position:relative;height:8px;background:var(--border);border-radius:4px;overflow:hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Audit progress" id="progressBarWrap" aria-valuenow="0">
+  <div class="u-mt-4-v u-position-rel" style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Audit progress" id="progressBarWrap" aria-valuenow="0">
     <div id="progressBar" style="width:0%;height:100%;border-radius:4px;background:linear-gradient(90deg,#3b82f6,#8b5cf6,#3b82f6);background-size:200% 100%;animation:shimmer 2s linear infinite;transition:width .4s ease;"></div>
   </div>
   <div class="mt-2" style="display:flex;justify-content:space-between;align-items:center;">
     <span id="progressText" class="text-muted text-sm" role="status" aria-live="polite" aria-atomic="true">Starting…</span>
-    <span class="u-color-accent" style="font-size:1.5rem;font-weight:700" id="progressPct" aria-live="polite" aria-atomic="true">0%</span>
+    <span class="u-color-accent" style="font-size:1.5rem;font-weight:700;" id="progressPct" aria-live="polite" aria-atomic="true">0%</span>
   </div>
 
   <!-- Live check items -->
   <div id="checkItems" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:20px;">
     <div class="check-item pipeline-step" data-module="availability">
-      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
+      <span class="check-icon u-color-muted icon-badge-24">○</span>
       <span class="u-text-sm-muted">Page Availability</span>
     </div>
     <div class="check-item pipeline-step" data-module="links">
-      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
+      <span class="check-icon u-color-muted icon-badge-24">○</span>
       <span class="u-text-sm-muted">Broken Links</span>
     </div>
     <div class="check-item pipeline-step" data-module="forms">
-      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
+      <span class="check-icon u-color-muted icon-badge-24">○</span>
       <span class="u-text-sm-muted">Forms & Inputs</span>
     </div>
     <div class="check-item pipeline-step" data-module="security">
-      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
+      <span class="check-icon u-color-muted icon-badge-24">○</span>
       <span class="u-text-sm-muted">Security Scan</span>
     </div>
     <div class="check-item pipeline-step" data-module="performance">
-      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
+      <span class="check-icon u-color-muted icon-badge-24">○</span>
       <span class="u-text-sm-muted">Performance</span>
     </div>
     <div class="check-item pipeline-step" data-module="ai_visibility">
-      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
+      <span class="check-icon u-color-muted icon-badge-24">○</span>
       <span class="u-text-sm-muted">AI Visibility</span>
     </div>
   </div>
 
   <details class="u-mt-4-v">
-    <summary class="u-cursor-pointer u-color-muted" style="font-size:0.82rem;font-weight:500;padding:8px 0">Show detailed log</summary>
-    <div class="mt-1" id="logBox"
-         style="background:rgba(10,15,26,0.6);border:1px solid var(--border);border-radius:8px;padding:16px;max-height:300px;overflow-y:auto;font-family:var(--mono);font-size:0.82rem;line-height:1.8;">
+    <summary class="u-cursor-pointer u-color-muted u-text-082" style="font-weight:500;padding:8px 0;">Show detailed log</summary>
+    <div class="mt-1 u-text-082" style="background:rgba(10,15,26,0.6);border:1px solid var(--border);border-radius:8px;padding:16px;max-height:300px;overflow-y:auto;font-family:var(--mono);line-height:1.8;" id="logBox">
     </div>
   </details>
 
   <div class="mt-2" id="doneActions">
     <a class="btn btn-primary u-hidden" href="#" id="viewReportBtn">📊 View Report</a>
-    <a href="/" class="btn btn-secondary" style="margin-left:8px;">← Dashboard</a>
+    <a class="btn btn-secondary u-ml-2" href="/">← Dashboard</a>
   </div>
 </div>
 
