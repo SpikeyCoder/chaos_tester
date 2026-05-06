@@ -36,10 +36,10 @@
       {% if status == 'running' %}
         <a href="/progress" class="btn-audit" aria-label="View audit progress">View Progress</a>
       {% else %}
-        <button type="submit" class="btn-audit" id="auditBtn" disabled style="cursor:not-allowed;min-width:160px;" aria-label="Check my site">Check my site</button>
+        <button class="btn-audit u-cursor-disabled" type="submit" id="auditBtn" disabled aria-label="Check my site">Check my site</button>
       {% endif %}
-      <div class="u-hidden u-color-accent" style="margin-top:12px;" id="loading-indicator">
-        <span style="display:inline-block;animation:spin 2s linear infinite;margin-right:8px;">⏳</span>
+      <div class="u-hidden u-color-accent u-mt-3" id="loading-indicator">
+        <span class="u-spinning">⏳</span>
         <span>Starting audit... Please wait.</span>
       </div>
     </div>
@@ -47,35 +47,34 @@
     </form>
 
   <!-- Helper text shown when BusinessIdentifier is open and the audit button is disabled -->
-  <div class="u-hidden" style="max-width:680px;margin:12px auto 0;padding:0 8px;text-align:center;color:#4ade80;font-size:0.9rem;line-height:1.4;font-weight:600;" id="audit-cta-hint" aria-live="polite">
-    <span aria-hidden="true" style="display:inline-block;margin-right:6px;transform:translateY(1px);">&#x2193;</span>
+  <div class="u-hidden u-color-success-light u-fw-600" style="max-width:680px;margin:12px auto 0;padding:0 8px;text-align:center;font-size:0.9rem;line-height:1.4;" id="audit-cta-hint" aria-live="polite">
+    <span class="u-inline-shift" aria-hidden="true">&#x2193;</span>
     <span id="audit-cta-hint-text">Complete the fields below to run your audit</span>
   </div>
 
   <!-- Business name confirmation row: shown when business name is auto-detected -->
-  <div class="u-hidden" style="overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;max-width:680px;margin-left:auto;margin-right:auto;" id="biz-name-confirmed" aria-live="polite">
-    <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-      <span id="biz-name-display" style="font-weight:700;font-size:1.05rem;color:#4ade80;"></span>
-      <button class="u-cursor-pointer" style="background:none;border:none;color:var(--text-muted);font-size:0.82rem;padding:4px 0;text-decoration:underline;text-underline-offset:2px;white-space:nowrap;" type="button" id="biz-name-wrong-btn">Not the right business?</button>
+  <div class="u-hidden u-collapse-hidden" id="biz-name-confirmed" aria-live="polite">
+    <div class="u-flex-between" style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;gap:12px;flex-wrap:wrap;">
+      <span class="u-color-success-light" style="font-weight:700;font-size:1.05rem;" id="biz-name-display"></span>
+      <button class="u-cursor-pointer u-color-muted u-white-space-nowrap u-text-082" style="background:none;border:none;padding:4px 0;text-decoration:underline;text-underline-offset:2px;" type="button" id="biz-name-wrong-btn">Not the right business?</button>
     </div>
   </div>
 
   <!-- Business name override fields: shown when user clicks "Not the right business?" or detection fails -->
-  <div class="u-hidden" style="overflow:hidden;max-height:0;opacity:0;transition:max-height 0.4s ease,opacity 0.4s ease,margin 0.3s ease;margin-top:0;max-width:680px;margin-left:auto;margin-right:auto;" id="biz-name-override" aria-live="polite">
-    <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;text-align:left;">
-      <div class="u-hidden" style="font-size:0.82rem;color:#4ade80;margin-bottom:8px;line-height:1.4;" id="detected-biz-label"></div>
+  <div class="u-hidden u-collapse-hidden" id="biz-name-override" aria-live="polite">
+    <div class="u-card-text-row">
+      <div class="u-hidden u-text-082 u-color-success-light" style="margin-bottom:8px;line-height:1.4;" id="detected-biz-label"></div>
       <label class="u-block-label-mb-2" for="override_biz_name">Business Name</label>
-      <input type="text" id="override_biz_name" placeholder="e.g. Acme Web Design" aria-label="Business name"
-             style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;transition:border-color .2s;">
-      <div class="u-hidden" style="margin-top:12px;" id="override-city-wrapper">
-        <label class="u-block-label-mb-2" for="override_biz_city">Business City <span style="color:#f87171;" aria-hidden="true">*</span><span class="sr-only">(required)</span></label>
-        <div style="position:relative;">
+      <input class="u-input-100" type="text" id="override_biz_name" placeholder="e.g. Acme Web Design" aria-label="Business name">
+      <div class="u-hidden u-mt-3" id="override-city-wrapper">
+        <label class="u-block-label-mb-2" for="override_biz_city">Business City <span class="u-color-error" aria-hidden="true">*</span><span class="sr-only">(required)</span></label>
+        <div class="u-position-rel">
           <input type="text" id="override_biz_city" placeholder="e.g. Seattle, WA" autocomplete="off" aria-label="Business city"
                  style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;transition:border-color .2s;-webkit-appearance:none;">
           <div class="u-hidden" style="position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#1e1e2e;border:1px solid rgba(255,255,255,0.1);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:10000;max-height:200px;overflow-y:auto;" id="city-dropdown"></div>
         </div>
-        <p class="u-hidden" style="margin:8px 0 0;font-size:0.8rem;color:#f87171;line-height:1.4;font-weight:600;" id="city-error" role="alert">Please enter a city to continue. We need it to check how AI tools find your business.</p>
-        <p style="margin:8px 0 0;font-size:0.8rem;color:var(--text-muted);line-height:1.4;">We use your business name and city to check how your business appears in AI tools and local results.</p>
+        <p class="u-hidden u-text-xs u-color-error u-leading-tight u-fw-600" id="city-error" role="alert">Please enter a city to continue. We need it to check how AI tools find your business.</p>
+        <p class="u-text-xs u-color-muted u-leading-tight">We use your business name and city to check how your business appears in AI tools and local results.</p>
       </div>
     </div>
   </div>
@@ -88,46 +87,46 @@
   </div>
 
   <!-- Mock audit preview -->
-  <div class="fade-up" style="margin-top:32px;max-width:680px;margin-left:auto;margin-right:auto;">
-    <div style="background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);border-radius:16px;padding:24px;text-align:left;position:relative;overflow:hidden;">
-      <div style="position:absolute;top:0;right:0;width:200px;height:200px;background:radial-gradient(circle,rgba(59,130,246,0.08),transparent);pointer-events:none;"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div style="font-weight:700;font-size:1rem;color:#fff;">Sample Audit Preview</div>
-        <span style="background:rgba(74,222,128,0.15);color:#4ade80;padding:4px 12px;border-radius:9999px;font-size:0.78rem;font-weight:600;">Score: 87/100</span>
+  <div class="fade-up u-margin-0-auto-md">
+    <div class="u-position-rel u-card-onboard">
+      <div class="u-radial-overlay"></div>
+      <div class="u-mb-4-v u-flex-between">
+        <div class="u-text-1-rem-bold-white">Sample Audit Preview</div>
+        <span class="u-color-success-light u-fw-600" style="background:rgba(74,222,128,0.15);padding:4px 12px;border-radius:9999px;font-size:0.78rem;">Score: 87/100</span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
-        <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:12px;text-align:center;">
-          <div style="font-size:1.2rem;font-weight:700;color:#4ade80;">✓ 42</div>
+      <div class="u-mb-4-v u-grid-3-12">
+        <div class="u-card-success-stat">
+          <div class="u-color-success-light u-text-1-2-bold">✓ 42</div>
           <div class="u-caption-tiny">Passed</div>
         </div>
-        <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:12px;text-align:center;">
-          <div style="font-size:1.2rem;font-weight:700;color:#f87171;">✗ 3</div>
+        <div class="u-card-error-stat">
+          <div class="u-color-error u-text-1-2-bold">✗ 3</div>
           <div class="u-caption-tiny">Failed</div>
         </div>
         <div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:12px;text-align:center;">
-          <div style="font-size:1.2rem;font-weight:700;color:#fbbf24;">⚠ 5</div>
+          <div class="u-text-1-2-bold" style="color:#fbbf24;">⚠ 5</div>
           <div class="u-caption-tiny">Warnings</div>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(248,113,113,0.06);border-radius:8px;border-left:3px solid #f87171;">
-          <span style="color:#f87171;font-weight:600;font-size:0.82rem;">Critical</span>
+        <div class="u-flex-row-gap-10" style="padding:8px 12px;background:rgba(248,113,113,0.06);border-radius:8px;border-left:3px solid #f87171;">
+          <span class="u-text-082 u-color-error u-fw-600">Critical</span>
           <span class="u-text-sm">Missing SSL certificate on 2 subdomains</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(251,191,36,0.06);border-radius:8px;border-left:3px solid #fbbf24;">
-          <span style="color:#fbbf24;font-weight:600;font-size:0.82rem;">Warning</span>
+        <div class="u-flex-row-gap-10" style="padding:8px 12px;background:rgba(251,191,36,0.06);border-radius:8px;border-left:3px solid #fbbf24;">
+          <span class="u-text-082 u-fw-600" style="color:#fbbf24;">Warning</span>
           <span class="u-text-sm">3 images missing alt text</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(74,222,128,0.06);border-radius:8px;border-left:3px solid #4ade80;">
-          <span style="color:#4ade80;font-weight:600;font-size:0.82rem;">Passed</span>
+        <div class="u-flex-row-gap-10" style="padding:8px 12px;background:rgba(74,222,128,0.06);border-radius:8px;border-left:3px solid #4ade80;">
+          <span class="u-text-082 u-color-success-light u-fw-600">Passed</span>
           <span class="u-text-sm">All forms have CSRF protection</span>
         </div>
       </div>
     </div>
   </div>
 
-  <div style="margin-top:12px;text-align:center;">
-    <a href="/sample-report" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent-hover,#60a5fa);font-weight:600;font-size:0.95rem;padding:8px 16px;border:1px solid rgba(59,130,246,0.3);border-radius:8px;transition:all .2s;background:rgba(59,130,246,0.06);" onmouseover="this.style.background='rgba(59,130,246,0.12)';this.style.borderColor='rgba(59,130,246,0.5)'" onmouseout="this.style.background='rgba(59,130,246,0.06)';this.style.borderColor='rgba(59,130,246,0.3)'">
+  <div class="u-mt-3" style="text-align:center;">
+    <a class="u-fw-600" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent-hover,#60a5fa);font-size:0.95rem;padding:8px 16px;border:1px solid rgba(59,130,246,0.3);border-radius:8px;transition:all .2s;background:rgba(59,130,246,0.06);" href="/sample-report" onmouseover="this.style.background='rgba(59,130,246,0.12)';this.style.borderColor='rgba(59,130,246,0.5)'" onmouseout="this.style.background='rgba(59,130,246,0.06)';this.style.borderColor='rgba(59,130,246,0.3)'">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       View Sample Report
     </a>
@@ -137,7 +136,7 @@
 
 <!-- ── Social Proof ────────────────────────────────────────── -->
 <div class="fade-up" style="padding:32px 0 16px;text-align:center;">
-  <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">Trusted by businesses across industries</p>
+  <p class="u-text-sm-muted u-fw-600" style="margin-bottom:20px;text-transform:uppercase;letter-spacing:0.06em;">Trusted by businesses across industries</p>
   <div style="display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap;opacity:0.5;">
     <div class="u-section-label">E-commerce</div>
     <div class="u-section-label">SaaS</div>
@@ -149,8 +148,8 @@
   <div style="margin-top:24px;display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;">
     <div class="card-surface-narrow">
       <div class="u-italic-line">"We found 3 broken links and a missing SSL redirect that had been hurting our chances of getting recommended by AI tools. Fixed them in an afternoon."</div>
-      <div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
-        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.85rem;">JM</div>
+      <div class="u-mt-3 u-flex-row-gap-10">
+        <div class="u-text-085" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">JM</div>
         <div>
           <div class="u-text-sm-semibold">Jake Morrison</div>
           <div class="u-text-mono-78">Owner, Morrison Dental</div>
@@ -159,8 +158,8 @@
     </div>
     <div class="card-surface-narrow">
       <div class="u-italic-line">"I use this before every client website launch. The security scan alone has saved me from embarrassing mistakes twice."</div>
-      <div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
-        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.85rem;">SP</div>
+      <div class="u-mt-3 u-flex-row-gap-10">
+        <div class="u-text-085" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">SP</div>
         <div>
           <div class="u-text-sm-semibold">Sarah Patel</div>
           <div class="u-text-mono-78">Freelance Web Developer</div>
@@ -208,7 +207,7 @@
         <p>Slow sites lose customers. We measure how fast your pages load and show you what to fix first.</p>
       </div>
       <div class="landing-feature-card fade-up fade-up-delay-2" style="border-left:4px solid #ef4444;">
-        <div class="feature-icon" style="background:rgba(239,68,68,0.12);color:#f87171;">
+        <div class="feature-icon u-color-error" style="background:rgba(239,68,68,0.12);">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         </div>
         <h3>Clear Reports</h3>
@@ -297,7 +296,7 @@
   <div class="cta-label">Start improving your AI visibility today</div>
   <h2>Ready to Improve Your Website?</h2>
   <p>Get your free comprehensive audit report in seconds. No credit card required.</p>
-  <a href="#audit" class="btn btn-primary" style="padding:14px 36px;font-size:1.05rem;">Scan My Site Now</a>
+  <a class="btn btn-primary u-cta-padding-lg-1-05" href="#audit">Scan My Site Now</a>
 </div>
 
 <!-- ── API Access Upsell Banner (footer area) ──────────────────── -->

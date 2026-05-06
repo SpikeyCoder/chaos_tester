@@ -216,14 +216,17 @@ def _set_security_headers(response):
     # ~7 days of clean reports, the next PR (Phase 4-B) flips this strict
     # policy onto the enforced 'Content-Security-Policy' header and removes
     # the looser legacy line.
+    # Minimal Report-Only header — only the style directives we are
+    # *staging*. Other directives (script-src / img-src / connect-src /
+    # font-src) are already enforced by the Content-Security-Policy
+    # header above, so re-stating them here would just inflate the
+    # header size against GFE's 8KB per-header limit. The browser
+    # treats absent directives in Report-Only as unconstrained for
+    # reporting purposes; that is exactly what we want.
     response.headers["Content-Security-Policy-Report-Only"] = (
         "default-src 'self'; "
-        "script-src 'self' https://cdnjs.cloudflare.com https://gc.zgo.at https://maps.googleapis.com; "
         "style-src-elem 'self'; "
-        "style-src-attr 'self' 'unsafe-hashes' " + " ".join(_STYLE_HASHES) + "; "
-        "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com; "
-        "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app https://website-auditor.goatcounter.com https://maps.googleapis.com; "
-        "font-src 'self' https://fonts.gstatic.com;"
+        "style-src-attr 'self' 'unsafe-hashes' " + " ".join(_STYLE_HASHES) + ";"
     )
 
     # CORS headers for cross-origin SPA (GitHub Pages → backend).
