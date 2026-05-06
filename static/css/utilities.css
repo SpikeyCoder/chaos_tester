@@ -281,4 +281,35 @@
 .u-bar-dyn {
   background: var(--bar-color, var(--accent));
   width: var(--bar-width, 0%);
+/* ── Surfaced by the dashboard.html refactor (Phase 2/C) ─────────────── */
+.u-text-sm           { color: var(--text);       font-size: 0.85rem; }
+.u-text-sm-semibold  { color: var(--text);       font-size: 0.85rem; font-weight: 600; }
+.u-caption-tiny      { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+.u-text-mono-78      { color: var(--text-muted); font-size: 0.78rem; }
+
+/* Display: block helper for label + bottom-margin rows. */
+.u-block-label-mb-2 {
+  color: var(--text);
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+/* Italic blockquote-style line. */
+.u-italic-line {
+  color: #f1f5f9;
+  font-size: 0.92rem;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* Decorative card with surface background and 400px max width. */
+.card-surface-narrow {
+  background: var(--surface, rgba(30, 41, 59, 0.5));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 400px;
+  padding: 20px 24px;
+  text-align: left;
 }
