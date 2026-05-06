@@ -248,3 +248,37 @@
   background: var(--bar-color, var(--red));
   width: 0%;
 }
+
+
+/* ── Surfaced by the report.html refactor (Phase 2/B) ───────────────── */
+.u-wordwrap-break  { word-wrap: break-word; overflow-wrap: break-word; }
+.u-overflow-x-auto { overflow-x: auto; }
+.u-overflow-y-none { max-height: none; }
+.u-mr-1            { margin-right: 4px; }
+.u-mx-2            { margin-left: 6px; margin-right: 6px; }
+.u-flex-row-gap-16 { align-items: center; display: flex; gap: 16px; }
+
+/* Reset margins for headings that sit inside compact card-like containers. */
+.u-m-0           { margin: 0; }
+.u-m-0-mb-3      { margin: 0 0 12px; }
+
+/* Square-rounded icon container (40x40 px), backgrounded by --icon-bg. */
+.icon-tile-40 {
+  align-items: center;
+  background: var(--icon-bg, rgba(59, 130, 246, 0.15));
+  border-radius: 10px;
+  display: flex;
+  flex-shrink: 0;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+/* ── Phase 3 dynamic-bar shape (covers width:N% background:dynamic) ── */
+/* Templates set both --bar-color and --bar-width; the class consumes
+   them, so the inline style attribute is reduced to a pair of custom
+   properties. Already present .u-bar-fill kept for the fixed-0% case. */
+.u-bar-dyn {
+  background: var(--bar-color, var(--accent));
+  width: var(--bar-width, 0%);
+}
