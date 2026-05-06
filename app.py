@@ -1076,6 +1076,37 @@ def main():
 
 
 # -- SEO Routes ------------------------------------------------
+@app.route("/.well-known/security.txt")
+def security_txt():
+    """RFC 9116 vulnerability-disclosure contact.
+
+    Mirrors SECURITY.md so security researchers have a machine-readable
+    pointer at a well-known path. Keep the Expires field within one year
+    of the most recent edit per RFC 9116 §2.5.4.
+    """
+    content = (
+        "# Security contact for website-auditor.io
+"
+        "# Full policy: https://github.com/SpikeyCoder/chaos_tester/blob/main/SECURITY.md
+"
+        "# RFC 9116 -- https://www.rfc-editor.org/rfc/rfc9116
+"
+        "
+"
+        "Contact: mailto:kevinmarmstrong1990@gmail.com
+"
+        "Expires: 2027-05-06T00:00:00Z
+"
+        "Preferred-Languages: en
+"
+        "Canonical: https://website-auditor.io/.well-known/security.txt
+"
+        "Policy: https://github.com/SpikeyCoder/chaos_tester/blob/main/SECURITY.md
+"
+    )
+    return Response(content, mimetype="text/plain")
+
+
 @app.route("/robots.txt")
 def robots_txt():
     content = """User-agent: *
