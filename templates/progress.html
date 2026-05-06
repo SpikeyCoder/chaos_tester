@@ -15,11 +15,11 @@
     <div style="flex:1;height:2px;background:linear-gradient(90deg,#4ade80,var(--accent));margin-top:-20px;"></div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">
       <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;" class="pulse-dot">2</div>
-      <span class="u-color-accent" style="font-size:0.78remfont-weight:600">Scanning</span>
+      <span class="u-color-accent" style="font-size:0.78rem;font-weight:600">Scanning</span>
     </div>
     <div style="flex:1;height:2px;background:var(--border);margin-top:-20px;"></div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">
-      <div class="u-color-muted" style="width:36pxheight:36pxborder-radius:50%background:var(--surface,rgba(30,41,59,0.5))border:1px solid var(--border)display:flexalign-items:centerjustify-content:centerfont-weight:700font-size:0.85rem">3</div>
+      <div class="u-color-muted" style="width:36px;height:36px;border-radius:50%;background:var(--surface,rgba(30,41,59,0.5));border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem">3</div>
       <span class="u-text-mono-78" style="font-weight:500">Report</span>
     </div>
   </div>
@@ -29,44 +29,44 @@
   <h1 style="font-size:1.3rem;margin:0 0 8px;"><span class="spinner" id="runSpinner" aria-hidden="true"></span> Test Run in Progress</h1>
 
   <!-- Enhanced progress bar with gradient -->
-  <div class="u-mt-4-v" style="position:relativeheight:8pxbackground:var(--border)border-radius:4pxoverflow:hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Audit progress" id="progressBarWrap" aria-valuenow="0">
+  <div class="u-mt-4-v" style="position:relative;height:8px;background:var(--border);border-radius:4px;overflow:hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Audit progress" id="progressBarWrap" aria-valuenow="0">
     <div id="progressBar" style="width:0%;height:100%;border-radius:4px;background:linear-gradient(90deg,#3b82f6,#8b5cf6,#3b82f6);background-size:200% 100%;animation:shimmer 2s linear infinite;transition:width .4s ease;"></div>
   </div>
   <div class="mt-2" style="display:flex;justify-content:space-between;align-items:center;">
     <span id="progressText" class="text-muted text-sm" role="status" aria-live="polite" aria-atomic="true">Starting…</span>
-    <span class="u-color-accent" style="font-size:1.5remfont-weight:700" id="progressPct" aria-live="polite" aria-atomic="true">0%</span>
+    <span class="u-color-accent" style="font-size:1.5rem;font-weight:700" id="progressPct" aria-live="polite" aria-atomic="true">0%</span>
   </div>
 
   <!-- Live check items -->
   <div id="checkItems" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:20px;">
     <div class="check-item pipeline-step" data-module="availability">
-      <span class="check-icon u-color-muted" style="width:24pxheight:24pxborder-radius:50%background:var(--border)display:flexalign-items:centerjustify-content:centerfont-size:0.7remflex-shrink:0">○</span>
+      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
       <span class="u-text-sm-muted">Page Availability</span>
     </div>
     <div class="check-item pipeline-step" data-module="links">
-      <span class="check-icon u-color-muted" style="width:24pxheight:24pxborder-radius:50%background:var(--border)display:flexalign-items:centerjustify-content:centerfont-size:0.7remflex-shrink:0">○</span>
+      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
       <span class="u-text-sm-muted">Broken Links</span>
     </div>
     <div class="check-item pipeline-step" data-module="forms">
-      <span class="check-icon u-color-muted" style="width:24pxheight:24pxborder-radius:50%background:var(--border)display:flexalign-items:centerjustify-content:centerfont-size:0.7remflex-shrink:0">○</span>
+      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
       <span class="u-text-sm-muted">Forms & Inputs</span>
     </div>
     <div class="check-item pipeline-step" data-module="security">
-      <span class="check-icon u-color-muted" style="width:24pxheight:24pxborder-radius:50%background:var(--border)display:flexalign-items:centerjustify-content:centerfont-size:0.7remflex-shrink:0">○</span>
+      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
       <span class="u-text-sm-muted">Security Scan</span>
     </div>
     <div class="check-item pipeline-step" data-module="performance">
-      <span class="check-icon u-color-muted" style="width:24pxheight:24pxborder-radius:50%background:var(--border)display:flexalign-items:centerjustify-content:centerfont-size:0.7remflex-shrink:0">○</span>
+      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
       <span class="u-text-sm-muted">Performance</span>
     </div>
     <div class="check-item pipeline-step" data-module="ai_visibility">
-      <span class="check-icon u-color-muted" style="width:24pxheight:24pxborder-radius:50%background:var(--border)display:flexalign-items:centerjustify-content:centerfont-size:0.7remflex-shrink:0">○</span>
+      <span class="check-icon u-color-muted" style="width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0">○</span>
       <span class="u-text-sm-muted">AI Visibility</span>
     </div>
   </div>
 
   <details class="u-mt-4-v">
-    <summary class="u-cursor-pointer u-color-muted" style="font-size:0.82remfont-weight:500padding:8px 0">Show detailed log</summary>
+    <summary class="u-cursor-pointer u-color-muted" style="font-size:0.82rem;font-weight:500;padding:8px 0">Show detailed log</summary>
     <div class="mt-1" id="logBox"
          style="background:rgba(10,15,26,0.6);border:1px solid var(--border);border-radius:8px;padding:16px;max-height:300px;overflow-y:auto;font-family:var(--mono);font-size:0.82rem;line-height:1.8;">
     </div>
