@@ -34,6 +34,19 @@ from .config import ChaosConfig
 from .runner import ChaosTestRunner
 from .models import TestRun
 from . import supabase_client as supa
+
+# Build-time-computed sha256 hashes of every inline `style="..."` attribute
+# body in templates/. Refreshed by scripts/compute_style_hashes.py and run
+# from .github/workflows/deploy-cloud-run.yml before each Cloud Run deploy.
+# Pen-test 2026-05-05 finding WA-2026-05-05-02 phase 4.
+try:
+    from .chaos_tester_csp_style_hashes import STYLE_HASHES as _STYLE_HASHES
+except Exception:
+    # During first-deploy bootstrapping the file may not exist yet; we
+    # degrade to an empty list so the report-only header just becomes
+    # equivalent to 'self' without 'unsafe-hashes'. The CI step ensures
+    # this never silently happens in steady state.
+    _STYLE_HASHES: list[str] = []
 from . import wa_auth
 
 # Rate limiting: Flask-Limiter caps abusive callers without affecting normal
@@ -172,6 +185,31 @@ def _set_security_headers(response):
         "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app https://website-auditor.goatcounter.com https://maps.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com;"
     )
+
+    # WA-2026-05-05-02 phase 4 — staging the *future* enforced policy via
+    # Content-Security-Policy-Report-Only. This header has the SAME directives
+    # as the enforced one above EXCEPT:
+    #   - style-src-attr drops 'unsafe-inline' and adds 'unsafe-hashes'
+    #     plus the build-time-computed hash list of every inline `style="..."`
+    #     attribute on the site (244 hashes today; refreshed daily by the
+    #     deploy workflow).
+    # Browsers that send violation reports for this header are surfacing
+    # inline-style values that aren't yet hashed — those are operational
+    # signals to either re-run scripts/compute_style_hashes.py (after a
+    # template change) or move the new value into a class. Once we observe
+    # ~7 days of clean reports, the next PR (Phase 4-B) flips this strict
+    # policy onto the enforced 'Content-Security-Policy' header and removes
+    # the looser legacy line.
+    response.headers["Content-Security-Policy-Report-Only"] = (
+        "default-src 'self'; "
+        "script-src 'self' https://cdnjs.cloudflare.com https://gc.zgo.at https://maps.googleapis.com; "
+        "style-src-elem 'self'; "
+        "style-src-attr 'self' 'unsafe-hashes' " + " ".join(_STYLE_HASHES) + "; "
+        "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com; "
+        "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app https://website-auditor.goatcounter.com https://maps.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com;"
+    )
+
     # CORS headers for cross-origin SPA (GitHub Pages → backend).
     # The allowlist is read from CORS_ALLOWED_ORIGINS so production deploys
     # can ship without the localhost dev origin baked in. Default keeps

@@ -33,6 +33,23 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Refresh CSP inline-style hashes
+        # WA-2026-05-05-02 phase 4 — every Cloud Run deploy re-runs
+        # compute_style_hashes.py against the templates that ship in
+        # the same revision. The result is committed into the deploy
+        # image so the Content-Security-Policy-Report-Only header in
+        # app.py exactly matches the inline-style attributes that
+        # actually render. We --check first; if the committed file is
+        # out of date relative to templates/, the build fails fast and
+        # the dev re-runs the script locally.
+        run: |
+          python3 scripts/compute_style_hashes.py --check
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE }} \
