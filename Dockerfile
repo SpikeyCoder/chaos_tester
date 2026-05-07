@@ -17,6 +17,12 @@ RUN mkdir -p chaos_tester/reports
 # Cloud Run sets PORT env var (default 8080)
 ENV PORT=8080
 
+# Run as non-root user (defense in depth — limits container-escape blast radius).
+# Pen-test 2026-05-07 finding WA-2026-05-07-02.
+RUN useradd --create-home --shell /usr/sbin/nologin appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
 # Run with gunicorn for production.
 # IMPORTANT: Must use 1 worker because the app uses in-memory state
 # (_current_status, _progress, _run_history) shared between routes.

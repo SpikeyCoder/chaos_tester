@@ -84,7 +84,7 @@
     </div>
     <div>
       <h2 class="u-metric-value" id="fix-first-heading">Fix These 3 Things First</h2>
-      <div class="u-color-muted u-text-085" style="margin-top:2px;">{{ ranked|length }} issue{{ 's' if ranked|length != 1 }} found &mdash; start here for the biggest business impact</div>
+      <div class="u-color-muted u-text-085" style="margin-top:2px;">{{ ranked|length }} issue{{ 's' if ranked|length != 1 }} found — start here for the biggest business impact</div>
     </div>
   </div>
   <div class="u-mt-4-v" style="display:grid;gap:12px;">
@@ -98,12 +98,12 @@
       {% endif %}
     {% elif item.module == 'chaos' %}
       {% if item.severity in ['critical', 'high'] %}
-        {% set impact_text = "Slow mobile load times cost you customers &mdash; 53% of visitors abandon pages that take more than 3 seconds to load, and Google ranks slow sites lower." %}
+        {% set impact_text = "Slow mobile load times cost you customers — 53% of visitors abandon pages that take more than 3 seconds to load, and Google ranks slow sites lower." %}
       {% else %}
         {% set impact_text = "Some pages are slower than they should be, which quietly pushes visitors away before they convert." %}
       {% endif %}
     {% elif item.module == 'forms' %}
-      {% set impact_text = "Broken forms block customers from contacting you, signing up, or completing a purchase &mdash; this is direct lost revenue." %}
+      {% set impact_text = "Broken forms block customers from contacting you, signing up, or completing a purchase — this is direct lost revenue." %}
     {% elif item.module == 'availability' %}
       {% set impact_text = "Pages returning errors mean customers can't reach parts of your site. Google stops indexing broken pages, so they disappear from search too." %}
     {% elif item.module == 'auth' %}
@@ -141,7 +141,7 @@
           <div class="u-fw-600" style="font-size:0.98rem;color:var(--text);">{{ item.name }}</div>
           <span class="badge badge-{{ item.severity }}" style="font-size:0.7rem;">{{ item.severity }}</span>
         </div>
-        <div class="u-color-muted" style="font-size:0.87rem;line-height:1.5;">{{ impact_text|safe }}</div>
+        <div class="u-color-muted" style="font-size:0.87rem;line-height:1.5;">{{ impact_text }}</div>
         <div class="u-flex-row-gap-10" style="margin-top:10px;flex-wrap:wrap;">
           <a class="u-color-accent u-fw-600 u-text-085 u-no-decoration" style="display:inline-flex;align-items:center;gap:4px;" href="#result-row-{{ row_idx.n }}">Fix this &rarr;</a>
           <span class="u-fw-600" style="padding:3px 9px;border-radius:6px;font-size:0.72rem;background:{{ effort_bg }};color:{{ effort_color }};">{{ effort }}</span>
@@ -437,7 +437,7 @@
     </div>
     <div class="card-centered">
       <div class="u-text-1-1rem-semibold">{{ ai.business_info.business_name }}</div>
-      <div class="u-caption-sm">{{ ai.business_info.sector|title }} &mdash; {{ ai.business_info.location }}</div>
+      <div class="u-caption-sm">{{ ai.business_info.sector|title }} — {{ ai.business_info.location }}</div>
     </div>
   </div>
 
