@@ -17,6 +17,7 @@ import csv
 import json
 import os
 import re
+import ipaddress
 import secrets
 import time
 import threading
@@ -95,6 +96,10 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # 5 MB request body limit (screenshots)
 app.config["GOOGLE_PLACES_API_KEY"] = os.environ.get("GOOGLE_PLACES_API_KEY", "")
+app.config["ENABLE_IP_GEOLOCATION_FALLBACK"] = (
+    os.environ.get("ENABLE_IP_GEOLOCATION_FALLBACK", "1").strip().lower()
+    not in {"0", "false", "no", "off"}
+)
 
 # Per-IP rate limits. Storage backend defaults to in-memory; Cloud Run
 # runs at low concurrency for this app, so in-memory is acceptable for
@@ -157,6 +162,109 @@ def _validate_csrf_token():
     expected = session.get("csrf_token", "")
     if not expected or not hmac.compare_digest(token, expected):
         abort(403, "CSRF token missing or invalid.")
+
+
+def _is_public_ip(ip_str: str) -> bool:
+    """Return True if ip_str is public routable IP (not private/reserved)."""
+    try:
+        ip = ipaddress.ip_address(ip_str)
+    except ValueError:
+        return False
+    return not (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_reserved
+        or ip.is_multicast
+        or ip.is_unspecified
+    )
+
+
+def _normalise_ip_token(token: str) -> str:
+    """Normalize potential IP token from forwarded headers."""
+    value = (token or "").strip().strip('"').strip("'")
+    if not value:
+        return ""
+    if value.lower().startswith("for="):
+        value = value[4:].strip().strip('"').strip("'")
+    if value.startswith("[") and "]" in value:
+        value = value[1:value.index("]")]
+    elif value.count(":") == 1 and "." in value:
+        host_part, port_part = value.rsplit(":", 1)
+        if port_part.isdigit():
+            value = host_part
+    try:
+        return str(ipaddress.ip_address(value))
+    except ValueError:
+        return ""
+
+
+def _extract_client_ip(req) -> str:
+    """Best-effort extraction of the client's public IP."""
+    candidates = []
+    access_route = getattr(req, "access_route", None) or []
+    candidates.extend(access_route)
+
+    xff = req.headers.get("X-Forwarded-For", "")
+    if xff:
+        candidates.extend(part.strip() for part in xff.split(","))
+
+    forwarded = req.headers.get("Forwarded", "")
+    if forwarded:
+        for group in forwarded.split(","):
+            for part in group.split(";"):
+                if "for=" in part.lower():
+                    candidates.append(part.strip())
+
+    if req.remote_addr:
+        candidates.append(req.remote_addr)
+
+    for raw in candidates:
+        ip = _normalise_ip_token(raw)
+        if ip and _is_public_ip(ip):
+            return ip
+    return ""
+
+
+def _parse_lat_lng_pair(value: str) -> tuple[float | None, float | None]:
+    """Parse 'lat,lng' strings such as X-Appengine-CityLatLong."""
+    text = (value or "").strip()
+    if not text or "," not in text:
+        return None, None
+    left, right = text.split(",", 1)
+    try:
+        lat = float(left.strip())
+        lng = float(right.strip())
+    except ValueError:
+        return None, None
+    if abs(lat) > 90 or abs(lng) > 180:
+        return None, None
+    if lat == 0.0 and lng == 0.0:
+        return None, None
+    return lat, lng
+
+
+def _build_request_geo_context(req) -> dict:
+    """Build user context used to bias Google Places location ranking."""
+    context = {}
+    client_ip = _extract_client_ip(req)
+    if client_ip:
+        context["client_ip"] = client_ip
+
+    country = (req.headers.get("X-Appengine-Country", "") or "").strip().upper()
+    if len(country) == 2 and country not in {"ZZ", "XX"}:
+        context["country_code"] = country
+
+    region = (req.headers.get("X-Appengine-Region", "") or "").strip().upper()
+    if region and region != "?":
+        context["region_code"] = region
+
+    lat, lng = _parse_lat_lng_pair(req.headers.get("X-Appengine-CityLatLong", ""))
+    if lat is not None and lng is not None:
+        context["lat"] = lat
+        context["lng"] = lng
+
+    return context
 
 
 # Make csrf_token available in all templates
@@ -987,6 +1095,8 @@ def detect_business():
         logger.warning("detect-business SSRF blocked: %s", hostname)
         return jsonify({"error": "URL refers to a private or reserved address."}), 400
 
+    geo_context = _build_request_geo_context(request)
+
     try:
         sess = SafeSession()
         sess.headers["User-Agent"] = "ChaosMonkeyTester/1.0 (business-detect)"
@@ -997,8 +1107,11 @@ def detect_business():
                 "GOOGLE_PLACES_API_KEY",
                 os.environ.get("GOOGLE_PLACES_API_KEY", ""),
             ),
+            enable_ip_geolocation_fallback=app.config.get(
+                "ENABLE_IP_GEOLOCATION_FALLBACK", True
+            ),
         )
-        result = identifier.identify(url)
+        result = identifier.identify(url, user_context=geo_context)
         return jsonify({
             "business_name": result.get("business_name", ""),
             "location": result.get("location", ""),

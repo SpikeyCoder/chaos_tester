@@ -13,6 +13,9 @@ import json
 import time
 import threading
 import requests
+import ipaddress
+import math
+import hashlib
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse, urljoin
@@ -25,6 +28,12 @@ logger = logging.getLogger(__name__)
 _identify_cache: dict = {}
 _identify_cache_lock = threading.Lock()
 _IDENTIFY_CACHE_TTL = 900  # 15 minutes
+
+# IP -> geo lookup cache used only when we need to bias Google Places by user
+# location and no trusted header-based lat/lng is available.
+_ip_geo_cache: dict = {}
+_ip_geo_cache_lock = threading.Lock()
+_IP_GEO_CACHE_TTL = 3600  # 1 hour
 
 # Legal entity suffixes, ordered longest-first so regex is greedy
 ENTITY_SUFFIXES = [
@@ -218,10 +227,12 @@ class BusinessIdentifier:
         session: requests.Session = None,
         timeout: int = 4,
         google_places_api_key: str = "",
+        enable_ip_geolocation_fallback: bool = False,
     ):
         self.session = session or requests.Session()
         self.timeout = timeout
         self.google_places_api_key = google_places_api_key or ""
+        self.enable_ip_geolocation_fallback = bool(enable_ip_geolocation_fallback)
         self._irs_cache: dict = {}  # name -> IRS response, avoids duplicate calls
 
     # ------------------------------------------------------------------
@@ -355,7 +366,13 @@ class BusinessIdentifier:
     # ------------------------------------------------------------------
     # Step 5: Multi-source headquarters city lookup
     # ------------------------------------------------------------------
-    def lookup_headquarters(self, business_name: str, url: str = "", html: str = "") -> tuple:
+    def lookup_headquarters(
+        self,
+        business_name: str,
+        url: str = "",
+        html: str = "",
+        user_context: dict | None = None,
+    ) -> tuple:
         """
         Look up the headquarters city using multiple sources in priority order.
         Returns (city_string, source_label) or ("", "").
@@ -403,7 +420,11 @@ class BusinessIdentifier:
                     domain = re.sub(r"^www\.", "", parsed.hostname or "")
                 except Exception:
                     domain = ""
-            loc = self._lookup_google_places(business_name, domain)
+            loc = self._lookup_google_places(
+                business_name,
+                domain,
+                user_context=user_context,
+            )
             if loc:
                 logger.info("Location from google_places: %r", loc)
                 return loc, "google_places"
@@ -454,7 +475,7 @@ class BusinessIdentifier:
     # ------------------------------------------------------------------
     # Main entry point
     # ------------------------------------------------------------------
-    def identify(self, url: str, html: str = "") -> dict:
+    def identify(self, url: str, html: str = "", user_context: dict | None = None) -> dict:
         """
         Full pipeline: scrape → score → pick → lookup city → detect sector.
         Returns {
@@ -464,11 +485,14 @@ class BusinessIdentifier:
           "candidates": list[dict],
           "lookup_source": str,
         }
-        Results are cached by URL for _IDENTIFY_CACHE_TTL seconds so that
-        a pre-flight /api/detect-business call is reused by the audit run.
+        Results are cached by URL + coarse geo bucket for _IDENTIFY_CACHE_TTL
+        seconds so that /api/detect-business can reuse recent lookups without
+        leaking one user's location-biased result to another user.
         """
+        resolved_geo = self._resolve_geo_context(user_context)
+        cache_key = self._build_identify_cache_key(url, resolved_geo)
         with _identify_cache_lock:
-            entry = _identify_cache.get(url)
+            entry = _identify_cache.get(cache_key)
             if entry and time.time() - entry["ts"] < _IDENTIFY_CACHE_TTL:
                 logger.info("BusinessIdentifier cache hit for %r", url)
                 return entry["result"]
@@ -482,7 +506,7 @@ class BusinessIdentifier:
         if business_name:
             with ThreadPoolExecutor(max_workers=2) as executor:
                 hq_future = executor.submit(
-                    self.lookup_headquarters, business_name, url, html
+                    self.lookup_headquarters, business_name, url, html, resolved_geo
                 )
                 sector_future = executor.submit(self.detect_sector, business_name, html)
             try:
@@ -517,7 +541,7 @@ class BusinessIdentifier:
         }
 
         with _identify_cache_lock:
-            _identify_cache[url] = {"ts": time.time(), "result": result}
+            _identify_cache[cache_key] = {"ts": time.time(), "result": result}
 
         return result
 
@@ -781,22 +805,49 @@ class BusinessIdentifier:
                 return ntee
         return ""
 
-    def _lookup_google_places(self, business_name: str, domain: str = "") -> str:
+    def _lookup_google_places(
+        self,
+        business_name: str,
+        domain: str = "",
+        user_context: dict | None = None,
+    ) -> str:
         """Use Google Places Text Search to resolve a business to 'City, ST'."""
         if not self.google_places_api_key:
             return ""
         if not business_name:
             return ""
+
         query = f"{business_name} {domain}".strip() if domain else business_name
+        geo_ctx = self._resolve_geo_context(user_context)
+        user_lat = geo_ctx.get("lat")
+        user_lng = geo_ctx.get("lng")
+        country_code = (geo_ctx.get("country_code") or "").upper()
+
+        payload = {"textQuery": query, "pageSize": 20}
+        if isinstance(user_lat, float) and isinstance(user_lng, float):
+            payload["rankPreference"] = "DISTANCE"
+            payload["locationBias"] = {
+                "circle": {
+                    "center": {"latitude": user_lat, "longitude": user_lng},
+                    "radius": 50000.0,
+                }
+            }
+        elif len(country_code) == 2:
+            payload["regionCode"] = country_code.lower()
+
         try:
             resp = requests.post(
                 "https://places.googleapis.com/v1/places:searchText",
                 headers={
                     "X-Goog-Api-Key": self.google_places_api_key,
-                    "X-Goog-FieldMask": "places.addressComponents,places.formattedAddress",
+                    "X-Goog-FieldMask": (
+                        "places.addressComponents,"
+                        "places.formattedAddress,"
+                        "places.location"
+                    ),
                     "Content-Type": "application/json",
                 },
-                json={"textQuery": query},
+                json=payload,
                 timeout=min(self.timeout, 4),
             )
             if resp.status_code != 200:
@@ -805,25 +856,203 @@ class BusinessIdentifier:
                     resp.status_code, query, resp.text[:200],
                 )
                 return ""
+
             data = resp.json() or {}
             places = data.get("places") or []
             if not places:
                 return ""
-            components = places[0].get("addressComponents") or []
-            city = ""
-            state = ""
-            for comp in components:
-                types = comp.get("types") or []
-                if "locality" in types and not city:
-                    city = comp.get("shortText") or comp.get("longText") or ""
-                elif "administrative_area_level_1" in types and not state:
-                    state = comp.get("shortText") or comp.get("longText") or ""
-            if state and state.upper() in _US_STATES and city:
-                return f"{city}, {state.upper()}"
-            return ""
+
+            best_loc = ""
+            best_dist_km = float("inf")
+            fallback_loc = ""
+
+            for place in places:
+                loc = self._extract_city_state_from_components(
+                    place.get("addressComponents") or []
+                )
+                if not loc:
+                    continue
+                if not fallback_loc:
+                    fallback_loc = loc
+
+                if not (isinstance(user_lat, float) and isinstance(user_lng, float)):
+                    continue
+
+                place_lat, place_lng = self._extract_place_lat_lng(place)
+                if place_lat is None or place_lng is None:
+                    continue
+                dist_km = self._haversine_km(user_lat, user_lng, place_lat, place_lng)
+                if dist_km < best_dist_km:
+                    best_dist_km = dist_km
+                    best_loc = loc
+
+            return best_loc or fallback_loc
         except Exception as exc:
             logger.warning("Google Places lookup failed for %r: %s", query, exc)
             return ""
+
+    def _build_identify_cache_key(self, url: str, user_context: dict | None) -> str:
+        """Build a cache key that isolates location-biased lookups by geo bucket."""
+        bucket = self._coarse_geo_cache_bucket(user_context)
+        return f"{url}|geo={bucket}"
+
+    def _coarse_geo_cache_bucket(self, user_context: dict | None) -> str:
+        """Use a coarse, privacy-preserving geo bucket for cache partitioning."""
+        geo = self._sanitize_user_context(user_context)
+        lat = geo.get("lat")
+        lng = geo.get("lng")
+        if isinstance(lat, float) and isinstance(lng, float):
+            return f"{round(lat, 1):.1f},{round(lng, 1):.1f}"
+        country = (geo.get("country_code") or "").upper()
+        if len(country) == 2:
+            return country
+        client_ip = geo.get("client_ip") or ""
+        if client_ip:
+            return f"ip:{hashlib.sha1(client_ip.encode('utf-8')).hexdigest()[:10]}"
+        return "global"
+
+    def _resolve_geo_context(self, user_context: dict | None) -> dict:
+        """Return best-effort geo context, optionally enriching via IP lookup."""
+        geo = self._sanitize_user_context(user_context)
+        if (
+            isinstance(geo.get("lat"), float)
+            and isinstance(geo.get("lng"), float)
+        ):
+            return geo
+        if not self.enable_ip_geolocation_fallback:
+            return geo
+
+        client_ip = geo.get("client_ip", "")
+        if not client_ip or not self._is_public_ip(client_ip):
+            return geo
+
+        ip_geo = self._lookup_geo_from_ip(client_ip)
+        if not ip_geo:
+            return geo
+
+        merged = dict(geo)
+        if not isinstance(merged.get("lat"), float):
+            merged["lat"] = ip_geo.get("lat")
+        if not isinstance(merged.get("lng"), float):
+            merged["lng"] = ip_geo.get("lng")
+        if not merged.get("country_code"):
+            merged["country_code"] = ip_geo.get("country_code", "")
+        if not merged.get("region_code"):
+            merged["region_code"] = ip_geo.get("region_code", "")
+        return merged
+
+    def _lookup_geo_from_ip(self, client_ip: str) -> dict:
+        """Resolve lat/lng + country from an IP address using ipapi.co."""
+        now = time.time()
+        with _ip_geo_cache_lock:
+            cached = _ip_geo_cache.get(client_ip)
+            if cached and now - cached["ts"] < _IP_GEO_CACHE_TTL:
+                return dict(cached["geo"])
+
+        try:
+            resp = self.session.get(
+                f"https://ipapi.co/{client_ip}/json/",
+                timeout=min(self.timeout, 3),
+                headers={"Accept": "application/json"},
+            )
+            if resp.status_code != 200:
+                logger.debug("IP geolocation returned %d", resp.status_code)
+                return {}
+            data = resp.json() or {}
+            lat = self._coerce_float(data.get("latitude"))
+            lng = self._coerce_float(data.get("longitude"))
+            if lat is None or lng is None:
+                return {}
+            geo = {
+                "lat": lat,
+                "lng": lng,
+                "country_code": str(data.get("country_code") or data.get("country") or "").upper(),
+                "region_code": str(data.get("region_code") or "").upper(),
+            }
+            with _ip_geo_cache_lock:
+                _ip_geo_cache[client_ip] = {"ts": now, "geo": geo}
+            return geo
+        except Exception as exc:
+            logger.debug("IP geolocation lookup failed: %s", exc)
+            return {}
+
+    def _sanitize_user_context(self, user_context: dict | None) -> dict:
+        """Normalize optional request context used for location-biased ranking."""
+        if not isinstance(user_context, dict):
+            return {}
+        lat = self._coerce_float(user_context.get("lat"))
+        lng = self._coerce_float(user_context.get("lng"))
+        client_ip = str(user_context.get("client_ip") or "").strip()
+        country = str(user_context.get("country_code") or "").strip().upper()
+        region = str(user_context.get("region_code") or "").strip().upper()
+        out = {
+            "client_ip": client_ip,
+            "country_code": country,
+            "region_code": region,
+        }
+        if lat is not None and lng is not None:
+            out["lat"] = lat
+            out["lng"] = lng
+        return out
+
+    def _extract_city_state_from_components(self, components: list) -> str:
+        """Extract 'City, ST' from Places address components."""
+        city = ""
+        state = ""
+        for comp in components:
+            types = comp.get("types") or []
+            if "locality" in types and not city:
+                city = comp.get("shortText") or comp.get("longText") or ""
+            elif "administrative_area_level_1" in types and not state:
+                state = comp.get("shortText") or comp.get("longText") or ""
+        if state and city and state.upper() in _US_STATES:
+            return f"{city}, {state.upper()}"
+        return ""
+
+    def _extract_place_lat_lng(self, place: dict) -> tuple[float | None, float | None]:
+        """Extract (lat, lng) from a Places result."""
+        loc = place.get("location") or {}
+        lat = self._coerce_float(loc.get("latitude"))
+        lng = self._coerce_float(loc.get("longitude"))
+        if lat is None or lng is None:
+            return None, None
+        return lat, lng
+
+    def _coerce_float(self, value) -> float | None:
+        """Coerce value to float, returning None when conversion fails."""
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _is_public_ip(self, ip_str: str) -> bool:
+        """True when ip_str is globally routable enough for geolocation."""
+        try:
+            ip = ipaddress.ip_address(ip_str)
+        except ValueError:
+            return False
+        return not (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        )
+
+    def _haversine_km(self, lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+        """Compute great-circle distance in kilometers between two points."""
+        r = 6371.0
+        lat1_r, lng1_r = math.radians(lat1), math.radians(lng1)
+        lat2_r, lng2_r = math.radians(lat2), math.radians(lng2)
+        dlat = lat2_r - lat1_r
+        dlng = lng2_r - lng1_r
+        a = (
+            math.sin(dlat / 2) ** 2
+            + math.cos(lat1_r) * math.cos(lat2_r) * math.sin(dlng / 2) ** 2
+        )
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return r * c
 
     # ==================================================================
     # Sector detection helpers
