@@ -29,18 +29,24 @@ class RateLimitSmoke(unittest.TestCase):
             import flask_limiter  # noqa: F401
         except ImportError:
             raise unittest.SkipTest("flask_limiter not installed in this environment")
+        import chaos_tester.app as app_module
         from chaos_tester.app import app, limiter
         app.config["TESTING"] = True
-        # Limiter must be enabled in TESTING; flask-limiter respects RATELIMIT_ENABLED.
         app.config["RATELIMIT_ENABLED"] = True
         limiter.reset()
+        cls.app_module = app_module
         cls.app = app
         cls.client = app.test_client()
         cls.limiter = limiter
 
     def setUp(self):
-        # Reset between tests so per-IP buckets don't leak.
+        # Reset between tests so per-IP buckets and in-memory run state do not leak.
         self.limiter.reset()
+        with self.app_module._lock:
+            self.app_module._current_status = "idle"
+            self.app_module._current_run = None
+            self.app_module._progress.clear()
+            self.app_module._highest_pct = 0
 
     def _post(self, path, payload):
         return self.client.post(
@@ -50,22 +56,38 @@ class RateLimitSmoke(unittest.TestCase):
         )
 
     def test_run_limited_to_3_per_min(self):
-        # Stub the runner so /run doesn't try to crawl.
-        with patch("chaos_tester.app.threading.Thread"):
-            statuses = [self._post("/run", {"base_url": "https://example.com"}).status_code for _ in range(4)]
-        # First 3 should be accepted (202 or possibly 409 if state lingers); the 4th must be 429.
+        # Stub thread startup and force idle between calls so business-state
+        # guards don't mask the limiter behavior.
+        responses = []
+        with patch("chaos_tester.app._run_tests", return_value=None):
+            for _ in range(4):
+                responses.append(self._post("/run", {"base_url": "https://example.com"}))
+                with self.app_module._lock:
+                    self.app_module._current_status = "idle"
+
+        statuses = [r.status_code for r in responses]
+        self.assertEqual(statuses[:3], [202, 202, 202], f"expected first 3 calls accepted, got {statuses}")
         self.assertEqual(statuses[3], 429, f"expected 429 on 4th call, got {statuses}")
+        self.assertTrue(responses[3].headers.get("Retry-After", "").isdigit())
+        self.assertGreaterEqual(responses[3].get_json()["retry_after"], 1)
 
     def test_bug_report_limited(self):
         with patch("chaos_tester.app.os.getenv", return_value=""):
-            # When env is missing, bug-report returns 500 — but the limit check fires first
-            # so we still see 429 after 5 calls.
             statuses = [self._post("/api/bug-report", {"description": "x"}).status_code for _ in range(6)]
+        self.assertEqual(statuses[:5], [500, 500, 500, 500, 500], f"expected app-level 500s before breach, got {statuses}")
         self.assertEqual(statuses[5], 429, f"expected 429 on 6th call, got {statuses}")
 
     def test_detect_business_limited(self):
-        with patch("chaos_tester.modules.business_identifier.BusinessIdentifier"):
+        with patch("chaos_tester.modules.business_identifier.BusinessIdentifier") as mock_identifier:
+            mock_identifier.return_value.identify.return_value = {
+                "business_name": "Example Inc.",
+                "location": "Example City, US",
+                "sector": "software",
+                "lookup_source": "mock",
+                "candidates": [],
+            }
             statuses = [self._post("/api/detect-business", {"url": "https://example.com"}).status_code for _ in range(11)]
+        self.assertEqual(statuses[:10], [200] * 10, f"expected first 10 calls accepted, got {statuses}")
         self.assertEqual(statuses[10], 429, f"expected 429 on 11th call, got {statuses}")
 
 

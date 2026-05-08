@@ -28,7 +28,7 @@ jobs:
       - name: Run tests
         env:
           PYTHONPATH: ${{ github.workspace }}/..
-        run: pytest -q tests/test_safe_http.py tests/test_security_txt.py
+        run: pytest -q tests/test_safe_http.py tests/test_security_txt.py tests/test_rate_limit.py
 
       - name: Smoke check security.txt route
         run: |

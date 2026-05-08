@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 
 
 PROJECT_PARENT = Path(__file__).resolve().parents[2]
@@ -43,3 +44,30 @@ def test_security_txt_contract():
 
     static_path = BASE_DIR / "static" / ".well-known" / "security.txt"
     assert body.strip() == static_path.read_text(encoding="utf-8").strip()
+
+
+def test_security_txt_expires_window():
+    """Track RFC expiry so we refresh proactively before it lapses.
+
+    Guardrails:
+      - `Expires` must be in the future by at least 30 days.
+      - `Expires` must not exceed one year from now (RFC 9116 guidance).
+    """
+    content = (BASE_DIR / "static" / ".well-known" / "security.txt").read_text(encoding="utf-8")
+    expires_line = next(
+        (line for line in content.splitlines() if line.startswith("Expires: ")),
+        "",
+    )
+    assert expires_line, "Missing Expires line in security.txt"
+
+    expires_str = expires_line.split("Expires: ", 1)[1].strip()
+    expires_at = datetime.fromisoformat(expires_str.replace("Z", "+00:00"))
+    now = datetime.now(timezone.utc)
+
+    # Trip early enough to refresh before expiry instead of after breakage.
+    assert expires_at >= now + timedelta(days=30), (
+        f"security.txt Expires is too close ({expires_str}); refresh it now."
+    )
+    assert expires_at <= now + timedelta(days=366), (
+        f"security.txt Expires exceeds RFC one-year window ({expires_str})."
+    )

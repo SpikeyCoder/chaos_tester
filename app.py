@@ -399,8 +399,8 @@ def index():
     return render_template("dashboard.html", status=status)
 
 
-@limiter.limit("3 per minute")
 @app.route("/run", methods=["POST"])
+@limiter.limit("3 per minute")
 def start_run():
     global _current_status
 
@@ -838,8 +838,8 @@ def api_ai_query():
     return jsonify({"query": query, "results": results})
 
 
-@limiter.limit("5 per minute; 30 per hour")
 @app.route("/api/bug-report", methods=["POST"])
+@limiter.limit("5 per minute; 30 per hour")
 def api_bug_report():
     """Create a Trello card from a bug report or feature request."""
     import requests as http_requests
@@ -943,8 +943,8 @@ def api_bug_report():
         return jsonify({"error": "Internal server error"}), 500
 
 
-@limiter.limit("10 per minute; 100 per hour")
 @app.route("/api/detect-business", methods=["POST"])
+@limiter.limit("10 per minute; 100 per hour")
 def detect_business():
     """Quick-detect business name, location, and sector from a URL.
 
@@ -1028,11 +1028,16 @@ def method_not_allowed(e):
 
 @app.errorhandler(429)
 def ratelimit_handler(e):
+    retry_after = getattr(e, "retry_after", None)
+    if isinstance(retry_after, (int, float)):
+        retry_after_seconds = max(1, int(retry_after))
+    else:
+        retry_after_seconds = 60
     return jsonify({
         "error": "rate_limited",
         "message": "Too many requests. Please try again in a moment.",
-        "retry_after": e.description or 60
-    }), 429, {"Retry-After": str(e.description or 60)}
+        "retry_after": retry_after_seconds,
+    }), 429, {"Retry-After": str(retry_after_seconds)}
 
 @app.errorhandler(500)
 def internal_server_error(e):
