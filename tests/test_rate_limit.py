@@ -90,6 +90,42 @@ class RateLimitSmoke(unittest.TestCase):
         self.assertEqual(statuses[:10], [200] * 10, f"expected first 10 calls accepted, got {statuses}")
         self.assertEqual(statuses[10], 429, f"expected 429 on 11th call, got {statuses}")
 
+    def test_detect_business_passes_request_geo_context(self):
+        with patch("chaos_tester.modules.business_identifier.BusinessIdentifier") as mock_identifier:
+            mock_identifier.return_value.identify.return_value = {
+                "business_name": "Example Inc.",
+                "location": "Los Angeles, CA",
+                "sector": "software",
+                "lookup_source": "google_places",
+                "candidates": [],
+            }
+            response = self.client.post(
+                "/api/detect-business",
+                data=json.dumps({"url": "https://example.com"}),
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-Forwarded-For": "8.8.8.8, 10.0.0.1",
+                    "X-Appengine-Country": "US",
+                    "X-Appengine-Region": "ca",
+                    "X-Appengine-CityLatLong": "34.0522,-118.2437",
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        identify_kwargs = mock_identifier.return_value.identify.call_args.kwargs
+        self.assertIn("user_context", identify_kwargs)
+        self.assertEqual(
+            identify_kwargs["user_context"],
+            {
+                "client_ip": "8.8.8.8",
+                "country_code": "US",
+                "region_code": "CA",
+                "lat": 34.0522,
+                "lng": -118.2437,
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
