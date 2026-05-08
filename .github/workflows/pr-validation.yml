@@ -1,0 +1,41 @@
+name: PR Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest
+
+      - name: Syntax check
+        run: python -m py_compile app.py
+
+      - name: Run tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/..
+        run: pytest -q tests/test_safe_http.py tests/test_security_txt.py
+
+      - name: Smoke check security.txt route
+        run: |
+          python run.py --host 127.0.0.1 --port 5055 > /tmp/wa-smoke.log 2>&1 &
+          server_pid=$!
+          trap "kill ${server_pid}" EXIT
+          sleep 3
+          curl -fsS http://127.0.0.1:5055/.well-known/security.txt > /tmp/security.txt
+          grep -q '^Contact: mailto:' /tmp/security.txt
+          grep -q '^Expires:' /tmp/security.txt

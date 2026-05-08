@@ -1076,6 +1076,20 @@ def main():
 
 
 # -- SEO Routes ------------------------------------------------
+@app.route("/.well-known/security.txt")
+def security_txt():
+    """RFC 9116 vulnerability-disclosure contact.
+
+    Serve a single source-of-truth file from static/.well-known/ so the
+    route and deploy artifact cannot drift from each other.
+    """
+    return send_from_directory(
+        app.static_folder,
+        ".well-known/security.txt",
+        mimetype="text/plain",
+    )
+
+
 @app.route("/robots.txt")
 def robots_txt():
     content = """User-agent: *

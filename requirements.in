@@ -1,0 +1,10 @@
+# Top-level Python deps for chaos_tester. Run `pip-compile requirements.in`
+# to regenerate requirements.txt with full transitive pins (recommended for
+# reproducible production builds; see compliance/risk-register.md follow-up
+# from pen-test 2026-05-06 finding WA-2026-05-06-02).
+flask>=3.0,<4
+requests>=2.31,<3
+beautifulsoup4>=4.12,<5
+PyJWT>=2.8,<3
+Flask-Limiter>=3.5,<4
+gunicorn>=21,<24
