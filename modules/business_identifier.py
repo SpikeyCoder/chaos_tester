@@ -886,26 +886,30 @@ class BusinessIdentifier:
             if not candidates:
                 return ""
 
-            # Confidence guard: if Google gives only one parseable location and
-            # it's far from the user's IP geolocation, treat it as ambiguous so
-            # identify() can fall back to client_ip location.
+            # Confidence guard: if the nearest Google candidate is still far
+            # from the user's IP location, treat the Places result as ambiguous
+            # so identify() can fall back to client_ip location.
             if (
                 isinstance(user_lat, float)
                 and isinstance(user_lng, float)
-                and len(candidates) == 1
                 and self.single_result_distance_guard_km > 0.0
             ):
-                only = candidates[0]
-                if only["lat"] is not None and only["lng"] is not None:
+                distances = []
+                for cand in candidates:
+                    if cand["lat"] is None or cand["lng"] is None:
+                        continue
                     dist_km = self._haversine_km(
-                        user_lat, user_lng, only["lat"], only["lng"]
+                        user_lat, user_lng, cand["lat"], cand["lng"]
                     )
-                    if dist_km > self.single_result_distance_guard_km:
+                    distances.append(dist_km)
+                if distances:
+                    min_dist = min(distances)
+                    if min_dist > self.single_result_distance_guard_km:
                         logger.info(
-                            "Google Places single-result guard triggered for %r: "
-                            "distance %.1fkm > %.1fkm; falling back to client_ip",
+                            "Google Places distance guard triggered for %r: "
+                            "nearest %.1fkm > %.1fkm; falling back to client_ip",
                             query,
-                            dist_km,
+                            min_dist,
                             self.single_result_distance_guard_km,
                         )
                         return ""

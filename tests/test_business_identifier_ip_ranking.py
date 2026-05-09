@@ -216,3 +216,36 @@ def test_google_places_single_near_result_kept():
         )
 
     assert location == "Seattle, WA"
+
+
+def test_google_places_multiple_far_results_trigger_guard():
+    identifier = BusinessIdentifier(
+        google_places_api_key="test-key",
+        enable_ip_geolocation_fallback=False,
+        single_result_distance_guard_km=1500.0,
+    )
+    payload = {
+        "places": [
+            {
+                "addressComponents": _us_components("Hazelwood", "MO"),
+                "formattedAddress": "Hazelwood, MO, USA",
+                "location": {"latitude": 38.7714, "longitude": -90.3709},
+            },
+            {
+                "addressComponents": _us_components("St Louis", "MO"),
+                "formattedAddress": "St Louis, MO, USA",
+                "location": {"latitude": 38.6270, "longitude": -90.1994},
+            },
+        ]
+    }
+    with patch(
+        "chaos_tester.modules.business_identifier.requests.post",
+        return_value=_FakeResponse(200, payload),
+    ):
+        location = identifier._lookup_google_places(
+            "Armstrong HoldCo LLC",
+            "kevinarmstrong.io",
+            user_context={"lat": 47.6062, "lng": -122.3321, "country_code": "US"},
+        )
+
+    assert location == ""
