@@ -821,19 +821,11 @@ class BusinessIdentifier:
         geo_ctx = self._resolve_geo_context(user_context)
         user_lat = geo_ctx.get("lat")
         user_lng = geo_ctx.get("lng")
-        country_code = (geo_ctx.get("country_code") or "").upper()
 
+        # Keep the initial search neutral (relevance-ranked) so we reliably
+        # fetch business matches first, then apply distance prioritization
+        # locally when we have user lat/lng.
         payload = {"textQuery": query, "pageSize": 20}
-        if isinstance(user_lat, float) and isinstance(user_lng, float):
-            payload["rankPreference"] = "DISTANCE"
-            payload["locationBias"] = {
-                "circle": {
-                    "center": {"latitude": user_lat, "longitude": user_lng},
-                    "radius": 50000.0,
-                }
-            }
-        elif len(country_code) == 2:
-            payload["regionCode"] = country_code.lower()
 
         try:
             resp = requests.post(
@@ -862,31 +854,44 @@ class BusinessIdentifier:
             if not places:
                 return ""
 
-            best_loc = ""
-            best_dist_km = float("inf")
-            fallback_loc = ""
+            candidates = []
 
             for place in places:
                 loc = self._extract_city_state_from_components(
                     place.get("addressComponents") or []
                 )
                 if not loc:
+                    loc = self._extract_city_state_from_formatted_address(
+                        place.get("formattedAddress") or ""
+                    )
+                if not loc:
                     continue
-                if not fallback_loc:
-                    fallback_loc = loc
-
-                if not (isinstance(user_lat, float) and isinstance(user_lng, float)):
-                    continue
-
                 place_lat, place_lng = self._extract_place_lat_lng(place)
-                if place_lat is None or place_lng is None:
+                candidates.append(
+                    {"loc": loc, "lat": place_lat, "lng": place_lng}
+                )
+
+            if not candidates:
+                return ""
+
+            # If we don't have user coordinates, preserve original behavior:
+            # return the best Google-ranked parseable location.
+            if not (isinstance(user_lat, float) and isinstance(user_lng, float)):
+                return candidates[0]["loc"]
+
+            best_loc = ""
+            best_dist_km = float("inf")
+            for cand in candidates:
+                if cand["lat"] is None or cand["lng"] is None:
                     continue
-                dist_km = self._haversine_km(user_lat, user_lng, place_lat, place_lng)
+                dist_km = self._haversine_km(
+                    user_lat, user_lng, cand["lat"], cand["lng"]
+                )
                 if dist_km < best_dist_km:
                     best_dist_km = dist_km
-                    best_loc = loc
+                    best_loc = cand["loc"]
 
-            return best_loc or fallback_loc
+            return best_loc or candidates[0]["loc"]
         except Exception as exc:
             logger.warning("Google Places lookup failed for %r: %s", query, exc)
             return ""
@@ -1017,6 +1022,30 @@ class BusinessIdentifier:
         if lat is None or lng is None:
             return None, None
         return lat, lng
+
+    def _extract_city_state_from_formatted_address(self, formatted: str) -> str:
+        """Best-effort fallback parsing of 'City, ST' from formattedAddress."""
+        text = (formatted or "").strip()
+        if not text:
+            return ""
+        parts = [p.strip() for p in text.split(",") if p and p.strip()]
+        if len(parts) < 2:
+            return ""
+
+        # Example:
+        # "123 Main St, San Francisco, CA 94105, USA" -> "San Francisco, CA"
+        state_re = re.compile(r"^([A-Z]{2})(?:\s+\d{5}(?:-\d{4})?)?$")
+        for idx in range(1, len(parts)):
+            m = state_re.match(parts[idx])
+            if not m:
+                continue
+            state = m.group(1).upper()
+            if state not in _US_STATES:
+                continue
+            city = parts[idx - 1]
+            if city:
+                return f"{city}, {state}"
+        return ""
 
     def _coerce_float(self, value) -> float | None:
         """Coerce value to float, returning None when conversion fails."""

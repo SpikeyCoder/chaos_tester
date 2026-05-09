@@ -68,8 +68,9 @@ def test_google_places_prefers_nearest_location_for_user_context():
 
     assert location == "Los Angeles, CA"
     req_payload = mock_post.call_args.kwargs["json"]
-    assert req_payload["rankPreference"] == "DISTANCE"
-    assert "locationBias" in req_payload
+    assert req_payload["textQuery"] == "Acme Inc acme.com"
+    assert "rankPreference" not in req_payload
+    assert "locationBias" not in req_payload
 
 
 def test_identify_cache_isolated_by_geo_bucket():
@@ -104,3 +105,30 @@ def test_identify_cache_isolated_by_geo_bucket():
     assert first["location"] == "Los Angeles, CA"
     assert second["location"] == "New York, NY"
     assert mock_lookup.call_count == 2
+
+
+def test_google_places_uses_formatted_address_fallback_when_components_sparse():
+    identifier = BusinessIdentifier(
+        google_places_api_key="test-key",
+        enable_ip_geolocation_fallback=False,
+    )
+    payload = {
+        "places": [
+            {
+                "addressComponents": [],
+                "formattedAddress": "123 Main St, Denver, CO 80202, USA",
+                "location": {"latitude": 39.7392, "longitude": -104.9903},
+            }
+        ]
+    }
+    with patch(
+        "chaos_tester.modules.business_identifier.requests.post",
+        return_value=_FakeResponse(200, payload),
+    ):
+        location = identifier._lookup_google_places(
+            "Example LLC",
+            "example.com",
+            user_context={"lat": 39.74, "lng": -104.99},
+        )
+
+    assert location == "Denver, CO"
