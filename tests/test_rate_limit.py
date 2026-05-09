@@ -108,6 +108,7 @@ class RateLimitSmoke(unittest.TestCase):
                     "X-Forwarded-For": "8.8.8.8, 10.0.0.1",
                     "X-Appengine-Country": "US",
                     "X-Appengine-Region": "ca",
+                    "X-Appengine-City": "los angeles",
                     "X-Appengine-CityLatLong": "34.0522,-118.2437",
                 },
             )
@@ -121,9 +122,14 @@ class RateLimitSmoke(unittest.TestCase):
                 "client_ip": "8.8.8.8",
                 "country_code": "US",
                 "region_code": "CA",
+                "city": "los angeles",
                 "lat": 34.0522,
                 "lng": -118.2437,
             },
+        )
+        self.assertEqual(
+            mock_identifier.call_args.kwargs.get("single_result_distance_guard_km"),
+            1500.0,
         )
 
 

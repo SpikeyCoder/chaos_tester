@@ -132,3 +132,87 @@ def test_google_places_uses_formatted_address_fallback_when_components_sparse():
         )
 
     assert location == "Denver, CO"
+
+
+def test_identify_falls_back_to_client_ip_location_when_no_location_found():
+    bi_mod._identify_cache.clear()
+    identifier = BusinessIdentifier(google_places_api_key="", enable_ip_geolocation_fallback=False)
+
+    candidates = [
+        {
+            "name": "Acme Inc",
+            "score": 9.5,
+            "sources": ["title_tag"],
+            "classification": "business",
+        }
+    ]
+
+    with patch.object(identifier, "scrape_candidates", return_value=candidates), patch.object(
+        identifier, "detect_sector", return_value="software"
+    ), patch.object(
+        identifier, "lookup_headquarters", return_value=("", "")
+    ):
+        result = identifier.identify(
+            "https://example.com",
+            html="",
+            user_context={"city": "seattle", "region_code": "wa", "country_code": "US"},
+        )
+
+    assert result["location"] == "Seattle, WA"
+    assert result["lookup_source"] == "client_ip"
+
+
+def test_google_places_single_far_result_triggers_ambiguity_guard():
+    identifier = BusinessIdentifier(
+        google_places_api_key="test-key",
+        enable_ip_geolocation_fallback=False,
+        single_result_distance_guard_km=1500.0,
+    )
+    payload = {
+        "places": [
+            {
+                "addressComponents": _us_components("Hazelwood", "MO"),
+                "formattedAddress": "Hazelwood, MO, USA",
+                "location": {"latitude": 38.7714, "longitude": -90.3709},
+            }
+        ]
+    }
+    with patch(
+        "chaos_tester.modules.business_identifier.requests.post",
+        return_value=_FakeResponse(200, payload),
+    ):
+        location = identifier._lookup_google_places(
+            "Armstrong HoldCo LLC",
+            "kevinarmstrong.io",
+            user_context={"lat": 47.6062, "lng": -122.3321, "country_code": "US"},
+        )
+
+    assert location == ""
+
+
+def test_google_places_single_near_result_kept():
+    identifier = BusinessIdentifier(
+        google_places_api_key="test-key",
+        enable_ip_geolocation_fallback=False,
+        single_result_distance_guard_km=1500.0,
+    )
+    payload = {
+        "places": [
+            {
+                "addressComponents": _us_components("Seattle", "WA"),
+                "formattedAddress": "Seattle, WA, USA",
+                "location": {"latitude": 47.6062, "longitude": -122.3321},
+            }
+        ]
+    }
+    with patch(
+        "chaos_tester.modules.business_identifier.requests.post",
+        return_value=_FakeResponse(200, payload),
+    ):
+        location = identifier._lookup_google_places(
+            "Example LLC",
+            "example.com",
+            user_context={"lat": 47.60, "lng": -122.33, "country_code": "US"},
+        )
+
+    assert location == "Seattle, WA"

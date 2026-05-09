@@ -34,6 +34,7 @@ _IDENTIFY_CACHE_TTL = 900  # 15 minutes
 _ip_geo_cache: dict = {}
 _ip_geo_cache_lock = threading.Lock()
 _IP_GEO_CACHE_TTL = 3600  # 1 hour
+_DEFAULT_SINGLE_RESULT_DISTANCE_GUARD_KM = 1500.0
 
 # Legal entity suffixes, ordered longest-first so regex is greedy
 ENTITY_SUFFIXES = [
@@ -228,11 +229,13 @@ class BusinessIdentifier:
         timeout: int = 4,
         google_places_api_key: str = "",
         enable_ip_geolocation_fallback: bool = False,
+        single_result_distance_guard_km: float = _DEFAULT_SINGLE_RESULT_DISTANCE_GUARD_KM,
     ):
         self.session = session or requests.Session()
         self.timeout = timeout
         self.google_places_api_key = google_places_api_key or ""
         self.enable_ip_geolocation_fallback = bool(enable_ip_geolocation_fallback)
+        self.single_result_distance_guard_km = max(0.0, float(single_result_distance_guard_km))
         self._irs_cache: dict = {}  # name -> IRS response, avoids duplicate calls
 
     # ------------------------------------------------------------------
@@ -524,6 +527,15 @@ class BusinessIdentifier:
             location = self._extract_location_from_html(html)
             if location:
                 lookup_source = "page_content"
+
+        # Final fallback: use the current user's IP-derived geo location when
+        # we couldn't resolve a business location from website/API sources.
+        if not location:
+            ip_loc = self._location_from_geo_context(resolved_geo)
+            if ip_loc:
+                location = ip_loc
+                lookup_source = "client_ip"
+                logger.info("Location fallback from client IP geo: %r", location)
 
         logger.info(
             "BusinessIdentifier result: name=%r location=%r sector=%r source=%r "
@@ -874,6 +886,30 @@ class BusinessIdentifier:
             if not candidates:
                 return ""
 
+            # Confidence guard: if Google gives only one parseable location and
+            # it's far from the user's IP geolocation, treat it as ambiguous so
+            # identify() can fall back to client_ip location.
+            if (
+                isinstance(user_lat, float)
+                and isinstance(user_lng, float)
+                and len(candidates) == 1
+                and self.single_result_distance_guard_km > 0.0
+            ):
+                only = candidates[0]
+                if only["lat"] is not None and only["lng"] is not None:
+                    dist_km = self._haversine_km(
+                        user_lat, user_lng, only["lat"], only["lng"]
+                    )
+                    if dist_km > self.single_result_distance_guard_km:
+                        logger.info(
+                            "Google Places single-result guard triggered for %r: "
+                            "distance %.1fkm > %.1fkm; falling back to client_ip",
+                            query,
+                            dist_km,
+                            self.single_result_distance_guard_km,
+                        )
+                        return ""
+
             # If we don't have user coordinates, preserve original behavior:
             # return the best Google-ranked parseable location.
             if not (isinstance(user_lat, float) and isinstance(user_lng, float)):
@@ -944,6 +980,10 @@ class BusinessIdentifier:
             merged["country_code"] = ip_geo.get("country_code", "")
         if not merged.get("region_code"):
             merged["region_code"] = ip_geo.get("region_code", "")
+        if not merged.get("region_name"):
+            merged["region_name"] = ip_geo.get("region_name", "")
+        if not merged.get("city"):
+            merged["city"] = ip_geo.get("city", "")
         return merged
 
     def _lookup_geo_from_ip(self, client_ip: str) -> dict:
@@ -973,6 +1013,8 @@ class BusinessIdentifier:
                 "lng": lng,
                 "country_code": str(data.get("country_code") or data.get("country") or "").upper(),
                 "region_code": str(data.get("region_code") or "").upper(),
+                "region_name": str(data.get("region") or "").strip(),
+                "city": str(data.get("city") or "").strip(),
             }
             with _ip_geo_cache_lock:
                 _ip_geo_cache[client_ip] = {"ts": now, "geo": geo}
@@ -990,15 +1032,40 @@ class BusinessIdentifier:
         client_ip = str(user_context.get("client_ip") or "").strip()
         country = str(user_context.get("country_code") or "").strip().upper()
         region = str(user_context.get("region_code") or "").strip().upper()
+        region_name = str(user_context.get("region_name") or "").strip()
+        city = str(user_context.get("city") or "").strip()
         out = {
             "client_ip": client_ip,
             "country_code": country,
             "region_code": region,
+            "region_name": region_name,
+            "city": city,
         }
         if lat is not None and lng is not None:
             out["lat"] = lat
             out["lng"] = lng
         return out
+
+    def _location_from_geo_context(self, geo_context: dict | None) -> str:
+        """Format a display location from geo context, preferring city/state."""
+        geo = self._sanitize_user_context(geo_context)
+        city = (geo.get("city") or "").strip()
+        region_code = (geo.get("region_code") or "").strip().upper()
+        region_name = (geo.get("region_name") or "").strip()
+        country = (geo.get("country_code") or "").strip().upper()
+
+        # Prefer US city/state format.
+        if city and region_code and region_code in _US_STATES:
+            return f"{city.title()}, {region_code}"
+
+        # Generic city + region/country fallback for non-US geos.
+        if city and region_name:
+            return f"{city.title()}, {region_name}"
+        if city and region_code:
+            return f"{city.title()}, {region_code}"
+        if city and country:
+            return f"{city.title()}, {country}"
+        return ""
 
     def _extract_city_state_from_components(self, components: list) -> str:
         """Extract 'City, ST' from Places address components."""

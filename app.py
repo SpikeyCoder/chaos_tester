@@ -100,6 +100,12 @@ app.config["ENABLE_IP_GEOLOCATION_FALLBACK"] = (
     os.environ.get("ENABLE_IP_GEOLOCATION_FALLBACK", "1").strip().lower()
     not in {"0", "false", "no", "off"}
 )
+try:
+    app.config["GOOGLE_PLACES_SINGLE_RESULT_GUARD_KM"] = float(
+        os.environ.get("GOOGLE_PLACES_SINGLE_RESULT_GUARD_KM", "1500")
+    )
+except (TypeError, ValueError):
+    app.config["GOOGLE_PLACES_SINGLE_RESULT_GUARD_KM"] = 1500.0
 
 # Per-IP rate limits. Storage backend defaults to in-memory; Cloud Run
 # runs at low concurrency for this app, so in-memory is acceptable for
@@ -258,6 +264,10 @@ def _build_request_geo_context(req) -> dict:
     region = (req.headers.get("X-Appengine-Region", "") or "").strip().upper()
     if region and region != "?":
         context["region_code"] = region
+
+    city = (req.headers.get("X-Appengine-City", "") or "").strip()
+    if city and city != "?":
+        context["city"] = city
 
     lat, lng = _parse_lat_lng_pair(req.headers.get("X-Appengine-CityLatLong", ""))
     if lat is not None and lng is not None:
@@ -1109,6 +1119,9 @@ def detect_business():
             ),
             enable_ip_geolocation_fallback=app.config.get(
                 "ENABLE_IP_GEOLOCATION_FALLBACK", True
+            ),
+            single_result_distance_guard_km=app.config.get(
+                "GOOGLE_PLACES_SINGLE_RESULT_GUARD_KM", 1500.0
             ),
         )
         result = identifier.identify(url, user_context=geo_context)
