@@ -22,8 +22,11 @@
   .api-upsell-icon svg { width: 32px; height: 32px; color: #818cf8; }
   .api-upsell-title { margin: 0 0 4px; font-size: 24px; line-height: 32px; font-weight: 700; color: #ffffff; }
   .api-upsell-subtitle { margin: 0; color: #94a3b8; font-size: 16px; }
-  .api-upsell-btn { display: inline-flex; align-items: center; background: #6366f1; color: #ffffff; font-weight: 500; padding: 10px 18px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font-size: 15px; transition: background 0.15s ease; }
-  .api-upsell-btn:hover { background: #4f46e5; }
+  /* WCAG 1.4.3 fix (2026-05-11 audit): indigo-500 (#6366f1) with white text only reaches 4.47:1,
+     0.03 below the WCAG AA 4.5:1 threshold. Bump to indigo-600 (#4f46e5, ~6.0:1) and
+     deepen hover to indigo-700 (#4338ca, ~7.5:1). */
+  .api-upsell-btn { display: inline-flex; align-items: center; background: #4f46e5; color: #ffffff; font-weight: 500; padding: 10px 18px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font-size: 15px; transition: background 0.15s ease; }
+  .api-upsell-btn:hover { background: #4338ca; }
   .api-upsell-btn svg { width: 16px; height: 16px; margin-left: 8px; }
 @keyframes spin { to { transform: rotate(360deg); } }
   .btn-spinner {
