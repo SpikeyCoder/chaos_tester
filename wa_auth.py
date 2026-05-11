@@ -39,15 +39,53 @@ def _shared_secret() -> str:
     return os.environ.get("WA_SHARED_SECRET", "")
 
 
+def _required_audience() -> Optional[str]:
+    """Optional ``aud`` claim that wa_auth tokens must carry.
+
+    Returns the configured audience string (e.g. ``"chaos-tester"``) or
+    ``None`` if audience pinning is disabled.
+
+    Pen-test 2026-05-11: when ``WA_SHARED_SECRET`` is reused across
+    services, a JWT minted for a different purpose with the same secret
+    would otherwise be accepted here. Setting ``WA_REQUIRED_AUDIENCE``
+    in production makes the check explicit and surfaces cross-purpose
+    token reuse as a verification failure rather than silent acceptance.
+
+    Defaults to off so existing tokens minted without an ``aud`` claim
+    continue to work; operators flip this on once the admin portal
+    starts including ``aud: "chaos-tester"`` in newly issued tokens.
+    """
+    aud = os.environ.get("WA_REQUIRED_AUDIENCE", "").strip()
+    return aud or None
+
+
 def _decode_token(token: str) -> Optional[dict]:
     """Verify the JWT signature and return its payload, or None on failure."""
     secret = _shared_secret()
     if not secret:
         logger.warning("WA_SHARED_SECRET not set — cannot verify wa_auth cookie")
         return None
+
+    required_aud = _required_audience()
+    options = {}
+    decode_kwargs = {"algorithms": [_JWT_ALG]}
+    if required_aud:
+        decode_kwargs["audience"] = required_aud
+    else:
+        # Don't fail the decode just because no aud claim is present, but do
+        # tell PyJWT not to require one either. (PyJWT only enforces aud when
+        # the ``audience=`` kwarg is set, so this is belt-and-braces.)
+        options["verify_aud"] = False
+        decode_kwargs["options"] = options
+
     try:
-        return jwt.decode(token, secret, algorithms=[_JWT_ALG])
+        return jwt.decode(token, secret, **decode_kwargs)
     except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidAudienceError:
+        # Only reached when WA_REQUIRED_AUDIENCE is set and the token's
+        # aud claim doesn't match. Log so operators see the rejection.
+        logger.info("wa_auth token rejected: audience mismatch")
         return None
     except jwt.InvalidTokenError:
         return None
