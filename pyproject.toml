@@ -19,8 +19,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/chaos-tester"
-Repository = "https://github.com/your-org/chaos-tester"
+Homepage = "https://github.com/SpikeyCoder/chaos_tester"
+Repository = "https://github.com/SpikeyCoder/chaos_tester"
 
 [project.scripts]
 chaos-tester = "chaos_tester.app:main"
