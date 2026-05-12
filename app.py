@@ -292,7 +292,7 @@ def _set_security_headers(response):
     response.headers["X-WA-CSP-Phase"] = f"4A-hashes={len(_STYLE_HASHES)}"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
     # X-XSS-Protection: explicit "0" per current OWASP guidance — the legacy
     # browser XSS auditors had bugs that could be turned into XSS gadgets
     # (e.g. CVE-2018-6149-class issues). CSP is the modern XSS containment.
@@ -317,7 +317,8 @@ def _set_security_headers(response):
         "style-src-attr 'self' 'unsafe-inline'; "
         "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com; "
         "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app https://website-auditor.goatcounter.com https://maps.googleapis.com; "
-        "font-src 'self' https://fonts.gstatic.com;"
+        "font-src 'self' https://fonts.gstatic.com; "
+        "frame-ancestors 'none';"
     )
 
     # WA-2026-05-05-02 phase 4 — staging the *future* enforced policy via
