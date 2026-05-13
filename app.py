@@ -1275,7 +1275,6 @@ def sitemap_xml():
     today = datetime.utcnow().strftime("%Y-%m-%d")
     pages = [
         {"loc": "https://website-auditor.io/", "priority": "1.0", "changefreq": "weekly", "lastmod": today},
-        {"loc": "https://website-auditor.io/features", "priority": "0.8", "changefreq": "monthly", "lastmod": "2026-03-14"},
         {"loc": "https://website-auditor.io/how-it-works", "priority": "0.8", "changefreq": "monthly", "lastmod": "2026-03-14"},
         {"loc": "https://website-auditor.io/sample-report", "priority": "0.7", "changefreq": "monthly", "lastmod": "2026-03-14"},
         {"loc": "https://website-auditor.io/latest", "priority": "0.6", "changefreq": "daily", "lastmod": today},
@@ -1297,11 +1296,6 @@ def sitemap_xml():
         xml += f'  </url>\n'
     xml += '</urlset>'
     return Response(xml, mimetype="application/xml")
-
-
-@app.route("/features")
-def features_page():
-    return render_template("features.html")
 
 
 @app.route("/how-it-works")

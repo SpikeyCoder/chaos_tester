@@ -389,8 +389,6 @@
   cursor: help;
 }
 
-/* Italic + body-text-color (3 occurrences in features.html). */
-.u-italic-text { font-style: italic; color: var(--text); }
 
 /* Accent-hover semibold inline link (3× in dashboard footer). */
 .u-link-accent-hover {
