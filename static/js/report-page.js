@@ -86,18 +86,22 @@ document.addEventListener('DOMContentLoaded', function() {
     var color = score >= 90 ? '#4ade80' : (score >= 70 ? '#f97316' : '#ef4444');
     var r = 44, stroke = 7, circ = 2 * Math.PI * r;
     var offset = circ - (score / 100) * circ;
+    // Render the score as a native SVG <text> at the SVG's geometric center.
+    // This avoids any HTML/CSS layout interaction (no positioning, no flex
+    // baseline weirdness) and guarantees `fill` matches the ring `stroke`.
     var html = '<div class="section-gauge-item">' +
-      '<div class="gauge-ring" style="position:relative;width:110px;height:110px;line-height:0;">' +
-        '<svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true" focusable="false" style="display:block;width:100%;height:100%;">' +
+      '<div class="gauge-ring">' +
+        '<svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true" focusable="false">' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
             'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
-            'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
-            'style="transition:stroke-dashoffset 1s ease;"/>' +
+            'stroke-linecap="round" transform="rotate(-90 50 50)"/>' +
+          '<text x="50" y="50" text-anchor="middle" dominant-baseline="central" ' +
+            'fill="' + color + '" font-size="26" font-weight="700" ' +
+            'font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">' +
+            score +
+          '</text>' +
         '</svg>' +
-        '<div class="gauge-score-text" style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;line-height:1;pointer-events:none;color:' + color + ';">' +
-          '<span style="font-size:1.6rem;font-weight:700;line-height:1;color:' + color + ';">' + score + '</span>' +
-        '</div>' +
       '</div>' +
       '<div class="gauge-label-text">' + sec.label + '</div>' +
     '</div>';
@@ -518,70 +522,82 @@ function renderAIRecommendations() {
     else if (results[i].position > 3) lowPosCount++;
   }
 
+  var location = (ai.business_info || {}).location || 'your area';
+
   // ── Site-specific signal-driven recommendations (highest priority) ──
-  // These are tailored to the actual scanned site, not generic advice.
+  // Each rec splits into a short "why" (motivation, muted) and "action"
+  // (concrete next step) so the renderer can lay it out as a card.
   var blockedBots = signals.ai_bots_blocked || [];
   if (blockedBots.length > 0) {
+    var botList = blockedBots.slice(0, 4).join(', ') +
+                  (blockedBots.length > 4 ? ' and ' + (blockedBots.length - 4) + ' more' : '');
     recs.push({
-      icon: '🤖',
       title: 'Unblock AI crawlers in robots.txt',
-      text: 'Your robots.txt currently disallows ' + blockedBots.slice(0, 4).join(', ') +
-            (blockedBots.length > 4 ? ' and ' + (blockedBots.length - 4) + ' more' : '') +
-            '. AI models can\'t index ' + business + ' while those user-agents are blocked. ' +
-            'Edit robots.txt and add an explicit `Allow: /` rule for each of these crawlers, ' +
-            'or remove the disallow lines entirely so they can read your public content.',
+      why: 'Your robots.txt currently disallows ' + botList + '. While those user-agents are ' +
+           'blocked, AI assistants cannot index ' + business + ' and will fall back to your ' +
+           'competitors when asked about ' + sector + ' in ' + location + '.',
+      action: 'Edit /robots.txt and either remove the Disallow lines for those user-agents, ' +
+              'or add an explicit "Allow: /" rule under each one so they can read your public ' +
+              'pages.',
       priority: 100
     });
   }
   if (signals.has_structured_data === false) {
     recs.push({
-      icon: '🏷️',
       title: 'Add JSON-LD structured data to your homepage',
-      text: 'No schema.org markup was found on ' + business + '\'s homepage. Add a ' +
-            '<script type="application/ld+json"> block describing your business as ' +
-            '"LocalBusiness" (or the closest schema.org type for ' + sector + '), with name, ' +
-            'address, phone, hours, and URL. AI models rely on this to understand and quote you.',
+      why: 'No schema.org markup was found on ' + business + '\'s homepage. AI models lean on ' +
+           'structured data to confidently quote your business name, address, phone, hours, ' +
+           'and services — without it, your details get pieced together from less reliable ' +
+           'sources.',
+      action: 'Add a <script type="application/ld+json"> block describing your business as ' +
+              '"LocalBusiness" (or the closest schema.org type for ' + sector + ') with name, ' +
+              'address, phone, hours, and URL.',
       priority: 95
     });
   } else if (signals.has_local_business_schema === false) {
     var foundTypes = (signals.structured_data_types || []).slice(0, 3).join(', ') || 'generic types';
     recs.push({
-      icon: '🏷️',
       title: 'Strengthen structured data with a LocalBusiness schema',
-      text: 'You have structured data (' + foundTypes + ') but no LocalBusiness/Organization ' +
-            'schema. Add one with NAP (name, address, phone), opening hours, and serviceArea so ' +
-            'AI assistants can confidently surface ' + business + ' for "near me" queries.',
+      why: 'Your homepage has structured data (' + foundTypes + ') but none of it identifies ' +
+           business + ' as a real-world business. AI assistants won\'t surface you for ' +
+           '"near me" queries without an explicit LocalBusiness or Organization entity.',
+      action: 'Add a LocalBusiness JSON-LD block with name, address, phone, opening hours, ' +
+              'and serviceArea on top of the existing schema.',
       priority: 80
     });
   }
   if (signals.sitemap_present === false) {
     recs.push({
-      icon: '🗺️',
       title: 'Publish a sitemap.xml',
-      text: 'No sitemap.xml was found at /sitemap.xml and none is referenced in robots.txt. ' +
-            'Generate one that lists every public URL on ' + business + '\'s site, then add a ' +
-            '`Sitemap: https://…/sitemap.xml` line to your robots.txt so AI crawlers can ' +
-            'enumerate your content in one pass.',
+      why: 'No sitemap.xml was found at /sitemap.xml and none is referenced in robots.txt. ' +
+           'AI crawlers have to guess at which pages on ' + business + '\'s site to fetch, ' +
+           'and they typically give up after a handful.',
+      action: 'Generate /sitemap.xml listing every public URL, then add a "Sitemap: ' +
+              'https://…/sitemap.xml" line to robots.txt so crawlers find it on the first ' +
+              'visit.',
       priority: 85
     });
   }
   if (signals.has_meta_description === false) {
     recs.push({
-      icon: '📝',
       title: 'Add a meta description to your homepage',
-      text: 'Your homepage is missing a <meta name="description"> tag. AI summaries frequently ' +
-            'quote this string verbatim — write a concise 140–160 character pitch for ' +
-            business + ' that includes what you do, where you are, and who you serve.',
+      why: 'Your homepage has no <meta name="description"> tag. AI summaries and search ' +
+           'snippets often quote this string verbatim — leaving it empty means the model ' +
+           'has to invent a description on the fly.',
+      action: 'Write a 140–160 character pitch for ' + business + ' covering what you do, ' +
+              'where you are, and who you serve, and drop it into a <meta name="description"> ' +
+              'tag in the page <head>.',
       priority: 60
     });
   }
   if (signals.has_open_graph === false) {
     recs.push({
-      icon: '🔗',
       title: 'Add Open Graph tags so AI tools can preview your site',
-      text: 'No Open Graph meta tags were detected. Add og:title, og:description, og:image, ' +
-            'and og:url to your homepage so AI chat tools and social previews can render a ' +
-            'rich, accurate card when someone shares ' + business + '.',
+      why: 'No Open Graph meta tags were detected. AI chat tools and social previews fall ' +
+           'back to a bare URL when sharing ' + business + ', which looks unmaintained next ' +
+           'to competitors with rich cards.',
+      action: 'Add og:title, og:description, og:image, and og:url meta tags to the homepage ' +
+              '<head> so previews render a complete card.',
       priority: 50
     });
   }
@@ -589,79 +605,97 @@ function renderAIRecommendations() {
   // ── Score/visibility recommendations (lower priority fallbacks) ──
   if (weakPlatforms.length > 0) {
     recs.push({
-      icon: '*',
       title: 'Improve visibility on ' + weakPlatforms.join(' & '),
-      text: business + ' scores below 30% on ' + weakPlatforms.join(', ') + '. ' +
-            'Each of these platforms weighs reviews, citations, and structured data differently — ' +
-            'make sure your Google Business Profile is complete and that you have recent reviews ' +
-            'in the directories each platform indexes.',
+      why: business + ' scores below 30% on ' + weakPlatforms.join(', ') + '. Each platform ' +
+           'weighs reviews, citations, and directory listings differently, so a gap on one ' +
+           'usually points to a missing data source it trusts.',
+      action: 'Complete your Google Business Profile, gather fresh reviews on the directories ' +
+              'each platform indexes, and keep NAP (name/address/phone) consistent everywhere.',
       priority: 40
     });
   }
   if (noAppearCount > total * 0.5) {
     recs.push({
-      icon: '>',
       title: 'Publish content targeting your real customer queries',
-      text: 'AI models did not recommend ' + business + ' for ' + noAppearCount + ' of ' +
-            total + ' "' + sector + '" queries we ran. Publish service pages and FAQs that ' +
-            'use the exact phrasing of those queries (e.g. "best ' + sector + ' in ' +
-            ((ai.business_info || {}).location || 'your city') + '").',
+      why: 'AI models did not recommend ' + business + ' for ' + noAppearCount + ' of ' +
+           total + ' "' + sector + '" queries we ran. Without pages that match the exact ' +
+           'phrasing customers use, you won\'t surface in those answers.',
+      action: 'Publish service pages and FAQs that use the exact phrasing of those queries ' +
+              '(for example "best ' + sector + ' in ' + location + '").',
       priority: 35
     });
   }
   if (lowPosCount > 3) {
     recs.push({
-      icon: '⬆️',
       title: 'Boost ranking position with stronger authority signals',
-      text: business + ' appears in results but usually below position 3. Grow review count ' +
-            '(volume + recency matter), pursue local press mentions, and earn backlinks from ' +
-            'directories AI crawlers trust.',
+      why: business + ' appears in AI results but usually below position 3. Models prefer ' +
+           'businesses with depth of reviews, recent press, and inbound links from sources ' +
+           'they already trust.',
+      action: 'Grow review count and recency, pursue local press mentions, and earn backlinks ' +
+              'from the directories your weak platforms cite most.',
       priority: 30
     });
   }
   if (score < 25 && recs.length < 3) {
     recs.push({
-      icon: '!',
       title: 'Strengthen ' + business + '\'s online presence',
-      text: 'Overall AI visibility is ' + score + '%. Focus on the three biggest levers: ' +
-            'a complete Google Business Profile, fresh reviews across multiple platforms, and ' +
-            'consistent NAP (name/address/phone) on every directory listing.',
+      why: 'Overall AI visibility is ' + score + '%. The three biggest levers for a site at ' +
+           'this stage are a complete Google Business Profile, fresh reviews, and consistent ' +
+           'NAP across directories.',
+      action: 'Audit your Google Business Profile for missing fields, ask three recent ' +
+              'customers for reviews this week, and reconcile NAP on the top five local ' +
+              'directories.',
       priority: 20
     });
   }
   if (score >= 50 && strongPlatforms.length >= 2 && recs.length < 3) {
     recs.push({
-      icon: '+',
       title: 'Maintain your lead on ' + strongPlatforms.join(', '),
-      text: business + ' performs well on ' + strongPlatforms.join(', ') + '. Lock in this ' +
-            'lead by refreshing listings quarterly and continuing to publish dated content so ' +
-            'AI models keep treating you as a current, trustworthy source.',
+      why: business + ' performs well on ' + strongPlatforms.join(', ') + '. AI models drift ' +
+           'toward whichever business is most recently and consistently described — coast and ' +
+           'a competitor will catch up.',
+      action: 'Refresh business listings quarterly and keep publishing dated content so AI ' +
+              'models keep treating you as a current, trustworthy source.',
       priority: 10
     });
   }
 
-  // Final fallback: only if we somehow have zero recs (e.g. perfect signals AND score).
+  // Final fallback: only if we somehow have zero recs (perfect signals AND score).
   if (recs.length === 0) {
     recs.push({
-      icon: 'i',
       title: 'Keep ' + business + ' visible to AI assistants',
-      text: 'Your site already has the basics in place. Keep your structured data accurate, ' +
-            'add new service pages as your offering grows, and review robots.txt whenever you ' +
-            'launch new sections so AI crawlers can keep up.',
+      why: 'Your site already covers the basics that AI crawlers look for. The main risk now ' +
+           'is silently breaking them when you ship new sections or redesign the homepage.',
+      action: 'Re-check robots.txt, structured data, and sitemap whenever you launch a new ' +
+              'section, and keep adding service pages as your offering grows.',
       priority: 1
     });
   }
 
-  // Sort by priority (highest first) and render top 3.
+  // Sort by priority (highest first), keep top 3.
   recs.sort(function(a, b) { return (b.priority || 0) - (a.priority || 0); });
+  recs = recs.slice(0, 3);
 
+  // Numbered card layout — header (number + title), muted "Why it matters",
+  // then the concrete action. No emoji bullets, no inline markdown.
   var html = '';
-  for (var j = 0; j < Math.min(recs.length, 3); j++) {
+  for (var j = 0; j < recs.length; j++) {
     var r = recs[j];
-    html += '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;padding:12px;background:var(--surface);border-radius:8px;">';
-    html += '<span style="font-size:1.3rem;flex-shrink:0;">' + _escHtml(r.icon) + '</span>';
-    html += '<div><div style="font-weight:600;font-size:0.9rem;">' + _escHtml(r.title) + '</div>';
-    html += '<div style="color:var(--text-muted);font-size:0.82rem;margin-top:2px;">' + _escHtml(r.text) + '</div></div></div>';
+    html +=
+      '<article class="ai-rec-card">' +
+        '<header class="ai-rec-card-header">' +
+          '<span class="ai-rec-num" aria-hidden="true">' + (j + 1) + '</span>' +
+          '<h4 class="ai-rec-title">' + _escHtml(r.title) + '</h4>' +
+        '</header>' +
+        '<p class="ai-rec-why">' +
+          '<span class="ai-rec-label">Why it matters</span>' +
+          _escHtml(r.why) +
+        '</p>' +
+        '<p class="ai-rec-action">' +
+          '<span class="ai-rec-label ai-rec-label-action">Action</span>' +
+          _escHtml(r.action) +
+        '</p>' +
+      '</article>';
   }
   container.innerHTML = html;
 }

@@ -184,3 +184,87 @@
   .guidance-toggle.expanded .guidance-icon {
     transform: rotate(180deg);
   }
+
+  /* ── AI Visibility recommendation cards ─────────────────── */
+  /* Numbered, dark-theme cards rendered by report-page.js into
+     #ai-recs-list. One <article> per recommendation. */
+  #ai-recs-list {
+    display: grid;
+    gap: 14px;
+  }
+  .ai-rec-card {
+    background: rgba(30, 41, 59, 0.55);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    transition: border-color .2s, box-shadow .2s, transform .2s;
+  }
+  .ai-rec-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+  }
+  .ai-rec-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .ai-rec-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0;
+  }
+  .ai-rec-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.35;
+  }
+  .ai-rec-card p {
+    margin: 0 0 8px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+  .ai-rec-card p:last-child {
+    margin-bottom: 0;
+  }
+  .ai-rec-why {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+  .ai-rec-action {
+    color: var(--text);
+  }
+  .ai-rec-label {
+    display: inline-block;
+    margin-right: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.15);
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
+  .ai-rec-label-action {
+    background: rgba(59, 130, 246, 0.18);
+    color: #93c5fd;
+  }
+  @media (max-width: 600px) {
+    .ai-rec-card { padding: 14px; }
+    .ai-rec-card-header { gap: 10px; }
+    .ai-rec-num { width: 26px; height: 26px; font-size: 0.82rem; }
+    .ai-rec-title { font-size: 0.95rem; }
+  }

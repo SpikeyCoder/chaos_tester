@@ -13,18 +13,21 @@ document.addEventListener('DOMContentLoaded', function() {
     var color = score >= 90 ? '#4ade80' : (score >= 70 ? '#f97316' : '#ef4444');
     var r = 44, stroke = 7, circ = 2 * Math.PI * r;
     var offset = circ - (score / 100) * circ;
+    // Native SVG <text> for the score — same approach as report-page.js so
+    // sample and live reports stay visually identical.
     var html = '<div class="section-gauge-item">' +
-      '<div class="gauge-ring" style="position:relative;width:110px;height:110px;line-height:0;">' +
-        '<svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true" focusable="false" style="display:block;width:100%;height:100%;">' +
+      '<div class="gauge-ring">' +
+        '<svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true" focusable="false">' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
             'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
-            'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
-            'style="transition:stroke-dashoffset 1s ease;"/>' +
+            'stroke-linecap="round" transform="rotate(-90 50 50)"/>' +
+          '<text x="50" y="50" text-anchor="middle" dominant-baseline="central" ' +
+            'fill="' + color + '" font-size="26" font-weight="700" ' +
+            'font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">' +
+            score +
+          '</text>' +
         '</svg>' +
-        '<div class="gauge-score-text" style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;line-height:1;pointer-events:none;color:' + color + ';">' +
-          '<span style="font-size:1.6rem;font-weight:700;line-height:1;color:' + color + ';">' + score + '</span>' +
-        '</div>' +
       '</div>' +
       '<div class="gauge-label-text">' + sec.label + '</div>' +
     '</div>';
