@@ -5,7 +5,7 @@ CSP sha256 hashes for every inline `style="..."` attribute body in
 templates/. Imported by app.py and joined into the style-src-attr
 CSP directive via 'unsafe-hashes'.
 
-Last regenerated for 142 unique attribute bodies.
+Last regenerated for 149 unique attribute bodies.
 
 Pen-test 2026-05-05 finding WA-2026-05-05-02 phase 4.
 """
@@ -36,6 +36,7 @@ STYLE_HASHES: list[str] = [
     "'sha256-AHB3jfdqw3Kt6efU0UblN/SwADa/BEOKOaepeLJt3C4='",
     "'sha256-BIFfWk6+lG5ZAsjxXyLzb0UkkmonSIgIa2BqucsHKFs='",
     "'sha256-BLvsXj0QYod14kMSMPeUwBef2RAwIkNYBMMVYGrl1Tg='",
+    "'sha256-BNZBgQk0cenfzAvggr2Nb+09booSglbr2g25/LwvlYU='",
     "'sha256-C8SaUexdeRMk20hktcDuwBSaDoHzSCUeHpTrBPbgSLY='",
     "'sha256-CoxAj1evUz9k4C8+ULsI/60fLMgvQHheZcooeMCwyhM='",
     "'sha256-EYvZTwKm47Tnx7Cw8el1RqYTyGpD66maGCkHMtV7MXQ='",
@@ -69,9 +70,11 @@ STYLE_HASHES: list[str] = [
     "'sha256-Nqt9tMQFiaDP7oJbyaexs3KMysIIae2SE6AGlg3p9PM='",
     "'sha256-NugfhhJHFN8ab5ins9DoUFIX7i7OhkkvaH+nh6H6Y3M='",
     "'sha256-O7xtKt6QlOffD0QJYxVh4x75DN2uhPqAt7lbGpVQvns='",
+    "'sha256-Ojfg7ipJia3e06hzKD6MXK0vTVajk5vdstFxGQyrVMI='",
     "'sha256-OmvRqc21QMe0O58LPJq+UQPIujBrZm7s0ESDJNIkB5U='",
     "'sha256-PzFnRBYvsAQdEJAOpKBK77ZdLqoMjYailueXswLpYxA='",
     "'sha256-RrtEVaLUPyg8m8Lm27TUhxAUcCycNoq3GtHg4FMQU9c='",
+    "'sha256-S0NCgoktxpk1xGDLJHcyk7312iEhZpRK4VtndoRS1J4='",
     "'sha256-SbkXmT7U70Ogt0ROD0HNAgDME/Q1S++MO6Hw2rdQePg='",
     "'sha256-SeuyRMs0gD0294aouOKw7F8OZ7yK5a272YrsCHlWSzs='",
     "'sha256-Sg8UWXmJ6lCZYU5+QTrIdThy/oe3VryYoTBKjL/Mbmw='",
@@ -93,10 +96,10 @@ STYLE_HASHES: list[str] = [
     "'sha256-XrxD937pOnVQuZql9iXQnBamq9IKeRdgMb0eOAGlxes='",
     "'sha256-Y/3zrh8z99AwuTEK98iEYKQMvlCB/shjvt+pkddCZTw='",
     "'sha256-Y6dswztK6JlkY4EljF52RM62ypaQ2CsEsW7RrG4F2GU='",
+    "'sha256-YBKxYZRrKSxNJypOEeodeuIqAb7NFJGHIFLFQ6lxEGQ='",
     "'sha256-YX+lCJkcZ+l1n2S3T2NEqJed57bpBbiqLjnOmlIWzmk='",
     "'sha256-YwtInnD9Ww2dsOH5tMUu9tY4HUyFNSyBGKcZgAEEeyE='",
     "'sha256-ZGR5mghtOQHZZMNq72ijYTUSbAAlbTg+jS3l0kK6rTU='",
-    "'sha256-ZnMJTDbYUKLjSZVhmeRDpxRfxr9r9pHLvpTUMolA+B0='",
     "'sha256-aVQBicjULevFz3yH1HfCc3Sm21sScTX18BxCvNk4TBA='",
     "'sha256-bBYlCUky9FP7u35pMK7OYrNkLnPg35uUNs3ldNuO5HY='",
     "'sha256-bfiUWXSBJL3yvpunua//yVXsq2ogPMAOO8ReY/7IVEY='",
@@ -109,6 +112,7 @@ STYLE_HASHES: list[str] = [
     "'sha256-f5u7PAZ/N2jCdT4HRvIe7IY+vtqSCas41t27fv1lHJM='",
     "'sha256-gVgIaGFdslprXH3qhvPrKGnLlCI7Glq6oI+54gfxY5Q='",
     "'sha256-gWRJ0qRfqhEMEmJBF337H+/I7mWknX6Sh4lPS+y74vA='",
+    "'sha256-gbCM8t3yd+9W78DcwjYuW6AmXulcmjPl4jZu/hpOWlk='",
     "'sha256-h9xjS+OIVjUW3uMqfR/ULUdWAqN4IT4Nki1yiSAHyok='",
     "'sha256-hNP/TFlJAqfHHtwH4WtU0eXRxDRBdGTsh+FmHN6mvvY='",
     "'sha256-hZx1eIAYbFCOj8zDsXx3Jf6BaKFmwL1ng2lYD5gvoAI='",
@@ -135,14 +139,17 @@ STYLE_HASHES: list[str] = [
     "'sha256-psmvONu6/NBawKVEE3C9RofhDquI3vGM0n8gXgASDpc='",
     "'sha256-q/qaR9or5ufE4CfB1KmSbjv/mEjO38gvsIe95ig9RKQ='",
     "'sha256-q2n6rJ1eyV4IcVKWE3PpxG8i/DMqiyKmklIxtfyfmok='",
+    "'sha256-qhzdcl5wvstJ6YPJAvS5nHpJKEJrhgBjf6Yg+x3jZmQ='",
     "'sha256-r2sQcdDw+KNxccgCNKty65AYK3WfGuvkhUe588dG67c='",
     "'sha256-rj6vZP/BN3RiBiWKflKWkPnFra0eXoM0ptyTqr+efKY='",
     "'sha256-sDTVVTdkjXu0odG9/7dxvafXBRosBObPFbvPG+uh2PU='",
     "'sha256-sVQtfGpx/pS+TQ1Gpq6JY/FujxaJsv7yYqotM2QKWFc='",
     "'sha256-sWHzRvTCE63s4/QibG+MscfEuI9CcgId+zDDdcsPKus='",
     "'sha256-tO2Ci/8tOxW8N/IAbtfn6lejdL4Bi5gTQ34G+/06f74='",
+    "'sha256-tT3POXOXi8Dqvldvf58uQYK831HrwiiNRhXoL5WM3+o='",
     "'sha256-u1vqOFcmTEXH7j+y+fUKHAB6d3dF9FpvmpuooIgKSGI='",
     "'sha256-uHMEuUP2pHphjgL/GPMVCRNHPFqKT5UMpt8wVubdhjM='",
+    "'sha256-uJUkyeR0LQqWRTmUaHsoY+PCFETj8zrCHAfySPjNSN4='",
     "'sha256-uod2wIzQTARujN6tvU1MSE2l16gls13IEhYMDOicI9U='",
     "'sha256-v0GzsTBHLmgPIGijBaDHf16rQ4hFuERF88sYCKCy0Uc='",
     "'sha256-vb9VE3uw1sO/GkSa1IcyWCXeW2ifGaUG3h4Pk34LgEA='",
