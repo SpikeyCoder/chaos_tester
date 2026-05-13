@@ -69,7 +69,7 @@ source.onmessage = function(event) {
       checkItem.classList.add('check-active');
       icon.style.background = color;
       icon.style.color = '#fff';
-      icon.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin:0;"></span>';
+      icon.innerHTML = '<span class="spinner" style="width:14px;height:14px;min-width:14px;border-width:2px;margin:0;display:block;"></span>';
       label.style.color = 'var(--text)';
       label.style.fontWeight = '600';
       checkItem.style.borderColor = color;

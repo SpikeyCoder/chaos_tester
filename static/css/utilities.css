@@ -344,14 +344,18 @@
 /* progress.html: 24x24 circular badge, neutral background. */
 .icon-badge-24 {
   align-items: center;
+  aspect-ratio: 1 / 1;
   background: var(--border);
   border-radius: 50%;
+  box-sizing: border-box;
   color: var(--text-muted);
   display: flex;
-  flex-shrink: 0;
+  flex: 0 0 24px;
   font-size: 0.7rem;
   height: 24px;
   justify-content: center;
+  line-height: 1;
+  min-width: 24px;
   width: 24px;
 }
 
