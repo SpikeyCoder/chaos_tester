@@ -100,7 +100,7 @@
 <!-- -- Snapshot Summary (circular gauges) -------------------- -->
 <div class="section-summary card fade-up u-mb-6-no-semi" role="region" aria-label="Section summary scores">
   <div class="u-flex-row-gap-12">
-    <div style="width:40px;height:40px;border-radius:10px;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;">
+    <div class="icon-tile-40-purple">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2a10 10 0 0 1 7.07 2.93"/></svg>
     </div>
     <div>
@@ -176,15 +176,15 @@
     </div>
     <div class="u-mt-5-bordertop">
       <h3 class="u-m-0-mb-3 u-text-base-semi">&#x1F4A1; Top Recommendations</h3>
-      <div class="status-card-sm" style="--status-color: var(--yellow);">
+      <div class="status-card-sm tone-warn">
         <div class="u-text-base-semibold">Render-blocking requests</div>
         <div class="u-caption-xs">Requests are blocking the page's initial render, which may delay LCP. Deferring or inlining can move these network requests out of the critical path.</div>
       </div>
-      <div class="status-card-sm" style="--status-color: var(--yellow);">
+      <div class="status-card-sm tone-warn">
         <div class="u-text-base-semibold">Network dependency tree</div>
         <div class="u-caption-xs">Avoid chaining critical requests by reducing the length of chains, reducing the download size of resources, or deferring the download of unnecessary resources to improve page load.</div>
       </div>
-      <div class="status-card-sm" style="--status-color: var(--green);">
+      <div class="status-card-sm tone-good">
         <div class="u-text-base-semibold">Use efficient cache lifetimes</div>
         <div class="u-caption-xs">A long cache lifetime can speed up repeat visits to your page. Learn more about efficient caching.</div>
       </div>
@@ -484,44 +484,44 @@
 
   <!-- Platform Scores -->
   <div class="u-grid-180">
-    <div class="status-card" style="--status-color: #10a37f;">
+    <div class="status-card tone-chatgpt">
       <div class="u-flex-row-semibold-mb-2">
         <img class="u-valign-middle" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2310a37f%22%20d%3D%22M22.282%209.821a6%206%200%200%200-.516-4.91a6.05%206.05%200%200%200-6.51-2.9A6.065%206.065%200%200%200%204.981%204.18a6%206%200%200%200-3.998%202.9a6.05%206.05%200%200%200%20.743%207.097a5.98%205.98%200%200%200%20.51%204.911a6.05%206.05%200%200%200%206.515%202.9A6%206%200%200%200%2013.26%2024a6.06%206.06%200%200%200%205.772-4.206a6%206%200%200%200%203.997-2.9a6.06%206.06%200%200%200-.747-7.073M13.26%2022.43a4.48%204.48%200%200%201-2.876-1.04l.141-.081l4.779-2.758a.8.8%200%200%200%20.392-.681v-6.737l2.02%201.168a.07.07%200%200%201%20.038.052v5.583a4.504%204.504%200%200%201-4.494%204.494M3.6%2018.304a4.47%204.47%200%200%201-.535-3.014l.142.085l4.783%202.759a.77.77%200%200%200%20.78%200l5.843-3.369v2.332a.08.08%200%200%201-.033.062L9.74%2019.95a4.5%204.5%200%200%201-6.14-1.646M2.34%207.896a4.5%204.5%200%200%201%202.366-1.973V11.6a.77.77%200%200%200%20.388.677l5.815%203.354l-2.02%201.168a.08.08%200%200%201-.071%200l-4.83-2.786A4.504%204.504%200%200%201%202.34%207.872zm16.597%203.855l-5.833-3.387L15.119%207.2a.08.08%200%200%201%20.071%200l4.83%202.791a4.494%204.494%200%200%201-.676%208.105v-5.678a.79.79%200%200%200-.407-.667m2.01-3.023l-.141-.085l-4.774-2.782a.78.78%200%200%200-.785%200L9.409%209.23V6.897a.07.07%200%200%201%20.028-.061l4.83-2.787a4.5%204.5%200%200%201%206.68%204.66zm-12.64%204.135l-2.02-1.164a.08.08%200%200%201-.038-.057V6.075a4.5%204.5%200%200%201%207.375-3.453l-.142.08L8.704%205.46a.8.8%200%200%200-.393.681zm1.097-2.365l2.602-1.5l2.607%201.5v2.999l-2.597%201.5l-2.607-1.5Z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt=""> ChatGPT
       </div>
       <div class="u-stat-red">0%</div>
       <div class="u-text-xs-muted">0/8 queries</div>
       <div class="progress-bar-bg mt-1 u-pill-h6">
-        <div class="progress-bar-fill u-bar-fill" style="--bar-color: #10a37f;"></div>
+        <div class="progress-bar-fill u-bar-fill"></div>
       </div>
     </div>
-    <div class="status-card" style="--status-color: #1e88e5;">
+    <div class="status-card tone-perplexity">
       <div class="u-flex-row-semibold-mb-2">
         <img class="u-valign-middle" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%2320808d%22%20d%3D%22M22.398%207.09h-2.31V.068l-7.51%206.354V.158h-1.156v6.196L4.49%200v7.09H1.602v10.397H4.49V24l6.933-6.36v6.201h1.155v-6.047l6.932%206.181v-6.488h2.888zm-3.466-4.531v4.53h-5.355zm-13.286.067l4.869%204.464h-4.87zM2.758%2016.332V8.245h7.847L4.49%2014.36v1.972zm2.888%205.04v-6.534l5.776-5.776v7.011zm12.708.025l-5.776-5.15V9.061l5.776%205.776zm2.889-5.065H19.51V14.36l-6.115-6.115h7.848z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt=""> Perplexity
       </div>
       <div class="u-stat-red">0%</div>
       <div class="u-text-xs-muted">0/8 queries</div>
       <div class="progress-bar-bg mt-1 u-pill-h6">
-        <div class="progress-bar-fill u-bar-fill" style="--bar-color: #1e88e5;"></div>
+        <div class="progress-bar-fill u-bar-fill"></div>
       </div>
     </div>
-    <div class="status-card" style="--status-color: #d97706;">
+    <div class="status-card tone-claude">
       <div class="u-flex-row-semibold-mb-2">
         <img class="u-valign-middle" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23cc785c%22%20d%3D%22M17.304%203.541h-3.672l6.696%2016.918H24Zm-10.608%200L0%2020.459h3.744l1.37-3.553h7.005l1.369%203.553h3.744L10.536%203.541Zm-.371%2010.223L8.616%207.82l2.291%205.945Z%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt=""> Claude
       </div>
       <div class="u-stat-red">0%</div>
       <div class="u-text-xs-muted">0/8 queries</div>
       <div class="progress-bar-bg mt-1 u-pill-h6">
-        <div class="progress-bar-fill u-bar-fill" style="--bar-color: #d97706;"></div>
+        <div class="progress-bar-fill u-bar-fill"></div>
       </div>
     </div>
-    <div class="status-card" style="--status-color: #6366f1;">
+    <div class="status-card tone-gemini">
       <div class="u-flex-row-semibold-mb-2">
         <img class="u-valign-middle" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2222%22%20height%3D%2222%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%234285f4%22%20d%3D%22M11.04%2019.32Q12%2021.51%2012%2024q0-2.49.93-4.68q.96-2.19%202.58-3.81t3.81-2.55Q21.51%2012%2024%2012q-2.49%200-4.68-.93a12.3%2012.3%200%200%201-3.81-2.58a12.3%2012.3%200%200%201-2.58-3.81Q12%202.49%2012%200q0%202.49-.96%204.68q-.93%202.19-2.55%203.81a12.3%2012.3%200%200%201-3.81%202.58Q2.49%2012%200%2012q2.49%200%204.68.96q2.19.93%203.81%202.55t2.55%203.81%22%2F%3E%3C%2Fsvg%3E" width="20" height="20" alt=""> Gemini
       </div>
       <div class="u-stat-red">0%</div>
       <div class="u-text-xs-muted">0/8 queries</div>
       <div class="progress-bar-bg mt-1 u-pill-h6">
-        <div class="progress-bar-fill u-bar-fill" style="--bar-color: #6366f1;"></div>
+        <div class="progress-bar-fill u-bar-fill"></div>
       </div>
     </div>
   </div>
@@ -529,45 +529,45 @@
   <!-- AI Visibility Recommendations -->
   <div class="u-mb-6-no-semi u-card-fancy">
     <h3 class="u-m-0-mb-3 u-text-base-bold">Top Actions to Improve AI Visibility</h3>
-    <article class="ai-action-card" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
-      <header style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent, #6366f1);color:#fff;font-size:0.85rem;font-weight:700;flex:0 0 26px;">1</span>
-        <h4 style="margin:0;font-size:0.95rem;font-weight:600;color:var(--text);line-height:1.3;">Strengthen your online presence</h4>
+    <article class="ai-action-card">
+      <header class="ai-action-header">
+        <span aria-hidden="true" class="ai-action-num">1</span>
+        <h4 class="ai-action-title">Strengthen your online presence</h4>
       </header>
-      <p style="margin:0 0 8px 0;color:var(--text-muted);font-size:0.82rem;line-height:1.5;">
-        <span style="font-weight:600;color:var(--text);">Why it matters:</span>
+      <p class="ai-action-why">
+        <span class="ai-action-label">Why it matters:</span>
         Your business appears in only 0% of AI queries, so AI assistants are effectively invisible to potential customers searching with natural language.
       </p>
-      <p style="margin:0;color:var(--text);font-size:0.85rem;line-height:1.5;">
-        <span style="font-weight:600;color:var(--accent, #6366f1);">Action:</span>
+      <p class="ai-action-body">
+        <span class="ai-action-label-accent">Action:</span>
         Build authoritative content, earn quality backlinks, and keep NAP (name, address, phone) consistent across every directory.
       </p>
     </article>
-    <article class="ai-action-card" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
-      <header style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent, #6366f1);color:#fff;font-size:0.85rem;font-weight:700;flex:0 0 26px;">2</span>
-        <h4 style="margin:0;font-size:0.95rem;font-weight:600;color:var(--text);line-height:1.3;">Improve visibility on ChatGPT, Claude, Gemini &amp; Perplexity</h4>
+    <article class="ai-action-card">
+      <header class="ai-action-header">
+        <span aria-hidden="true" class="ai-action-num">2</span>
+        <h4 class="ai-action-title">Improve visibility on ChatGPT, Claude, Gemini &amp; Perplexity</h4>
       </header>
-      <p style="margin:0 0 8px 0;color:var(--text-muted);font-size:0.82rem;line-height:1.5;">
-        <span style="font-weight:600;color:var(--text);">Why it matters:</span>
+      <p class="ai-action-why">
+        <span class="ai-action-label">Why it matters:</span>
         Your business wasn't found on any of the four major AI platforms, which means none of them have enough signal to recommend you.
       </p>
-      <p style="margin:0;color:var(--text);font-size:0.85rem;line-height:1.5;">
-        <span style="font-weight:600;color:var(--accent, #6366f1);">Action:</span>
+      <p class="ai-action-body">
+        <span class="ai-action-label-accent">Action:</span>
         Complete your Google Business Profile, encourage customer reviews, and add schema.org structured data to your website.
       </p>
     </article>
-    <article class="ai-action-card" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
-      <header style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent, #6366f1);color:#fff;font-size:0.85rem;font-weight:700;flex:0 0 26px;">3</span>
-        <h4 style="margin:0;font-size:0.95rem;font-weight:600;color:var(--text);line-height:1.3;">Create sector-specific content</h4>
+    <article class="ai-action-card">
+      <header class="ai-action-header">
+        <span aria-hidden="true" class="ai-action-num">3</span>
+        <h4 class="ai-action-title">Create sector-specific content</h4>
       </header>
-      <p style="margin:0 0 8px 0;color:var(--text-muted);font-size:0.82rem;line-height:1.5;">
-        <span style="font-weight:600;color:var(--text);">Why it matters:</span>
+      <p class="ai-action-why">
+        <span class="ai-action-label">Why it matters:</span>
         AI models aren't recommending your business for 32 out of 32 queries — your site likely doesn't use the phrasing customers actually search with.
       </p>
-      <p style="margin:0;color:var(--text);font-size:0.85rem;line-height:1.5;">
-        <span style="font-weight:600;color:var(--accent, #6366f1);">Action:</span>
+      <p class="ai-action-body">
+        <span class="ai-action-label-accent">Action:</span>
         Publish authoritative blog posts, case studies, and FAQs targeting the exact phrases customers use when looking for businesses like yours.
       </p>
     </article>

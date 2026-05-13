@@ -730,3 +730,91 @@
 .u-text-078-semi { font-size: 0.78rem; font-weight: 600; }
 .u-text-085 { font-size: 0.85rem; }
 .u-no-decoration { text-decoration: none; }
+
+
+/* ── PR #52 follow-up — fit Report-Only header under GFE's 8 KB limit ── */
+/* The PR #49 UI refactor added the AI Visibility "Top Actions" cards
+ * and the per-platform score grid to sample_report.html, which between
+ * them introduced 21 new inline-style attribute bodies — pushing the
+ * CSP Report-Only header to 8,460 bytes and over GFE's 8,192-byte cap
+ * (silently strips). The classes below absorb every one of those new
+ * inline-style bodies plus a few longstanding 2-occurrence patterns
+ * that survived prior phases.
+ *
+ * Audit: scripts/audit_inline_styles.py templates  (2026-05-13). */
+
+/* AI Visibility "Top Actions" card (3 occurrences in sample_report.html). */
+.ai-action-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  padding: 14px 16px;
+}
+.ai-action-header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.ai-action-num {
+  align-items: center;
+  background: var(--accent, #6366f1);
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 26px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  height: 26px;
+  justify-content: center;
+  width: 26px;
+}
+.ai-action-title {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
+}
+.ai-action-why {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 0 0 8px 0;
+}
+.ai-action-body {
+  color: var(--text);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+}
+.ai-action-label        { color: var(--text);              font-weight: 600; }
+.ai-action-label-accent { color: var(--accent, #6366f1);   font-weight: 600; }
+
+/* 40×40 purple icon tile (2 occurrences — report.html + sample_report.html). */
+.icon-tile-40-purple {
+  align-items: center;
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 10px;
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+/* Plain warning-yellow text (2× in dashboard.html). */
+.u-color-warning { color: #fbbf24; }
+
+/* font-size: 0.78rem alone (2× in progress.html). */
+.u-text-078 { font-size: 0.78rem; }
+
+/* Status-card tone modifiers. CSS custom properties cascade, so setting
+ * --bar-color on the parent .status-card also colors a nested .u-bar-fill
+ * without a second inline style on the bar. */
+.tone-good        { --status-color: var(--green); }
+.tone-warn        { --status-color: var(--yellow); }
+.tone-chatgpt     { --status-color: #10a37f; --bar-color: #10a37f; }
+.tone-perplexity  { --status-color: #1e88e5; --bar-color: #1e88e5; }
+.tone-claude      { --status-color: #d97706; --bar-color: #d97706; }
+.tone-gemini      { --status-color: #6366f1; --bar-color: #6366f1; }
