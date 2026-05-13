@@ -292,7 +292,18 @@ def _set_security_headers(response):
     # browser XSS auditors had bugs that could be turned into XSS gadgets
     # (e.g. CVE-2018-6149-class issues). CSP is the modern XSS containment.
     response.headers["X-XSS-Protection"] = "0"
-    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    # WA-2026-05-13-01: opt out of the legacy FLoC / Topics cohort by listing
+    # interest-cohort=() in Permissions-Policy. Chrome interprets the empty
+    # allowlist as "no origin is allowed", which is the documented FLoC
+    # opt-out signal. Brings parity with the kevinarmstrong.io worker.
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    # WA-2026-05-13-02: pair the existing CSP frame-ancestors 'none' with a
+    # Cross-Origin-Opener-Policy + Cross-Origin-Resource-Policy bundle so the
+    # HTML document enters a cross-origin isolated context and same-origin
+    # subresources cannot be cross-credentialed-embedded by third-party
+    # documents. Same-origin matches the existing strict CSP posture.
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
     # WA-2026-05-05-02 phase 4-B (final): strict style enforcement.
     #   - style-src-elem: same as before ('self').
     #   - style-src-attr: 'unsafe-inline' is REMOVED. Inline `style=`
