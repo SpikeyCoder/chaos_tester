@@ -285,11 +285,6 @@ app.jinja_env.globals["csrf_token"] = _generate_csrf_token
 def _set_security_headers(response):
     """Attach security + CORS headers to every response."""
     response.headers["X-Content-Type-Options"] = "nosniff"
-    # Phase 4-A deploy-verification sentinel. The presence of this header
-    # confirms the latest Cloud Run revision is actually serving traffic
-    # (vs. silently falling back to a prior revision after a startup
-    # failure). Will be removed in Phase 4-B once we trust the rollout.
-    response.headers["X-WA-CSP-Phase"] = f"4A-hashes={len(_STYLE_HASHES)}"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
@@ -298,55 +293,30 @@ def _set_security_headers(response):
     # (e.g. CVE-2018-6149-class issues). CSP is the modern XSS containment.
     response.headers["X-XSS-Protection"] = "0"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    # WA-2026-05-05-02 phase 4-B (final): strict style enforcement.
+    #   - style-src-elem: same as before ('self').
+    #   - style-src-attr: 'unsafe-inline' is REMOVED. Inline `style=`
+    #     attributes are permitted via 'unsafe-hashes' + the build-time
+    #     sha256 list of every legitimate inline-style value, generated
+    #     by scripts/compute_style_hashes.py and refreshed on every
+    #     deploy via .github/workflows/deploy-cloud-run.yml.
+    #   - The legacy "style-src 'self' 'unsafe-inline'" fallback was
+    #     also removed: modern browsers (~97% of traffic) honor the
+    #     more-specific style-src-elem / style-src-attr directives;
+    #     older browsers fall back to default-src 'self' which is
+    #     equivalent (no inline allowed). Net effect: one less
+    #     redundant clause + ~18 bytes of header-size budget recovered.
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self' https://cdnjs.cloudflare.com https://gc.zgo.at https://maps.googleapis.com; "
-        # WA-2026-05-05-02 phase 0: split style-src into element- and
-        # attribute-scoped directives. style-src-elem is locked down to
-        # 'self' (closes any future <style> injection regression);
-        # style-src-attr keeps 'unsafe-inline' for now while the
-        # template refactor (templates/* — see
-        # compliance/inline-style-audit-2026-05-05.md) replaces inline
-        # style="..." attributes with classes. Once that refactor lands,
-        # phase 4 drops 'unsafe-inline' from style-src-attr too.
-        # Browser support: Chrome 75+, Firefox 77+, Safari 15.4+. The
-        # legacy "style-src" line below is retained as a compatibility
-        # fallback so older clients keep their existing (looser) policy.
-        "style-src 'self' 'unsafe-inline'; "
         "style-src-elem 'self'; "
-        "style-src-attr 'self' 'unsafe-inline'; "
+        "style-src-attr 'self' 'unsafe-hashes' " + " ".join(_STYLE_HASHES) + "; "
         "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com; "
         "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app https://website-auditor.goatcounter.com https://maps.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
         "frame-ancestors 'none';"
     )
 
-    # WA-2026-05-05-02 phase 4 — staging the *future* enforced policy via
-    # Content-Security-Policy-Report-Only. This header has the SAME directives
-    # as the enforced one above EXCEPT:
-    #   - style-src-attr drops 'unsafe-inline' and adds 'unsafe-hashes'
-    #     plus the build-time-computed hash list of every inline `style="..."`
-    #     attribute on the site (244 hashes today; refreshed daily by the
-    #     deploy workflow).
-    # Browsers that send violation reports for this header are surfacing
-    # inline-style values that aren't yet hashed — those are operational
-    # signals to either re-run scripts/compute_style_hashes.py (after a
-    # template change) or move the new value into a class. Once we observe
-    # ~7 days of clean reports, the next PR (Phase 4-B) flips this strict
-    # policy onto the enforced 'Content-Security-Policy' header and removes
-    # the looser legacy line.
-    # Minimal Report-Only header — only the style directives we are
-    # *staging*. Other directives (script-src / img-src / connect-src /
-    # font-src) are already enforced by the Content-Security-Policy
-    # header above, so re-stating them here would just inflate the
-    # header size against GFE's 8KB per-header limit. The browser
-    # treats absent directives in Report-Only as unconstrained for
-    # reporting purposes; that is exactly what we want.
-    response.headers["Content-Security-Policy-Report-Only"] = (
-        "default-src 'self'; "
-        "style-src-elem 'self'; "
-        "style-src-attr 'self' 'unsafe-hashes' " + " ".join(_STYLE_HASHES) + ";"
-    )
 
     # CORS headers for cross-origin SPA (GitHub Pages → backend).
     # The allowlist is read from CORS_ALLOWED_ORIGINS so production deploys

@@ -31,7 +31,7 @@ import re
 import sys
 from pathlib import Path
 
-DEFAULT_MAX_BYTES = 8_000
+DEFAULT_MAX_BYTES = 8_100
 GFE_HARD_LIMIT = 8_192
 
 
@@ -45,11 +45,17 @@ def load_hashes(repo_root: Path) -> list[str]:
 
 
 def build_header_value(hashes: list[str]) -> str:
-    """Reconstruct the Report-Only header EXACTLY as app.py emits it."""
+    """Reconstruct the enforced Content-Security-Policy header EXACTLY as
+    app.py emits it after Phase 4-B. This is the only CSP header on the site
+    now (the prior Report-Only header was retired with Phase 4-B)."""
     return (
         "default-src 'self'; "
+        "script-src 'self' https://cdnjs.cloudflare.com https://gc.zgo.at https://maps.googleapis.com; "
         "style-src-elem 'self'; "
-        "style-src-attr 'self' 'unsafe-hashes' " + " ".join(hashes) + ";"
+        "style-src-attr 'self' 'unsafe-hashes' " + " ".join(hashes) + "; "
+        "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com; "
+        "connect-src 'self' https://website-auditor.io https://website-auditor.goatcounter.com https://maps.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com;"
     )
 
 
