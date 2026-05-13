@@ -86,18 +86,24 @@ document.addEventListener('DOMContentLoaded', function() {
     var color = score >= 90 ? '#4ade80' : (score >= 70 ? '#f97316' : '#ef4444');
     var r = 44, stroke = 7, circ = 2 * Math.PI * r;
     var offset = circ - (score / 100) * circ;
+    /* Score number is drawn as a native <text> node inside the SVG so it
+     * lands at the SVG's geometric centre on every browser. Earlier
+     * iterations relied on an absolutely-positioned HTML overlay, which
+     * could drift below the ring on mobile and overlap the label text. */
     var html = '<div class="section-gauge-item">' +
-      '<div class="gauge-ring" style="position:relative;width:110px;height:110px;line-height:0;">' +
+      '<div class="gauge-ring" style="width:110px;height:110px;line-height:0;">' +
         '<svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true" focusable="false" style="display:block;width:100%;height:100%;">' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
             'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
             'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
             'style="transition:stroke-dashoffset 1s ease;"/>' +
+          '<text x="50" y="50" text-anchor="middle" dominant-baseline="central" ' +
+            'fill="' + color + '" font-size="26" font-weight="700" ' +
+            'font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif">' +
+            score +
+          '</text>' +
         '</svg>' +
-        '<div class="gauge-score-text" style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;line-height:1;pointer-events:none;color:' + color + ';">' +
-          '<span style="font-size:1.6rem;font-weight:700;line-height:1;color:' + color + ';">' + score + '</span>' +
-        '</div>' +
       '</div>' +
       '<div class="gauge-label-text">' + sec.label + '</div>' +
     '</div>';
@@ -518,150 +524,175 @@ function renderAIRecommendations() {
     else if (results[i].position > 3) lowPosCount++;
   }
 
-  // ── Site-specific signal-driven recommendations (highest priority) ──
-  // These are tailored to the actual scanned site, not generic advice.
+  /* Each recommendation is shaped as { title, why, action, priority } so
+   * the renderer below can lay it out as a structured card (numbered
+   * badge + title header, then a "Why it matters" paragraph and an
+   * "Action" paragraph) instead of a single emoji-prefixed blob. */
   var blockedBots = signals.ai_bots_blocked || [];
   if (blockedBots.length > 0) {
+    var botList = blockedBots.slice(0, 4).join(', ') +
+                  (blockedBots.length > 4 ? ' and ' + (blockedBots.length - 4) + ' more' : '');
     recs.push({
-      icon: '🤖',
       title: 'Unblock AI crawlers in robots.txt',
-      text: 'Your robots.txt currently disallows ' + blockedBots.slice(0, 4).join(', ') +
-            (blockedBots.length > 4 ? ' and ' + (blockedBots.length - 4) + ' more' : '') +
-            '. AI models can\'t index ' + business + ' while those user-agents are blocked. ' +
-            'Edit robots.txt and add an explicit `Allow: /` rule for each of these crawlers, ' +
-            'or remove the disallow lines entirely so they can read your public content.',
+      why: 'Your robots.txt currently disallows ' + botList + ', so AI models can\'t index ' +
+           business + ' while those user-agents are blocked.',
+      action: 'Edit robots.txt and add an explicit "Allow: /" rule for each of these crawlers, ' +
+              'or remove the disallow lines entirely so they can read your public content.',
       priority: 100
     });
   }
   if (signals.has_structured_data === false) {
     recs.push({
-      icon: '🏷️',
       title: 'Add JSON-LD structured data to your homepage',
-      text: 'No schema.org markup was found on ' + business + '\'s homepage. Add a ' +
-            '<script type="application/ld+json"> block describing your business as ' +
-            '"LocalBusiness" (or the closest schema.org type for ' + sector + '), with name, ' +
-            'address, phone, hours, and URL. AI models rely on this to understand and quote you.',
+      why: 'No schema.org markup was found on ' + business + '\'s homepage, so AI models have no ' +
+           'machine-readable description of who you are or what you do.',
+      action: 'Add a JSON-LD script block describing your business as "LocalBusiness" (or the ' +
+              'closest schema.org type for ' + sector + ') with name, address, phone, hours, and URL.',
       priority: 95
     });
   } else if (signals.has_local_business_schema === false) {
     var foundTypes = (signals.structured_data_types || []).slice(0, 3).join(', ') || 'generic types';
     recs.push({
-      icon: '🏷️',
       title: 'Strengthen structured data with a LocalBusiness schema',
-      text: 'You have structured data (' + foundTypes + ') but no LocalBusiness/Organization ' +
-            'schema. Add one with NAP (name, address, phone), opening hours, and serviceArea so ' +
-            'AI assistants can confidently surface ' + business + ' for "near me" queries.',
+      why: 'You have structured data (' + foundTypes + ') but no LocalBusiness or Organization ' +
+           'schema, which is the type AI assistants weigh most for "near me" queries.',
+      action: 'Add a LocalBusiness JSON-LD block with NAP (name, address, phone), opening hours, ' +
+              'and serviceArea so AI assistants can confidently surface ' + business + '.',
       priority: 80
     });
   }
   if (signals.sitemap_present === false) {
     recs.push({
-      icon: '🗺️',
       title: 'Publish a sitemap.xml',
-      text: 'No sitemap.xml was found at /sitemap.xml and none is referenced in robots.txt. ' +
-            'Generate one that lists every public URL on ' + business + '\'s site, then add a ' +
-            '`Sitemap: https://…/sitemap.xml` line to your robots.txt so AI crawlers can ' +
-            'enumerate your content in one pass.',
+      why: 'No sitemap.xml was found at /sitemap.xml and none is referenced in robots.txt, so AI ' +
+           'crawlers have to discover every page on ' + business + '\'s site by following links.',
+      action: 'Generate a sitemap that lists every public URL, then add a "Sitemap: https://…/sitemap.xml" ' +
+              'line to robots.txt so AI crawlers can enumerate your content in one pass.',
       priority: 85
     });
   }
   if (signals.has_meta_description === false) {
     recs.push({
-      icon: '📝',
       title: 'Add a meta description to your homepage',
-      text: 'Your homepage is missing a <meta name="description"> tag. AI summaries frequently ' +
-            'quote this string verbatim — write a concise 140–160 character pitch for ' +
-            business + ' that includes what you do, where you are, and who you serve.',
+      why: 'Your homepage is missing a meta description tag, and AI summaries frequently quote ' +
+           'this string verbatim when describing a business.',
+      action: 'Write a concise 140–160 character pitch for ' + business + ' that includes what you ' +
+              'do, where you are, and who you serve, then add it as <meta name="description">.',
       priority: 60
     });
   }
   if (signals.has_open_graph === false) {
     recs.push({
-      icon: '🔗',
       title: 'Add Open Graph tags so AI tools can preview your site',
-      text: 'No Open Graph meta tags were detected. Add og:title, og:description, og:image, ' +
-            'and og:url to your homepage so AI chat tools and social previews can render a ' +
-            'rich, accurate card when someone shares ' + business + '.',
+      why: 'No Open Graph meta tags were detected, so AI chat tools and social previews can\'t ' +
+           'render a rich, accurate card when someone shares ' + business + '.',
+      action: 'Add og:title, og:description, og:image, and og:url tags to your homepage head.',
       priority: 50
     });
   }
 
-  // ── Score/visibility recommendations (lower priority fallbacks) ──
   if (weakPlatforms.length > 0) {
     recs.push({
-      icon: '*',
       title: 'Improve visibility on ' + weakPlatforms.join(' & '),
-      text: business + ' scores below 30% on ' + weakPlatforms.join(', ') + '. ' +
-            'Each of these platforms weighs reviews, citations, and structured data differently — ' +
-            'make sure your Google Business Profile is complete and that you have recent reviews ' +
-            'in the directories each platform indexes.',
+      why: business + ' scores below 30% on ' + weakPlatforms.join(', ') + '. Each platform weighs ' +
+           'reviews, citations, and structured data differently, so a gap on one usually points ' +
+           'at a missing signal source.',
+      action: 'Complete your Google Business Profile and earn fresh reviews in the directories ' +
+              'each weak platform indexes.',
       priority: 40
     });
   }
   if (noAppearCount > total * 0.5) {
+    var loc = (ai.business_info || {}).location || 'your city';
     recs.push({
-      icon: '>',
       title: 'Publish content targeting your real customer queries',
-      text: 'AI models did not recommend ' + business + ' for ' + noAppearCount + ' of ' +
-            total + ' "' + sector + '" queries we ran. Publish service pages and FAQs that ' +
-            'use the exact phrasing of those queries (e.g. "best ' + sector + ' in ' +
-            ((ai.business_info || {}).location || 'your city') + '").',
+      why: 'AI models did not recommend ' + business + ' for ' + noAppearCount + ' of ' + total +
+           ' "' + sector + '" queries we ran, which usually means your site doesn\'t use the ' +
+           'phrasing customers and AI models actually search with.',
+      action: 'Publish service pages and FAQs that match those queries verbatim (e.g. "best ' +
+              sector + ' in ' + loc + '").',
       priority: 35
     });
   }
   if (lowPosCount > 3) {
     recs.push({
-      icon: '⬆️',
       title: 'Boost ranking position with stronger authority signals',
-      text: business + ' appears in results but usually below position 3. Grow review count ' +
-            '(volume + recency matter), pursue local press mentions, and earn backlinks from ' +
-            'directories AI crawlers trust.',
+      why: business + ' appears in AI results but usually below position 3, which means the model ' +
+           'sees you as relevant but not the most trusted option.',
+      action: 'Grow review count (volume and recency both matter), pursue local press mentions, ' +
+              'and earn backlinks from directories AI crawlers trust.',
       priority: 30
     });
   }
   if (score < 25 && recs.length < 3) {
     recs.push({
-      icon: '!',
       title: 'Strengthen ' + business + '\'s online presence',
-      text: 'Overall AI visibility is ' + score + '%. Focus on the three biggest levers: ' +
-            'a complete Google Business Profile, fresh reviews across multiple platforms, and ' +
-            'consistent NAP (name/address/phone) on every directory listing.',
+      why: 'Overall AI visibility is only ' + score + '%, so ' + business + ' is effectively ' +
+           'invisible to AI assistants today.',
+      action: 'Focus on the three biggest levers: a complete Google Business Profile, fresh ' +
+              'reviews across multiple platforms, and consistent NAP on every directory listing.',
       priority: 20
     });
   }
   if (score >= 50 && strongPlatforms.length >= 2 && recs.length < 3) {
     recs.push({
-      icon: '+',
       title: 'Maintain your lead on ' + strongPlatforms.join(', '),
-      text: business + ' performs well on ' + strongPlatforms.join(', ') + '. Lock in this ' +
-            'lead by refreshing listings quarterly and continuing to publish dated content so ' +
-            'AI models keep treating you as a current, trustworthy source.',
+      why: business + ' already performs well on ' + strongPlatforms.join(', ') + ' — losing ' +
+           'this position is easier than rebuilding it.',
+      action: 'Refresh listings quarterly and keep publishing dated content so AI models continue ' +
+              'treating you as a current, trustworthy source.',
       priority: 10
     });
   }
 
-  // Final fallback: only if we somehow have zero recs (e.g. perfect signals AND score).
   if (recs.length === 0) {
     recs.push({
-      icon: 'i',
       title: 'Keep ' + business + ' visible to AI assistants',
-      text: 'Your site already has the basics in place. Keep your structured data accurate, ' +
-            'add new service pages as your offering grows, and review robots.txt whenever you ' +
-            'launch new sections so AI crawlers can keep up.',
+      why: 'Your site already has the basics in place, but AI visibility decays quickly when ' +
+           'signals stop being refreshed.',
+      action: 'Keep structured data accurate, add service pages as your offering grows, and ' +
+              'review robots.txt whenever you launch new sections so AI crawlers can keep up.',
       priority: 1
     });
   }
 
-  // Sort by priority (highest first) and render top 3.
   recs.sort(function(a, b) { return (b.priority || 0) - (a.priority || 0); });
 
+  /* Numbered card layout: badge + title header, "Why it matters" paragraph,
+   * "Action" paragraph. Inline styling keeps this self-contained for CSP-
+   * friendly rendering and matches the dark report theme. */
   var html = '';
-  for (var j = 0; j < Math.min(recs.length, 3); j++) {
+  var n = Math.min(recs.length, 3);
+  for (var j = 0; j < n; j++) {
     var r = recs[j];
-    html += '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;padding:12px;background:var(--surface);border-radius:8px;">';
-    html += '<span style="font-size:1.3rem;flex-shrink:0;">' + _escHtml(r.icon) + '</span>';
-    html += '<div><div style="font-weight:600;font-size:0.9rem;">' + _escHtml(r.title) + '</div>';
-    html += '<div style="color:var(--text-muted);font-size:0.82rem;margin-top:2px;">' + _escHtml(r.text) + '</div></div></div>';
+    html +=
+      '<article class="ai-action-card" style="' +
+        'background:var(--surface);' +
+        'border:1px solid var(--border);' +
+        'border-radius:10px;' +
+        'padding:14px 16px;' +
+        'margin-bottom:10px;' +
+      '">' +
+        '<header style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">' +
+          '<span aria-hidden="true" style="' +
+            'display:inline-flex;align-items:center;justify-content:center;' +
+            'width:26px;height:26px;border-radius:50%;' +
+            'background:var(--accent, #6366f1);color:#fff;' +
+            'font-size:0.85rem;font-weight:700;flex:0 0 26px;' +
+          '">' + (j + 1) + '</span>' +
+          '<h4 style="margin:0;font-size:0.95rem;font-weight:600;color:var(--text);line-height:1.3;">' +
+            _escHtml(r.title) +
+          '</h4>' +
+        '</header>' +
+        '<p style="margin:0 0 8px 0;color:var(--text-muted);font-size:0.82rem;line-height:1.5;">' +
+          '<span style="font-weight:600;color:var(--text);">Why it matters:</span> ' +
+          _escHtml(r.why) +
+        '</p>' +
+        '<p style="margin:0;color:var(--text);font-size:0.85rem;line-height:1.5;">' +
+          '<span style="font-weight:600;color:var(--accent, #6366f1);">Action:</span> ' +
+          _escHtml(r.action) +
+        '</p>' +
+      '</article>';
   }
   container.innerHTML = html;
 }
