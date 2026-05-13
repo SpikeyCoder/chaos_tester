@@ -523,6 +523,148 @@ class AIVisibilityScanner(BaseModule):
             results.append((pname, result))
         return results
 
+    # ── AI-crawler bots tracked when reading robots.txt ─────────────
+    # Names here are the case-insensitive User-agent tokens these
+    # crawlers identify as. If any of them is disallowed from "/",
+    # the site is effectively invisible to that platform's index.
+    AI_CRAWLER_BOTS = [
+        "GPTBot",            # OpenAI training crawler
+        "OAI-SearchBot",     # OpenAI ChatGPT search crawler
+        "ChatGPT-User",      # ChatGPT browse tool
+        "ClaudeBot",         # Anthropic Claude crawler
+        "anthropic-ai",      # Anthropic alt token
+        "PerplexityBot",     # Perplexity crawler
+        "Perplexity-User",   # Perplexity browse tool
+        "Google-Extended",   # Google Gemini training
+        "CCBot",             # Common Crawl (feeds many models)
+        "Bytespider",        # ByteDance / Doubao
+    ]
+
+    def _audit_site_signals(self, page_content):
+        """Inspect homepage, robots.txt, and sitemap.xml for AI-readiness signals.
+
+        Returns a dict consumed by the frontend recommendation engine.
+        These signals power site-specific "Top Actions" tips so users see
+        recommendations grounded in their actual scan, not boilerplate.
+        """
+        signals = {
+            "robots_txt_present": False,
+            "robots_txt_blocks_all": False,
+            "ai_bots_blocked": [],
+            "sitemap_present": False,
+            "sitemap_referenced_in_robots": False,
+            "has_structured_data": False,
+            "structured_data_types": [],
+            "has_local_business_schema": False,
+            "has_meta_description": False,
+            "has_open_graph": False,
+        }
+
+        # -- robots.txt -------------------------------------------------
+        robots_text = ""
+        try:
+            resp, _err, _dt = self._safe_request("get", self._url("/robots.txt"))
+            if resp is not None and resp.status_code == 200 and resp.text:
+                robots_text = resp.text[:20000]
+                signals["robots_txt_present"] = True
+        except Exception as exc:
+            logger.debug("robots.txt fetch failed: %s", exc)
+
+        if robots_text:
+            # Parse robots.txt into (user_agent → [disallow lines]) blocks.
+            current_uas = []
+            ua_rules = {}
+            for raw in robots_text.splitlines():
+                line = raw.split("#", 1)[0].strip()
+                if not line:
+                    current_uas = []
+                    continue
+                if ":" not in line:
+                    continue
+                key, _, value = line.partition(":")
+                key = key.strip().lower()
+                value = value.strip()
+                if key == "user-agent":
+                    current_uas.append(value)
+                    ua_rules.setdefault(value, [])
+                elif key == "disallow" and current_uas:
+                    for ua in current_uas:
+                        ua_rules.setdefault(ua, []).append(value)
+                elif key == "sitemap" and value:
+                    signals["sitemap_referenced_in_robots"] = True
+
+            def _blocks_root(rules):
+                # A blank Disallow value explicitly allows everything;
+                # a "/" Disallow blocks the entire site for that UA.
+                return any(rule == "/" for rule in rules)
+
+            wildcard_rules = ua_rules.get("*", [])
+            signals["robots_txt_blocks_all"] = _blocks_root(wildcard_rules)
+
+            for bot in self.AI_CRAWLER_BOTS:
+                bot_rules = None
+                for ua, rules in ua_rules.items():
+                    if ua.lower() == bot.lower():
+                        bot_rules = rules
+                        break
+                if bot_rules is not None and _blocks_root(bot_rules):
+                    signals["ai_bots_blocked"].append(bot)
+                elif bot_rules is None and signals["robots_txt_blocks_all"]:
+                    # No bot-specific rules → wildcard applies.
+                    signals["ai_bots_blocked"].append(bot)
+
+        # -- sitemap.xml -------------------------------------------------
+        if signals["sitemap_referenced_in_robots"]:
+            signals["sitemap_present"] = True
+        else:
+            try:
+                resp, _err, _dt = self._safe_request("get", self._url("/sitemap.xml"))
+                if resp is not None and resp.status_code == 200 and resp.text:
+                    body = resp.text.lstrip()[:200].lower()
+                    # Accept either a sitemap or a sitemap index document.
+                    if "<urlset" in body or "<sitemapindex" in body:
+                        signals["sitemap_present"] = True
+            except Exception as exc:
+                logger.debug("sitemap.xml fetch failed: %s", exc)
+
+        # -- Homepage structured data + meta tags ------------------------
+        if page_content:
+            ld_blocks = re.findall(
+                r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+                page_content, re.IGNORECASE | re.DOTALL,
+            )
+            for raw_block in ld_blocks:
+                try:
+                    parsed = json.loads(raw_block.strip())
+                except Exception:
+                    # Skip malformed blocks; still note presence so the
+                    # frontend doesn't nag them about adding more.
+                    signals["has_structured_data"] = True
+                    continue
+                signals["has_structured_data"] = True
+                items = parsed if isinstance(parsed, list) else [parsed]
+                for item in items:
+                    if not isinstance(item, dict):
+                        continue
+                    t = item.get("@type")
+                    types = t if isinstance(t, list) else [t] if t else []
+                    for tname in types:
+                        if not isinstance(tname, str):
+                            continue
+                        signals["structured_data_types"].append(tname)
+                        if tname in ("LocalBusiness", "Organization", "Restaurant",
+                                     "Store", "ProfessionalService", "Dentist",
+                                     "MedicalBusiness", "AutoRepair"):
+                            signals["has_local_business_schema"] = True
+
+            signals["structured_data_types"] = sorted(set(signals["structured_data_types"]))
+            if re.search(r'<meta[^>]+name=["\']description["\']', page_content, re.IGNORECASE):
+                signals["has_meta_description"] = True
+            if re.search(r'<meta[^>]+property=["\']og:', page_content, re.IGNORECASE):
+                signals["has_open_graph"] = True
+
+        return signals
+
     def run(self, discovered_pages=None):
         """Run AI visibility analysis.
 
@@ -532,16 +674,19 @@ class AIVisibilityScanner(BaseModule):
         import sys
         t0 = time.time()
 
-        # Step 1: Fetch the homepage to extract business info
-        page_content = ""
+        # Step 1: Fetch the homepage to extract business info + AI-readiness signals.
+        # Capture a larger window than business-identifier needs so JSON-LD scripts
+        # that live later in the document still make it into the signals audit.
+        page_content_full = ""
         try:
-            resp, err, dur = self._safe_request("GET", self.config.base_url)
+            resp, err, dur = self._safe_request("get", self.config.base_url)
             if resp and resp.text:
-                page_content = resp.text[:10000]
+                page_content_full = resp.text[:50000]
         except Exception:
             pass
 
-        business_info = self._extract_business_info(self.config.base_url, page_content)
+        business_info = self._extract_business_info(self.config.base_url, page_content_full[:10000])
+        site_signals = self._audit_site_signals(page_content_full)
 
         # Step 2: Generate queries
         queries = self._generate_queries()
@@ -603,6 +748,7 @@ class AIVisibilityScanner(BaseModule):
             },
             "is_simulated": is_simulated,
             "has_api_key": has_api_key,
+            "site_signals": site_signals,
         }
 
         # Flatten all results for the table

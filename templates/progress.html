@@ -37,7 +37,9 @@
     <span class="u-color-accent" style="font-size:1.5rem;font-weight:700;" id="progressPct" aria-live="polite" aria-atomic="true">0%</span>
   </div>
 
-  <!-- Live check items -->
+  <!-- Live check items — ordered to mirror runner.py:
+       availability (sequential, first) → links / forms / security (Phase 2 parallel) →
+       AI visibility (early-start parallel) → performance (sequential, LAST). -->
   <div id="checkItems" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:20px;">
     <div class="check-item pipeline-step" data-module="availability">
       <span class="check-icon u-color-muted icon-badge-24">○</span>
@@ -55,13 +57,13 @@
       <span class="check-icon u-color-muted icon-badge-24">○</span>
       <span class="u-text-sm-muted">Security Scan</span>
     </div>
-    <div class="check-item pipeline-step" data-module="performance">
-      <span class="check-icon u-color-muted icon-badge-24">○</span>
-      <span class="u-text-sm-muted">Performance</span>
-    </div>
     <div class="check-item pipeline-step" data-module="ai_visibility">
       <span class="check-icon u-color-muted icon-badge-24">○</span>
       <span class="u-text-sm-muted">AI Visibility</span>
+    </div>
+    <div class="check-item pipeline-step" data-module="performance">
+      <span class="check-icon u-color-muted icon-badge-24">○</span>
+      <span class="u-text-sm-muted">Performance</span>
     </div>
   </div>
 

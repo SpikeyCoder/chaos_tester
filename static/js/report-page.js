@@ -84,20 +84,19 @@ document.addEventListener('DOMContentLoaded', function() {
   sections.forEach(function(sec) {
     var score = sec.score;
     var color = score >= 90 ? '#4ade80' : (score >= 70 ? '#f97316' : '#ef4444');
-    var bg = score >= 90 ? 'rgba(74,222,128,0.12)' : (score >= 70 ? 'rgba(249,115,22,0.12)' : 'rgba(239,68,68,0.12)');
     var r = 44, stroke = 7, circ = 2 * Math.PI * r;
     var offset = circ - (score / 100) * circ;
     var html = '<div class="section-gauge-item">' +
-      '<div class="gauge-ring" style="position:relative;width:110px;height:110px;">' +
-        '<svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true" focusable="false">' +
+      '<div class="gauge-ring" style="position:relative;width:110px;height:110px;line-height:0;">' +
+        '<svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true" focusable="false" style="display:block;width:100%;height:100%;">' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(51,65,85,0.6)" stroke-width="' + stroke + '"/>' +
           '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" ' +
             'stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" ' +
             'stroke-linecap="round" transform="rotate(-90 50 50)" ' +
             'style="transition:stroke-dashoffset 1s ease;"/>' +
         '</svg>' +
-        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
-          '<span style="font-size:1.6rem;font-weight:700;color:' + color + ';">' + score + '</span>' +
+        '<div class="gauge-score-text" style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;line-height:1;pointer-events:none;color:' + color + ';">' +
+          '<span style="font-size:1.6rem;font-weight:700;line-height:1;color:' + color + ';">' + score + '</span>' +
         '</div>' +
       '</div>' +
       '<div class="gauge-label-text">' + sec.label + '</div>' +
@@ -482,16 +481,23 @@ function toggleDetailedResults() {
   }
 }
 
-/* ── AI Visibility Recommendations ─────────────────────── */
-(function() {
+/* ── AI Visibility Recommendations ───────────────────────
+ * Wait for DOMContentLoaded so `reportData` (parsed near the bottom of
+ * this file) is initialized before we read it. Previously this ran at
+ * script-parse time and saw `reportData` as undefined, leaving the
+ * "Top Actions" panel blank. */
+function renderAIRecommendations() {
+  if (typeof reportData === 'undefined') return;
   var ai = (reportData || {}).ai_visibility;
   var container = document.getElementById('ai-recs-list');
   if (!ai || !container) return;
 
   var recs = [];
   var score = ai.overall_score || 0;
-  var appearances = ai.total_appearances || 0;
   var total = ai.total_queries || 1;
+  var signals = ai.site_signals || {};
+  var business = (ai.business_info || {}).business_name || 'your business';
+  var sector = (ai.business_info || {}).sector || 'local business services';
 
   // Analyze platform gaps
   var platformScores = ai.platform_scores || {};
@@ -512,62 +518,159 @@ function toggleDetailedResults() {
     else if (results[i].position > 3) lowPosCount++;
   }
 
-  // Generate recommendations based on data
-  if (score < 25) {
+  // ── Site-specific signal-driven recommendations (highest priority) ──
+  // These are tailored to the actual scanned site, not generic advice.
+  var blockedBots = signals.ai_bots_blocked || [];
+  if (blockedBots.length > 0) {
     recs.push({
-      icon: '!',
-      title: 'Strengthen Your Online Presence',
-      text: 'Your business appears in only ' + score + '% of AI queries. Focus on building authoritative content, earning quality backlinks, and maintaining consistent NAP (Name, Address, Phone) across directories.'
+      icon: '🤖',
+      title: 'Unblock AI crawlers in robots.txt',
+      text: 'Your robots.txt currently disallows ' + blockedBots.slice(0, 4).join(', ') +
+            (blockedBots.length > 4 ? ' and ' + (blockedBots.length - 4) + ' more' : '') +
+            '. AI models can\'t index ' + business + ' while those user-agents are blocked. ' +
+            'Edit robots.txt and add an explicit `Allow: /` rule for each of these crawlers, ' +
+            'or remove the disallow lines entirely so they can read your public content.',
+      priority: 100
     });
   }
+  if (signals.has_structured_data === false) {
+    recs.push({
+      icon: '🏷️',
+      title: 'Add JSON-LD structured data to your homepage',
+      text: 'No schema.org markup was found on ' + business + '\'s homepage. Add a ' +
+            '<script type="application/ld+json"> block describing your business as ' +
+            '"LocalBusiness" (or the closest schema.org type for ' + sector + '), with name, ' +
+            'address, phone, hours, and URL. AI models rely on this to understand and quote you.',
+      priority: 95
+    });
+  } else if (signals.has_local_business_schema === false) {
+    var foundTypes = (signals.structured_data_types || []).slice(0, 3).join(', ') || 'generic types';
+    recs.push({
+      icon: '🏷️',
+      title: 'Strengthen structured data with a LocalBusiness schema',
+      text: 'You have structured data (' + foundTypes + ') but no LocalBusiness/Organization ' +
+            'schema. Add one with NAP (name, address, phone), opening hours, and serviceArea so ' +
+            'AI assistants can confidently surface ' + business + ' for "near me" queries.',
+      priority: 80
+    });
+  }
+  if (signals.sitemap_present === false) {
+    recs.push({
+      icon: '🗺️',
+      title: 'Publish a sitemap.xml',
+      text: 'No sitemap.xml was found at /sitemap.xml and none is referenced in robots.txt. ' +
+            'Generate one that lists every public URL on ' + business + '\'s site, then add a ' +
+            '`Sitemap: https://…/sitemap.xml` line to your robots.txt so AI crawlers can ' +
+            'enumerate your content in one pass.',
+      priority: 85
+    });
+  }
+  if (signals.has_meta_description === false) {
+    recs.push({
+      icon: '📝',
+      title: 'Add a meta description to your homepage',
+      text: 'Your homepage is missing a <meta name="description"> tag. AI summaries frequently ' +
+            'quote this string verbatim — write a concise 140–160 character pitch for ' +
+            business + ' that includes what you do, where you are, and who you serve.',
+      priority: 60
+    });
+  }
+  if (signals.has_open_graph === false) {
+    recs.push({
+      icon: '🔗',
+      title: 'Add Open Graph tags so AI tools can preview your site',
+      text: 'No Open Graph meta tags were detected. Add og:title, og:description, og:image, ' +
+            'and og:url to your homepage so AI chat tools and social previews can render a ' +
+            'rich, accurate card when someone shares ' + business + '.',
+      priority: 50
+    });
+  }
+
+  // ── Score/visibility recommendations (lower priority fallbacks) ──
   if (weakPlatforms.length > 0) {
     recs.push({
       icon: '*',
-      title: 'Improve Visibility on ' + weakPlatforms.join(' & '),
-      text: 'Your business scores below 30% on ' + weakPlatforms.join(', ') + '. Ensure your Google Business Profile is complete, encourage customer reviews, and add structured data (schema.org) to your website.'
+      title: 'Improve visibility on ' + weakPlatforms.join(' & '),
+      text: business + ' scores below 30% on ' + weakPlatforms.join(', ') + '. ' +
+            'Each of these platforms weighs reviews, citations, and structured data differently — ' +
+            'make sure your Google Business Profile is complete and that you have recent reviews ' +
+            'in the directories each platform indexes.',
+      priority: 40
     });
   }
   if (noAppearCount > total * 0.5) {
     recs.push({
       icon: '>',
-      title: 'Create Sector-Specific Content',
-      text: 'AI models aren\'t recommending your business for ' + noAppearCount + ' out of ' + total + ' queries. Publish authoritative blog posts, case studies, and FAQs targeting the exact phrases customers use.'
+      title: 'Publish content targeting your real customer queries',
+      text: 'AI models did not recommend ' + business + ' for ' + noAppearCount + ' of ' +
+            total + ' "' + sector + '" queries we ran. Publish service pages and FAQs that ' +
+            'use the exact phrasing of those queries (e.g. "best ' + sector + ' in ' +
+            ((ai.business_info || {}).location || 'your city') + '").',
+      priority: 35
     });
   }
   if (lowPosCount > 3) {
     recs.push({
       icon: '⬆️',
-      title: 'Boost Ranking Position',
-      text: 'You appear in results but often below position 3. Increase review count and ratings, add testimonials to your site, and pursue local press mentions to strengthen authority signals.'
+      title: 'Boost ranking position with stronger authority signals',
+      text: business + ' appears in results but usually below position 3. Grow review count ' +
+            '(volume + recency matter), pursue local press mentions, and earn backlinks from ' +
+            'directories AI crawlers trust.',
+      priority: 30
     });
   }
-  if (score >= 50 && strongPlatforms.length >= 2) {
+  if (score < 25 && recs.length < 3) {
+    recs.push({
+      icon: '!',
+      title: 'Strengthen ' + business + '\'s online presence',
+      text: 'Overall AI visibility is ' + score + '%. Focus on the three biggest levers: ' +
+            'a complete Google Business Profile, fresh reviews across multiple platforms, and ' +
+            'consistent NAP (name/address/phone) on every directory listing.',
+      priority: 20
+    });
+  }
+  if (score >= 50 && strongPlatforms.length >= 2 && recs.length < 3) {
     recs.push({
       icon: '+',
-      title: 'Maintain Your Strong Visibility',
-      text: 'Great performance on ' + strongPlatforms.join(', ') + '! Keep your business listings updated, continue generating fresh reviews, and regularly publish new content to maintain this advantage.'
-    });
-  }
-  // Always provide at least one recommendation
-  if (recs.length === 0) {
-    recs.push({
-      icon: 'i',
-      title: 'Optimize for AI Discovery',
-      text: 'Add structured data markup (LocalBusiness schema), maintain an active Google Business Profile, and ensure your website clearly states your services, location, and business name.'
+      title: 'Maintain your lead on ' + strongPlatforms.join(', '),
+      text: business + ' performs well on ' + strongPlatforms.join(', ') + '. Lock in this ' +
+            'lead by refreshing listings quarterly and continuing to publish dated content so ' +
+            'AI models keep treating you as a current, trustworthy source.',
+      priority: 10
     });
   }
 
-  // Render top 3
+  // Final fallback: only if we somehow have zero recs (e.g. perfect signals AND score).
+  if (recs.length === 0) {
+    recs.push({
+      icon: 'i',
+      title: 'Keep ' + business + ' visible to AI assistants',
+      text: 'Your site already has the basics in place. Keep your structured data accurate, ' +
+            'add new service pages as your offering grows, and review robots.txt whenever you ' +
+            'launch new sections so AI crawlers can keep up.',
+      priority: 1
+    });
+  }
+
+  // Sort by priority (highest first) and render top 3.
+  recs.sort(function(a, b) { return (b.priority || 0) - (a.priority || 0); });
+
   var html = '';
   for (var j = 0; j < Math.min(recs.length, 3); j++) {
     var r = recs[j];
     html += '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;padding:12px;background:var(--surface);border-radius:8px;">';
-    html += '<span style="font-size:1.3rem;flex-shrink:0;">' + r.icon + '</span>';
-    html += '<div><div style="font-weight:600;font-size:0.9rem;">' + r.title + '</div>';
-    html += '<div style="color:var(--text-muted);font-size:0.82rem;margin-top:2px;">' + r.text + '</div></div></div>';
+    html += '<span style="font-size:1.3rem;flex-shrink:0;">' + _escHtml(r.icon) + '</span>';
+    html += '<div><div style="font-weight:600;font-size:0.9rem;">' + _escHtml(r.title) + '</div>';
+    html += '<div style="color:var(--text-muted);font-size:0.82rem;margin-top:2px;">' + _escHtml(r.text) + '</div></div></div>';
   }
   container.innerHTML = html;
-})();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderAIRecommendations);
+} else {
+  renderAIRecommendations();
+}
 
 /* ── Custom AI Query ─────────────────────────────────────── */
 function runCustomAIQuery() {
