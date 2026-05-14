@@ -744,59 +744,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;
 }
 
-/* -- How it works steps ----------------------------------- */
-.steps-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px;
-    position: relative;
-}
-.step-card { text-align: center; position: relative; }
-.step-number {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px; border-radius: 50%;
-    background: var(--gradient-accent); color: #fff;
-    font-size: 1rem; font-weight: 700; margin-bottom: 16px;
-}
-.step-card h3 {
-    font-size: 1rem; font-weight: 700; color: #fff;
-    margin-bottom: 8px;
-}
-.step-card p {
-    font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;
-}
-
-/* -- FAQ section ------------------------------------------ */
-.faq-list { max-width: 700px; margin: 0 auto; }
-.faq-item {
-    background: var(--surface);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    margin-bottom: 12px;
-    overflow: hidden;
-    transition: border-color .3s;
-}
-.faq-item[open] { border-color: rgba(59,130,246,0.5); }
-.faq-item summary {
-    padding: 18px 20px; cursor: pointer;
-    font-weight: 600; font-size: 0.95rem; color: var(--text);
-    list-style: none; display: flex; align-items: center;
-    justify-content: space-between;
-    user-select: none;
-}
-.faq-item summary::-webkit-details-marker { display: none; }
-.faq-item summary::after {
-    content: '+'; color: var(--accent); font-size: 1.3rem;
-    font-weight: 400; transition: transform .2s;
-}
-.faq-item[open] summary::after {
-    content: '−';
-}
-.faq-item .faq-answer {
-    padding: 0 20px 18px; color: var(--text-muted);
-    font-size: 0.9rem; line-height: 1.6;
-}
-
 /* -- CTA section ------------------------------------------ */
 .cta-section {
     text-align: center; padding: 80px 0;
