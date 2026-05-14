@@ -5,7 +5,7 @@ CSP sha256 hashes for every inline `style="..."` attribute body in
 templates/. Imported by app.py and joined into the style-src-attr
 CSP directive via 'unsafe-hashes'.
 
-Last regenerated for 125 unique attribute bodies.
+Last regenerated for 124 unique attribute bodies.
 
 Pen-test 2026-05-05 finding WA-2026-05-05-02 phase 4.
 """
@@ -72,7 +72,6 @@ STYLE_HASHES: list[str] = [
     "'sha256-TTbHSjlzbvT1SmUB6ap94ejfFljiPDxmxhrlON1fsro='",
     "'sha256-Ter1mw1q8RLguznE0mo/Ouu+BnXQs2eohfolhla1xSw='",
     "'sha256-U+0eXror8+6KcwJ/Q4qIV3/Ha3jypmQECXzfBP3kmMA='",
-    "'sha256-UlBoF9pTeLeHaygm9gRGt0UpmfZ3drW0z79LwvpshTQ='",
     "'sha256-VEUSRNmKr7Bf9IpX2gIGXl98QqXidUW1r6TvoMumPNU='",
     "'sha256-Vm7EzB2+lJSj5BkxYHb9Bsj93EO2F6x31b38XWHv+/M='",
     "'sha256-WGsMjHGbvWWBXpJzjjASuV4PVkv9eOut9vHi969GaqI='",
