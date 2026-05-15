@@ -317,6 +317,34 @@ def _set_security_headers(response):
     #     older browsers fall back to default-src 'self' which is
     #     equivalent (no inline allowed). Net effect: one less
     #     redundant clause + ~18 bytes of header-size budget recovered.
+    # WA-2026-05-15-01: defense-in-depth CSP directives. The previous
+    # policy relied on `default-src 'self'` to cover anything not named
+    # explicitly. Most browsers honour that fallback, but the following
+    # directives are NOT covered by `default-src` and need their own
+    # entries to be enforced consistently:
+    #   - object-src      → blocks <object>/<embed>/<applet>; legacy
+    #                       plugin-load XSS gadget. CSP3 makes this
+    #                       distinct from default-src.
+    #   - base-uri        → blocks an injected <base> tag from rewriting
+    #                       every relative URL on the page (CWE-1021
+    #                       neighbourhood). Not covered by default-src.
+    #   - form-action     → restricts where forms can post. The dashboard
+    #                       has no first-party forms today, so this is
+    #                       set to 'none'; loosen if a sign-in page is
+    #                       ever added.
+    #   - frame-src       → no iframes are rendered today; default-src
+    #                       covers it, but stating it explicitly is
+    #                       defensive against a future copy-paste mistake.
+    #   - manifest-src    → restricts the PWA manifest source; mirrors
+    #                       fundermatch.org's _headers configuration.
+    #   - worker-src      → restricts Service / Shared / Dedicated worker
+    #                       script sources; not covered by default-src.
+    #   - upgrade-insecure-requests → silently upgrades any accidentally-
+    #                       authored http:// subresource to https:// so a
+    #                       single typo does not become a mixed-content
+    #                       downgrade.
+    # Brings parity with the kevinarmstrong.io worker CSP and the
+    # fundermatch.org Netlify _headers CSP (see PR #34 / FM PR series).
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self' https://cdnjs.cloudflare.com https://gc.zgo.at https://maps.googleapis.com; "
@@ -325,7 +353,14 @@ def _set_security_headers(response):
         "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com; "
         "connect-src 'self' https://website-auditor.io https://chaos-tester-878428558569.us-central1.run.app https://website-auditor.goatcounter.com https://maps.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
-        "frame-ancestors 'none';"
+        "object-src 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'; "
+        "frame-src 'none'; "
+        "worker-src 'self'; "
+        "manifest-src 'self'; "
+        "frame-ancestors 'none'; "
+        "upgrade-insecure-requests;"
     )
 
 
