@@ -360,8 +360,21 @@ def _set_security_headers(response):
         "worker-src 'self'; "
         "manifest-src 'self'; "
         "frame-ancestors 'none'; "
-        "upgrade-insecure-requests;"
+        "upgrade-insecure-requests; "
+        # WA-2026-05-16-01: CSP violation telemetry. `report-uri` is the
+        # legacy directive (Safari < 16.4, Firefox < 110); `report-to`
+        # is the modern Reporting-API directive that pairs with the
+        # `Reporting-Endpoints` HTTP header below. The handler at
+        # /api/csp-report logs reports as single-line JSON to stdout
+        # so Cloud Run / Cloud Logging can ingest them. Brings parity
+        # with kevinarmstrong.io PR #34.
+        "report-uri /api/csp-report; "
+        "report-to csp-endpoint;"
     )
+    # WA-2026-05-16-01: Reporting-Endpoints is the modern Reporting-API
+    # counterpart to the CSP `report-to` directive. Group name must
+    # match the directive above.
+    response.headers["Reporting-Endpoints"] = 'csp-endpoint="/api/csp-report"'
 
 
     # CORS headers for cross-origin SPA (GitHub Pages → backend).
@@ -971,6 +984,49 @@ def api_ai_query():
             }), 503
 
     return jsonify({"query": query, "results": results})
+
+
+@app.route("/api/csp-report", methods=["POST", "OPTIONS"])
+@limiter.limit("60 per minute; 600 per hour")
+def api_csp_report():
+    """Accept CSP / Reporting-API violation reports.
+
+    WA-2026-05-16-01. Sister endpoint to kevinarmstrong.io's
+    /api/csp-report in _worker.js. Accepts both the legacy
+    application/csp-report body and the modern
+    application/reports+json batch body. The handler logs and
+    returns 204; payloads are not persisted because Cloud Run is
+    stateless — Cloud Logging is the persistent record.
+
+    The endpoint is rate-limited (60/min, 600/hr) to bound the cost
+    of a hostile or buggy browser flooding the path with reports;
+    the limit is well above any plausible legitimate CSP-violation
+    rate. Bodies above 64 KiB are truncated to keep log lines
+    bounded.
+
+    GET is not registered (Flask returns 405 automatically); OPTIONS
+    is handled by the global preflight handler.
+    """
+    # OPTIONS handled by the global _cors_preflight handler above.
+    if request.method != "POST":
+        return ("", 405, {"Allow": "POST", "Cache-Control": "no-store"})
+    try:
+        raw = request.get_data(as_text=True) or ""
+        if len(raw) > 65536:
+            raw = raw[:65536] + "…[truncated]"
+        # Single-line JSON so Cloud Logging structures it cleanly.
+        logger.info(json.dumps({
+            "kind": "csp-report",
+            "ua": request.headers.get("User-Agent", ""),
+            "ct": request.headers.get("Content-Type", ""),
+            "body": raw,
+        }))
+    except Exception:
+        # Never let a malformed report turn into a 5xx and pollute
+        # error budgets — that would be a self-DoS via the very
+        # mechanism the directive exists to surface.
+        pass
+    return ("", 204, {"Cache-Control": "no-store"})
 
 
 @app.route("/api/bug-report", methods=["POST"])
