@@ -1274,6 +1274,21 @@ def security_txt():
     )
 
 
+@app.route("/favicon.ico")
+def favicon_ico():
+    """Serve the SVG favicon at /favicon.ico for crawlers/clients that
+    fall back to the legacy path rather than reading <link rel="icon">.
+
+    Returning the SVG with image/svg+xml avoids a 404 in server logs and
+    external auditors that probe the conventional path.
+    """
+    return send_from_directory(
+        app.static_folder,
+        "favicon.svg",
+        mimetype="image/svg+xml",
+    )
+
+
 @app.route("/robots.txt")
 def robots_txt():
     content = """User-agent: *
