@@ -13,3 +13,5 @@ and review cadence.
 | `access-review-cadence.md` | CC6      | quarterly |
 | `risk-register.md`         | CC3      | quarterly |
 | `business-continuity.md`   | A, CC9   | annually |
+| `availability-rto-rpo.md`  | A1       | quarterly |
+| `disaster-recovery-plan.md`| A1       | quarterly |
