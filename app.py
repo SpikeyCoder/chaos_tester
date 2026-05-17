@@ -62,9 +62,15 @@ except Exception:
 from . import wa_auth
 
 # Rate limiting: Flask-Limiter caps abusive callers without affecting normal
-# dashboard usage. Applied per-IP to the three open POST endpoints that
-# accept user-supplied payloads. /api/ai-query has its own subscription
-# gate (wa_auth.is_entitled) and is not double-gated here.
+# dashboard usage. Applied per-IP to the four POST endpoints that accept
+# user-supplied payloads.
+#
+# WA-2026-05-17-01: /api/ai-query carries an explicit per-IP limit IN ADDITION
+# to the wa_auth.is_entitled() subscription gate. The subscription gate is the
+# auth boundary; the per-IP limit is a cost-control boundary (the endpoint
+# fans out to the Perplexity API, so an entitled-but-runaway caller could
+# otherwise burn through paid LLM credits at the default 120-per-minute
+# global cap). Both gates apply on every call.
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -847,6 +853,7 @@ def api_runs():
 
 
 @app.route("/api/ai-query", methods=["POST"])
+@limiter.limit("20 per minute; 200 per hour")
 def api_ai_query():
     """Run a custom AI visibility query against all platforms."""
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
