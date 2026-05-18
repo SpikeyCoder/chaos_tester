@@ -1264,7 +1264,7 @@ def page_not_found(e):
 @app.errorhandler(405)
 def method_not_allowed(e):
     # Return 404 for GET requests to unknown paths (prevents 405 for missing pages)
-    if request.method == "GET":
+    if request.method in ("GET", "HEAD"):
         return render_template("404.html"), 404
     return jsonify({"error": "Method not allowed"}), 405
 

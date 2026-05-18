@@ -6,7 +6,7 @@
     <title>{% block title %}Free Website Audit Tool - AI Visibility, Security & Performance Scanner | Website Auditor{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}Free website audit tool that checks AI visibility, broken links, security, and performance in one click. See how your business appears in ChatGPT and other AI tools. No login required.{% endblock %}">
     <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
-    <link rel="canonical" href="https://website-auditor.io{{ request.path }}">
+    {% block canonical %}<link rel="canonical" href="https://website-auditor.io{{ request.path }}">{% endblock %}
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" sizes="any">
 
