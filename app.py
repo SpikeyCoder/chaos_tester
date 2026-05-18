@@ -1046,6 +1046,22 @@ def api_bug_report():
     if request.headers.get("X-Requested-With") != "XMLHttpRequest":
         return jsonify({"error": "missing_header", "message": "Missing X-Requested-With header."}), 403
 
+    # SECURITY (KA-2026-05-18-BUGRPT, CWE-770): Cap raw body size before JSON
+    # parsing. MAX_CONTENT_LENGTH is 5 MiB at the WSGI boundary, but the bug
+    # report payload only ever needs: description (<= 2 KB), screenshotData
+    # (<= ~1.5 MiB base64), and a small technicalContext dict. Anything
+    # larger is either misuse or a JSON-parser DoS attempt, so we reject
+    # early instead of paying the cost of parsing a 4 MiB nested structure.
+    BUG_REPORT_MAX_BODY_BYTES = 2 * 1024 * 1024  # 2 MiB
+    try:
+        raw_len = request.content_length
+        if raw_len is None:
+            raw_len = len(request.get_data(cache=True))
+    except Exception:
+        raw_len = 0
+    if raw_len and raw_len > BUG_REPORT_MAX_BODY_BYTES:
+        return jsonify({"error": "request_too_large", "message": "Bug report payload exceeds 2 MiB"}), 413
+
     data = request.get_json(silent=True) or {}
     description = (data.get("description") or "").strip()
     is_feature = bool(data.get("isFeatureRequest", False))
@@ -1056,6 +1072,16 @@ def api_bug_report():
         return jsonify({"error": "Description is required"}), 400
     if len(description) > 2000:
         return jsonify({"error": "Description too long (max 2000 chars)"}), 400
+
+    # Defense-in-depth: cap the technicalContext blob size after parsing.
+    # 32 KiB is generous for {url, userAgent, viewportSize, recentErrors[5]}.
+    if isinstance(tech_ctx, dict):
+        try:
+            import json as _json
+            if len(_json.dumps(tech_ctx)) > 32 * 1024:
+                tech_ctx = {"truncated": True}
+        except Exception:
+            tech_ctx = {}
 
     # -- Trello credentials --
     trello_key = os.getenv("TRELLO_API_KEY", "")
