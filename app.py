@@ -1146,44 +1146,49 @@ def api_bug_report():
         # binary blobs (storage abuse, Trello quota burn, possible AV-evading
         # payload staging), we:
         #   1. Cap the decoded payload at PNG_ATTACHMENT_MAX_BYTES.
-        #   2. Verify the bytes start with the canonical PNG magic header
-        #      (\x89PNG\r\n\x1a\n). Other image types are rejected — the
-        #      front-end always submits PNG (html-to-image), so anything else
-        #      is anomalous.
+        #   2. Verify the bytes start with a recognized image magic header
+        #      (PNG: \x89PNG\r\n\x1a\n, or JPEG: \xff\xd8\xff). The
+        #      front-end submits JPEG (html2canvas + toDataURL), so anything
+        #      else is anomalous.
         # On validation failure we drop the screenshot silently and still
         # create the Trello card so the bug-reporter UX is preserved.
-        PNG_ATTACHMENT_MAX_BYTES = 1_500_000  # 1.5 MB after base64-decode
+        IMG_ATTACHMENT_MAX_BYTES = 1_500_000  # 1.5 MB after base64-decode
         PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+        JPEG_MAGIC = b"\xff\xd8\xff"
 
         if screenshot_data and card_id:
             try:
-                # Strip data URL prefix: "data:image/png;base64,..."
+                # Strip data URL prefix: "data:image/jpeg;base64,..." or "data:image/png;base64,..."
                 if "," in screenshot_data:
                     screenshot_data = screenshot_data.split(",", 1)[1]
                 # Reject obviously oversized base64 strings before decoding so
                 # we don't allocate a multi-MB buffer just to throw it away.
                 # base64 expands bytes by ~4/3, so cap the encoded length.
-                if len(screenshot_data) > (PNG_ATTACHMENT_MAX_BYTES * 4 // 3) + 16:
+                if len(screenshot_data) > (IMG_ATTACHMENT_MAX_BYTES * 4 // 3) + 16:
                     logger.warning("Screenshot rejected: encoded length exceeds cap")
                     raise ValueError("screenshot_too_large")
 
                 img_bytes = base64.b64decode(screenshot_data, validate=False)
-                if len(img_bytes) > PNG_ATTACHMENT_MAX_BYTES:
+                if len(img_bytes) > IMG_ATTACHMENT_MAX_BYTES:
                     logger.warning(
                         "Screenshot rejected: decoded %d bytes > cap %d",
-                        len(img_bytes), PNG_ATTACHMENT_MAX_BYTES,
+                        len(img_bytes), IMG_ATTACHMENT_MAX_BYTES,
                     )
                     raise ValueError("screenshot_too_large")
-                if not img_bytes.startswith(PNG_MAGIC):
+                is_png = img_bytes.startswith(PNG_MAGIC)
+                is_jpeg = img_bytes.startswith(JPEG_MAGIC)
+                if not (is_png or is_jpeg):
                     logger.warning(
-                        "Screenshot rejected: bytes do not start with PNG magic header"
+                        "Screenshot rejected: bytes do not start with PNG or JPEG magic header"
                     )
-                    raise ValueError("screenshot_not_png")
+                    raise ValueError("screenshot_not_image")
 
                 attach_resp = http_requests.post(
                     f"https://api.trello.com/1/cards/{card_id}/attachments",
                     params={"key": trello_key, "token": trello_token},
-                    files={"file": ("screenshot.png", img_bytes, "image/png")},
+                    img_ext = "jpg" if is_jpeg else "png"
+                    img_mime = "image/jpeg" if is_jpeg else "image/png"
+                    files={"file": (f"screenshot.{img_ext}", img_bytes, img_mime)},
                     timeout=20,
                 )
                 if not attach_resp.ok:
