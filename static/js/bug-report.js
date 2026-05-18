@@ -57,7 +57,7 @@ var bugReport = (function() {
             /* Restore bug overlay + button */
             overlay.style.display = '';
             if (bugBtn) bugBtn.style.display = '';
-            return canvas.toDataURL('image/png', 0.85);
+            return canvas.toDataURL('image/jpeg', 0.7);
         } catch (e) {
             console.warn('Screenshot capture failed:', e);
             /* Restore in case of error */
