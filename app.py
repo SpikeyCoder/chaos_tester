@@ -1183,11 +1183,11 @@ def api_bug_report():
                     )
                     raise ValueError("screenshot_not_image")
 
+                img_ext = "jpg" if is_jpeg else "png"
+                img_mime = "image/jpeg" if is_jpeg else "image/png"
                 attach_resp = http_requests.post(
                     f"https://api.trello.com/1/cards/{card_id}/attachments",
                     params={"key": trello_key, "token": trello_token},
-                    img_ext = "jpg" if is_jpeg else "png"
-                    img_mime = "image/jpeg" if is_jpeg else "image/png"
                     files={"file": (f"screenshot.{img_ext}", img_bytes, img_mime)},
                     timeout=20,
                 )
