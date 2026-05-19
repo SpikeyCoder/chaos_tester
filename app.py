@@ -779,6 +779,18 @@ def api_domain_history(domain):
     return jsonify(history)
 
 
+@app.route("/api/health")
+@limiter.exempt
+def api_health():
+    """Liveness probe for uptime monitoring.
+
+    Exempt from rate limiting so a monitor polling on a tight interval
+    never trips the per-IP cap. Returns a static payload only — no
+    locks, no I/O — so it stays cheap and can't be wedged by app state.
+    """
+    return jsonify({"status": "ok"}), 200
+
+
 @app.route("/api/status")
 def api_status():
     with _lock:
@@ -1254,6 +1266,23 @@ def security_txt():
         app.static_folder,
         ".well-known/security.txt",
         mimetype="text/plain",
+    )
+
+
+@app.route("/apple-touch-icon.png")
+@app.route("/apple-touch-icon-precomposed.png")
+def apple_touch_icon():
+    """Serve the iOS home-screen icon from the site root.
+
+    iOS Safari probes /apple-touch-icon[-precomposed].png at the root
+    (not /static/) when bookmarking or adding to the home screen, even
+    with a <link rel="apple-touch-icon"> present. Serve the single
+    static artifact here so those probes resolve instead of 404ing.
+    """
+    return send_from_directory(
+        app.static_folder,
+        "apple-touch-icon.png",
+        mimetype="image/png",
     )
 
 

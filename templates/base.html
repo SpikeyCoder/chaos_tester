@@ -9,6 +9,7 @@
     <link rel="canonical" href="https://website-auditor.io{{ request.path }}">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
@@ -78,11 +79,11 @@
             </button>
             <nav id="mainNav" aria-label="Main navigation">
                 <a href="/#how-it-works">How It Works</a>
-                <a href="/features">Features</a>
-                <a href="/sample-report">Sample Report</a>
+                <a href="/features"{% if request.path == '/features' %} aria-current="page"{% endif %}>Features</a>
+                <a href="/sample-report"{% if request.path == '/sample-report' %} aria-current="page"{% endif %}>Sample Report</a>
                 <a href="/#faq">FAQ</a>
-                <a href="/api">API</a>
-                <a href="/contact">Contact</a>
+                <a href="/api"{% if request.path == '/api' %} aria-current="page"{% endif %}>API</a>
+                <a href="/contact"{% if request.path == '/contact' %} aria-current="page"{% endif %}>Contact</a>
                 <a href="/#audit" class="nav-cta">Run Free Audit</a>
             </nav>
         </div>
