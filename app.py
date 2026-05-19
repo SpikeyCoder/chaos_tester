@@ -815,6 +815,12 @@ def api_domain_history(domain):
     return jsonify(history)
 
 
+@app.route("/api/health")
+def api_health():
+    """Lightweight health check for uptime monitoring. No rate limit."""
+    return jsonify({"status": "ok"})
+
+
 @app.route("/api/status")
 def api_status():
     with _lock:
@@ -1367,6 +1373,15 @@ def security_txt():
         mimetype="text/plain",
     )
 
+
+@app.route("/apple-touch-icon.png")
+def apple_touch_icon():
+    """Serve apple-touch-icon.png at the root path for iOS devices."""
+    return send_from_directory(
+        os.path.join(app.root_path, "static"),
+        "apple-touch-icon.png",
+        mimetype="image/png",
+    )
 
 @app.route("/favicon.ico")
 def favicon_ico():
