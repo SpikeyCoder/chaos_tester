@@ -131,3 +131,14 @@ Next scheduled verification: **2026-08-17** (90 days from
 - NIST SP 800-218 SSDF — PO.3.2 (separation of duties via PR review),
   PW.7.1 (review changes before merge).
 - OWASP SAMM — Implementation : Secure Build — Build Process.
+
+## Compensating Control — Single-Developer Organization
+
+Armstrong HoldCo LLC is a single-developer organization. Requiring pull request approval reviews is not practical as there is no second reviewer available. The following compensating controls are in place:
+
+1. **Automated CI validation** — every PR must pass the `validate` status check before merging.
+2. **Branch protection** — force pushes and branch deletions are blocked on `main`.
+3. **PR-based workflow** — all changes go through pull requests, creating a full audit trail in GitHub.
+4. **Automated daily audits** — security and usability scheduled tasks run daily and flag regressions.
+
+This compensating control is documented per AICPA TSC CC5.2 (activities to mitigate risks) and will be revisited if the team grows beyond a single developer.
