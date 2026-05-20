@@ -5,7 +5,7 @@ CSP sha256 hashes for every inline `style="..."` attribute body in
 templates/. Imported by app.py and joined into the style-src-attr
 CSP directive via 'unsafe-hashes'.
 
-Last regenerated for 126 unique attribute bodies.
+Last regenerated for 127 unique attribute bodies.
 
 Pen-test 2026-05-05 finding WA-2026-05-05-02 phase 4.
 """
@@ -54,11 +54,13 @@ STYLE_HASHES: list[str] = [
     "'sha256-JNWXv1NAl7UfLUfM95Vjvqot3UvB2nWQogFDyTUaaI4='",
     "'sha256-KT7jZv8pZtaHqonPGVqvDdxKpADnJmZ+VeUNMYHa+/8='",
     "'sha256-L+2xMdGvQFcO3pn3hVV+Ft4jaL0vvxDSt3X+XpKDVOU='",
+    "'sha256-L+ApfwmJVAKfZf0FcqKK2ErLJb8liFBv1O01Muj0UKs='",
     "'sha256-LDMDqIzwdIX62MB+g5uIvkBOesqbkTGvEJckjEGjCeE='",
     "'sha256-LnAOoObhFTUNWhSM9qT6rkZOam7wYd11u/0UY5r0VEQ='",
     "'sha256-LzdOMWb3sVjrYm8IN/rDt72WBOzBs85LNHXF6lEHvtE='",
     "'sha256-M8Wsqs5fq9e6X8ue1LYY0H4HhymJPo3i6yz/03gW4BI='",
     "'sha256-MrL2Rq6eqjOABtJWnYHloTcx1D9zoD6I4QdOJP3CFhE='",
+    "'sha256-Mvsp77heuEPm7zRATyUk/qLvOCN0lwgUfh8tzx/2ync='",
     "'sha256-Nqt9tMQFiaDP7oJbyaexs3KMysIIae2SE6AGlg3p9PM='",
     "'sha256-NugfhhJHFN8ab5ins9DoUFIX7i7OhkkvaH+nh6H6Y3M='",
     "'sha256-O7xtKt6QlOffD0QJYxVh4x75DN2uhPqAt7lbGpVQvns='",
@@ -108,7 +110,6 @@ STYLE_HASHES: list[str] = [
     "'sha256-kId6gV92AIsuepwGZo8WyOO8HeDDYMDwKxyqc04j48k='",
     "'sha256-kMojYKavjdkMEtrF7Hiy+lKdQ41fyDQwX3v8Jp8sefY='",
     "'sha256-l++x8eYRs4aEPAMLW6FkvD1i26TyzjCLeu9oMXYuyk4='",
-    "'sha256-lGy+u18Gul+whqzrhetv6m4tDIKbGr5nK7aB8elyGBc='",
     "'sha256-lscqxxhe1pUL04YVtwKbzNxGRhuw9uJpLxY9GsFH/QA='",
     "'sha256-m6CDozHiey1xa0KtAsM4mQcA5LAN7i2wR6qG4X+BjHY='",
     "'sha256-m6r9vKynNeOorJdADXkPnofWvQcaBZWIPuTzwDY6BIA='",
