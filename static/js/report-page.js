@@ -563,8 +563,8 @@ function toggleDetailedResults() {
     var r = recs[j];
     html += '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;padding:12px;background:var(--surface);border-radius:8px;">';
     html += '<span style="font-size:1.3rem;flex-shrink:0;">' + r.icon + '</span>';
-    html += '<div><div style="font-weight:600;font-size:0.9rem;">' + r.title + '</div>';
-    html += '<div style="color:var(--text-muted);font-size:0.82rem;margin-top:2px;">' + r.text + '</div></div></div>';
+    html += '<div><div style="font-size:0.9rem;"><strong>Action:</strong> ' + r.title + '</div>';
+    html += '<div style="color:var(--text-muted);font-size:0.82rem;margin-top:4px;"><strong style="color:var(--text);">Why It Matters:</strong> ' + r.text + '</div></div></div>';
   }
   container.innerHTML = html;
 })();
