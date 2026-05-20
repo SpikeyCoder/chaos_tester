@@ -24,8 +24,11 @@ flask-limiter==3.12
     # via -r requirements.in
 gunicorn==23.0.0
     # via -r requirements.in
-idna==3.13
+idna==3.15
     # via requests
+    # CVE-2026-45409 (GHSA-65pc-fj4g-8rjx) — idna.encode() resource
+    # exhaustion DoS on crafted Unicode payloads. Patched in 3.15.
+    # Pen-test 2026-05-20 finding WA-2026-05-20-01.
 itsdangerous==2.2.0
     # via flask
 jinja2==3.1.6
