@@ -685,11 +685,11 @@ function renderAIRecommendations() {
           '</h4>' +
         '</header>' +
         '<p style="margin:0 0 8px 0;color:var(--text-muted);font-size:0.82rem;line-height:1.5;">' +
-          '<span style="font-weight:700;color:var(--text);">Why it matters:</span> ' +
+          '<strong style="color:var(--text);">Why it matters:</strong> ' +
           _escHtml(r.why) +
         '</p>' +
         '<p style="margin:0;color:var(--text);font-size:0.85rem;line-height:1.5;">' +
-          '<span style="font-weight:700;color:var(--accent, #6366f1);">Action:</span> ' +
+          '<strong style="color:var(--accent, #6366f1);">Action:</strong> ' +
           _escHtml(r.action) +
         '</p>' +
       '</article>';
