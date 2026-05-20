@@ -290,7 +290,7 @@ tr:hover td { background: rgba(56,189,248,0.04); }
     text-decoration: none; transition: color .2s;
 }
 .report-top-bar .back-link:hover { color: #fff; }
-.report-top-bar .report-title-group { flex: 1; min-width: 0; }
+.report-top-bar .report-title-group { flex: 1; min-width: 0; overflow-wrap: break-word; word-break: break-all; }
 .report-top-bar .report-title-group h2 {
     font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0;
 }
@@ -808,6 +808,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     .btn.text-sm { padding: 6px 10px; font-size: 0.78rem; }
 
     /* ── Report header ────────────────────────── */
+    .report-top-bar { padding: 0 8px; }
     .report-header {
         flex-direction: column !important;
         align-items: flex-start !important;
