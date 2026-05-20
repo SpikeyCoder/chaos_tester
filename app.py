@@ -821,6 +821,12 @@ def api_health():
     return jsonify({"status": "ok"})
 
 
+@app.route("/healthz")
+def healthz():
+    """Alias for /api/health — standard convention for Cloud Run / k8s probes."""
+    return api_health()
+
+
 @app.route("/api/status")
 def api_status():
     with _lock:
