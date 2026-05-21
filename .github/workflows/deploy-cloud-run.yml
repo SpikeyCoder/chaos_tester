@@ -63,6 +63,10 @@ jobs:
         run: |
           python3 scripts/check_csp_header_size.py
 
+      - name: Bust Docker cache
+        run: |
+          sed -i "s/^ARG CACHE_BUST=.*/ARG CACHE_BUST=$(date +%s)/" Dockerfile
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE }} \

@@ -1452,9 +1452,21 @@ def favicon_ico():
 def robots_txt():
     content = """User-agent: *
 Allow: /
+Allow: /api
 Disallow: /run
-Disallow: /api/
+Disallow: /api/ai-query
+Disallow: /api/bug-report
+Disallow: /api/detect-business
+Disallow: /api/csp-report
+Disallow: /api/runs
+Disallow: /api/status
+Disallow: /api/domain-history
+Disallow: /api/psi-status
+Disallow: /api/health
 Disallow: /report/
+Disallow: /progress
+Disallow: /stream
+Disallow: /healthz
 
 Sitemap: https://website-auditor.io/sitemap.xml
 """
