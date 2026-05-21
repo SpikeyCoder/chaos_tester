@@ -1,18 +1,36 @@
 ---
 title: Risk Register
-tsc: CC3
+tsc: CC3.1, CC3.2, CC3.3, CC3.4
 owner: Kevin Armstrong
 review-cadence: quarterly
-last-reviewed: 2026-05-04
+last-reviewed: 2026-05-21
 ---
 
 # Risk Register — website-auditor.io
 
-| ID | Risk | Likelihood | Impact | Mitigation | Status |
-|---|---|---|---|---|---|
-| R-01 | SSRF on user-supplied URLs (`/run`, `/api/detect-business`) | Medium | High | `safe_http.SafeSession` re-checks every redirect; `_is_private_or_reserved` blocklist | Mitigated |
-| R-02 | Resource abuse on open endpoints (`/run`, `/api/bug-report`, `/api/detect-business`) | Medium | Medium | Rate limiting (Flask-Limiter) — see security/2026-05-04-rate-limit | Planned |
-| R-03 | Trello card spam from bug-report endpoint | Medium | Low | Same as R-02 | Planned |
-| R-04 | wa_auth JWT secret leak | Low | High | Stored only in Cloud Run env; rotated on suspicion | Mitigated |
-| R-05 | Subscription bypass on `/api/ai-query` | Low | Medium | wa_auth.is_entitled validates JWT + Supabase subscription state | Mitigated |
-| R-06 | Single-owner bus factor | Medium | High | Encrypted credential vault shared with successor designee | Partial |
+## Overview
+
+This document identifies, assesses, and tracks risks to website-auditor.io per AICPA TSC CC3 (Risk Assessment). Risks are scored on likelihood (1-5) and impact (1-5). Risks scoring 12+ require a mitigation plan.
+
+## Risk Matrix
+
+| ID | Risk | Category | L | I | Score | Mitigation | Status |
+|----|------|----------|---|---|-------|------------|--------|
+| R-01 | Supply chain compromise via npm/pip dependency | Security | 3 | 5 | 15 | Daily audit with Socket Security feed, npm audit, pip-audit; Dependabot; lockfile pinning | Active |
+| R-02 | Unauthorized access to production secrets | Security | 2 | 5 | 10 | Secrets in GitHub Actions / cloud provider env vars (encrypted at rest); .env in .gitignore; branch protection on main | Active |
+| R-03 | Service provider outage (Google Cloud Run, Cloudflare, Supabase, Stripe) | Availability | 3 | 4 | 12 | Health monitor every 5 min with Mailgun alerting; CDN caching; documented RTO/RPO | Active |
+| R-04 | Data breach via application vulnerability | Security | 2 | 5 | 10 | Daily pen-test audit (OWASP Top 10); RLS on user tables; CORS allowlist; CSP enforced; rate limiting | Active |
+| R-05 | Loss of source code or version history | Availability | 1 | 4 | 4 | GitHub redundant storage; local clones as backup | Accepted |
+| R-06 | Credential stuffing / brute force | Security | 3 | 3 | 9 | Supabase Auth rate limiting; OAuth social login; anonymous tokens rejected | Active |
+| R-07 | Insider threat (sole developer) | Security | 1 | 5 | 5 | Branch protection; PR-based workflow with CI; daily automated audits | Accepted |
+| R-08 | Regulatory non-compliance (privacy) | Compliance | 2 | 4 | 8 | Privacy policy published; DSAR runbook; PII inventory; cookie disclosure | Active |
+
+## Review Process
+
+Reviewed quarterly. New risks added from daily security audits, supply chain monitoring, or incidents. Scores reassessed each review.
+
+## Change Log
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-05-21 | Initial risk register | Kevin Armstrong |
