@@ -302,7 +302,51 @@ def _set_security_headers(response):
     # interest-cohort=() in Permissions-Policy. Chrome interprets the empty
     # allowlist as "no origin is allowed", which is the documented FLoC
     # opt-out signal. Brings parity with the kevinarmstrong.io worker.
-    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    # WA-2026-05-21-01: expanded Permissions-Policy deny-list. The four
+    # legacy directives are retained; the additions deny modern powerful
+    # browser features (Topics API, Attribution Reporting, idle detection,
+    # WebUSB / WebSerial / Web Bluetooth, Payment Request, WebAuthn passkey
+    # assertion, Gamepad, WebXR). Brings parity with the OWASP Secure
+    # Headers Project recommended baseline as of 2026-05.
+    response.headers["Permissions-Policy"] = ", ".join([
+        "accelerometer=()",
+        "ambient-light-sensor=()",
+        "attribution-reporting=()",
+        "autoplay=()",
+        "battery=()",
+        "bluetooth=()",
+        "browsing-topics=()",
+        "camera=()",
+        "clipboard-read=()",
+        "display-capture=()",
+        "document-domain=()",
+        "encrypted-media=()",
+        "fullscreen=(self)",
+        "gamepad=()",
+        "geolocation=()",
+        "gyroscope=()",
+        "hid=()",
+        "idle-detection=()",
+        "interest-cohort=()",
+        "keyboard-map=()",
+        "local-fonts=()",
+        "magnetometer=()",
+        "microphone=()",
+        "midi=()",
+        "otp-credentials=()",
+        "payment=()",
+        "picture-in-picture=(self)",
+        "publickey-credentials-create=()",
+        "publickey-credentials-get=()",
+        "screen-wake-lock=()",
+        "serial=()",
+        "speaker-selection=()",
+        "storage-access=()",
+        "usb=()",
+        "web-share=(self)",
+        "window-management=()",
+        "xr-spatial-tracking=()",
+    ])
     # WA-2026-05-13-02: pair the existing CSP frame-ancestors 'none' with a
     # Cross-Origin-Opener-Policy + Cross-Origin-Resource-Policy bundle so the
     # HTML document enters a cross-origin isolated context and same-origin
