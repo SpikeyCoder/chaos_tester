@@ -354,6 +354,19 @@ def _set_security_headers(response):
     # documents. Same-origin matches the existing strict CSP posture.
     response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
     response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+    # WA-2026-05-22-01: Cross-Origin-Embedder-Policy: credentialless.
+    # Parity gap with kevinarmstrong.io (PR #34 / KA-2026-05-13-02) closed
+    # by pen-test 2026-05-22. Pairs with the existing COOP: same-origin to
+    # place the HTML document in a cross-origin isolated context, which
+    # (a) hardens against Spectre-style cross-origin side-channel attacks
+    # on shared-memory features and (b) surfaces accidental cross-origin
+    # subresource loading without explicit opt-in (CORP / CORS). We pick
+    # 'credentialless' rather than 'require-corp' so the goatcounter
+    # analytics beacon (which does not return a CORP header) continues to
+    # load while ambient cookies are stripped on that hop instead of being
+    # blocked outright. Tighten to 'require-corp' once every cross-origin
+    # dependency advertises a CORP header.
+    response.headers["Cross-Origin-Embedder-Policy"] = "credentialless"
     # WA-2026-05-05-02 phase 4-B (final): strict style enforcement.
     #   - style-src-elem: same as before ('self').
     #   - style-src-attr: 'unsafe-inline' is REMOVED. Inline `style=`
