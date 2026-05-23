@@ -884,6 +884,20 @@ def healthz():
     return api_health()
 
 
+@app.route("/static/styles.css")
+def static_styles_alias():
+    """Backwards-compatible alias for legacy /static/styles.css references.
+
+    The site CSS now lives at /static/css/base.css after the
+    inline-style refactor (compliance/inline-style-audit-2026-05-05.md).
+    Older bookmarks, external embeds, and crawlers may still request
+    /static/styles.css — serve the current stylesheet instead of 404.
+
+    Audit fix: WA-2026-05-22-01 (P3, from owner-action backlog 2026-05-21).
+    """
+    return send_from_directory(app.static_folder, "css/base.css", mimetype="text/css")
+
+
 @app.route("/api/status")
 def api_status():
     with _lock:
