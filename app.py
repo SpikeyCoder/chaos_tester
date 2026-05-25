@@ -513,9 +513,13 @@ def _progress_callback(module: str, pct: int, msg: str):
 
 
 def _event_stream():
+    # WA-2026-05-23-04: hard cap each SSE connection at 10 minutes.
+    import time as _time
+    _stream_started = _time.time()
+    _STREAM_MAX_SECONDS = 600
     """Yield SSE events for the current run progress."""
     idx = 0
-    while True:
+    while _time.time() - _stream_started < _STREAM_MAX_SECONDS:
         with _lock:
             events = _progress[idx:]
             status = _current_status
@@ -716,7 +720,10 @@ def progress_page():
 
 
 @app.route("/stream")
+@limiter.limit("5 per minute")
 def stream():
+    # WA-2026-05-23-04: cap SSE rate and lifetime so an attacker can't
+    # saturate gunicorn threads by opening one stream per worker thread.
     return Response(_event_stream(), mimetype="text/event-stream")
 
 
@@ -765,11 +772,17 @@ def view_report(run_id):
     # that rewrites Host to the *.run.app backend hostname. The Node-side
     # admin portal only accepts https://(www.)?website-auditor.io, so we
     # prefer X-Forwarded-Host and fall back to a hardcoded public host.
+    # WA-2026-05-23-03: strict host allowlist. Previously a `.endswith()`
+    # suffix check let `evilwebsite-auditor.io` pass and be rendered into
+    # the upsell `return_to` URL on /report/<run_id> -> Stripe portal.
+    _ALLOWED_PUBLIC_HOSTS = {"website-auditor.io", "www.website-auditor.io"}
+    def _allowed_host(h: str | None) -> bool:
+        return bool(h) and h.lower() in _ALLOWED_PUBLIC_HOSTS
     forwarded_host = request.headers.get("X-Forwarded-Host", "").split(",")[0].strip()
-    if forwarded_host and forwarded_host.endswith("website-auditor.io"):
-        public_host = forwarded_host
-    elif request.host.endswith("website-auditor.io"):
-        public_host = request.host
+    if _allowed_host(forwarded_host):
+        public_host = forwarded_host.lower()
+    elif _allowed_host(request.host):
+        public_host = request.host.lower()
     else:
         public_host = "website-auditor.io"
     return_to_url = f"https://{public_host}{request.full_path.rstrip('?')}"
