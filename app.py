@@ -135,18 +135,62 @@ _current_run = None          # TestRun | None
 _current_status = "idle"     # idle | running | completed | failed
 _progress = []               # list of {module, pct, msg, ts}
 _highest_pct = 0             # monotonic high-water mark for progress percentage
-_run_history = []             # list of saved TestRun dicts
+
+# WA-2026-05-25-01 (pen-test, Low / Info): on long-running Cloud Run
+# instances the in-memory `_run_history` list and `_run_index` dict grow
+# without bound -- every completed audit is appended forever, and old
+# reports are also re-loaded from disk on every cold start. This is a
+# memory-management hygiene issue, not a security boundary (the on-disk
+# `REPORTS_DIR` + Supabase mirror remain the durable source of truth).
+# Cap the in-memory copies so the working set stays bounded; the
+# `/api/runs` endpoint already only serves the most-recent 50 entries,
+# and any cache miss for an older run falls through to the 3-tier
+# disk -> Supabase lookup in `_resolve_report`. Keep more than the
+# `/api/runs` window so the lookup index covers recently-completed
+# linked reports without touching disk.
+_RUN_HISTORY_MAX = 500       # cap in-memory rolling history
+_run_history = []             # list of saved TestRun dicts (bounded)
 _run_index = {}              # run_id -> report dict for O(1) lookup
 _lock = threading.Lock()
 
-# Load existing reports on startup
+
+def _trim_run_history_locked() -> None:
+    """Drop the oldest entries when `_run_history` exceeds the cap.
+
+    Must be called while holding `_lock`. Also evicts the corresponding
+    `_run_index` entries so the lookup dict cannot leak references to
+    reports that no longer live in `_run_history`. Hash-id aliases are
+    evicted alongside the primary run_id key.
+    """
+    overflow = len(_run_history) - _RUN_HISTORY_MAX
+    if overflow <= 0:
+        return
+    evicted = _run_history[:overflow]
+    del _run_history[:overflow]
+    for entry in evicted:
+        run_id = entry.get("run_id")
+        if run_id and _run_index.get(run_id) is entry:
+            _run_index.pop(run_id, None)
+        hash_id = entry.get("hash_id")
+        if hash_id and _run_index.get(hash_id) is entry:
+            _run_index.pop(hash_id, None)
+
+
+# Load existing reports on startup. `sorted()` on the path objects orders
+# files by name -- run filenames embed an ISO timestamp prefix, so this
+# yields oldest -> newest. We then keep only the newest `_RUN_HISTORY_MAX`
+# so cold-starts do not undo the cap.
+_startup_loaded = []
 for f in sorted(REPORTS_DIR.glob("*.json")):
     try:
         data = json.loads(f.read_text())
-        _run_history.append(data)
-        _run_index[data["run_id"]] = data
+        _startup_loaded.append(data)
     except Exception:
         pass
+for data in _startup_loaded[-_RUN_HISTORY_MAX:]:
+    _run_history.append(data)
+    _run_index[data["run_id"]] = data
+del _startup_loaded
 
 
 # -- Security Helpers ---------------------------------------------
@@ -594,6 +638,9 @@ def _run_tests(config: ChaosConfig):
         _run_index[report_data["run_id"]] = report_data
         # Also index by hash_id so either ID resolves
         _run_index[hash_id] = report_data
+        # WA-2026-05-25-01: cap in-memory history so long-lived
+        # instances do not accumulate unbounded report state.
+        _trim_run_history_locked()
 
     logger.info("Report saved locally: %s (hash_id: %s)", report_file, hash_id)
 
