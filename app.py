@@ -202,7 +202,7 @@ for data in _startup_loaded[-_RUN_HISTORY_MAX:]:
 del _startup_loaded
 
 
-# -- Security Helpers ---------------------------------------------
+# -- Security Helpers (last deploy: 2026-05-25) ---------------------------------------------
 
 _RUN_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 
