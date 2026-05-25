@@ -82,8 +82,17 @@ REPORTS_DIR.mkdir(exist_ok=True)
 
 # Secret key: prefer an environment variable; fall back to random bytes
 # with a startup warning so operators know sessions won't survive restarts.
+#
+# WA-2026-05-23-05: in Cloud Run (sentinel: K_SERVICE) fail closed instead
+# of silently generating a per-process key. With multiple instances any
+# warm restart silently invalidates every existing session/CSRF token.
 _secret = os.environ.get("CHAOS_TESTER_SECRET_KEY")
 if not _secret:
+    if os.environ.get("K_SERVICE"):
+        raise SystemExit(
+            "CHAOS_TESTER_SECRET_KEY is required in Cloud Run (K_SERVICE set). "
+            "Refusing to start with an ephemeral random key."
+        )
     _secret = secrets.token_hex(32)
     logging.getLogger("chaos_tester").warning(
         "CHAOS_TESTER_SECRET_KEY not set -- using a random key. "
