@@ -628,6 +628,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     line-height: 1.6;
 }
 .hero-search {
+    position: relative;
     display: flex; align-items: center; gap: 0;
     max-width: 680px; margin: 0 auto 24px;
     background: var(--surface);
@@ -655,7 +656,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .hero-search .btn-audit {
     /* a11y: bg uses #2563eb (blue-600) for white-on-blue contrast 5.17:1 (WCAG AA pass).
        Previously used var(--accent) #3b82f6 = 3.68:1 (fails AA for normal text). */
-    flex-shrink: 0; padding: 14px 28px; min-height: 48px;
+    flex-shrink: 0; padding: 14px 28px; min-height: 48px; min-width: 160px;
+    display: inline-flex; align-items: center; justify-content: center;
     background: #2563eb; color: #fff;
     border: none; border-radius: var(--radius-md);
     font-size: 1rem; font-weight: 600;
