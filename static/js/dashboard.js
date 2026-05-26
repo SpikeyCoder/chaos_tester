@@ -261,7 +261,7 @@ document.getElementById('biz-name-wrong-btn').addEventListener('click', function
     document.getElementById('business_name').value = '';
   }
 
-  disableAuditBtn();
+  syncAuditBtnState();
 });
 
 /* ── Auto-detect on blur -- debounced for mobile ─────────────── */

@@ -22,7 +22,7 @@
   .api-upsell-icon svg { width: 32px; height: 32px; color: #818cf8; }
   .api-upsell-title { margin: 0 0 4px; font-size: 24px; line-height: 32px; font-weight: 700; color: #ffffff; }
   .api-upsell-subtitle { margin: 0; color: #94a3b8; font-size: 16px; }
-  /* WCAG 1.4.3 fix (2026-05-11 audit): indigo-500 (#6366f1) with white text only reaches 4.47:1,
+/* WCAG 1.4.3 fix (2026-05-11 audit): indigo-500 (#6366f1) on white text only reaches 4.47:1,
      0.03 below the WCAG AA 4.5:1 threshold. Bump to indigo-600 (#4f46e5, ~6.0:1) and
      deepen hover to indigo-700 (#4338ca, ~7.5:1). */
   .api-upsell-btn { display: inline-flex; align-items: center; background: #4f46e5; color: #ffffff; font-weight: 500; padding: 10px 18px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font-size: 15px; transition: background 0.15s ease; }
@@ -41,6 +41,31 @@
   }
   #biz-name-wrong-btn:hover {
     color: var(--text);
+  }
+
+  /* Loading indicator overlay: sits below the hero-search bar without
+     affecting button position or causing layout shift. */
+  .loading-indicator-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  /* Smaller spinner variant used inside the loading indicator text */
+  .loading-spinner-sm {
+    width: 18px;
+    height: 18px;
+    border-width: 2px;
+    flex-shrink: 0;
   }
 
   /* Ensure city input renders as plain text */
