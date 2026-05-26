@@ -184,3 +184,29 @@
   .guidance-toggle.expanded .guidance-icon {
     transform: rotate(180deg);
   }
+  /* Scroll-margin for report sections: the sticky navbar (~64px) plus
+     the sticky TOC bar (~52px + 24px margin) sit above the content.
+     Without scroll-margin, clicking a TOC link scrolls the section
+     header behind these overlays, hiding it on mobile especially. */
+  #sect-fix-first,
+  #sect-summary,
+  #sect-performance,
+  #sect-results,
+  #sect-ai,
+  #sect-history {
+    scroll-margin-top: 140px;
+  }
+
+  /* AI Visibility section header — must be prominent and clearly visible
+     even on mobile where .card h2 defaults to 1rem.  Larger font, extra
+     top-padding so it doesn't hide behind the sticky TOC when scrolling. */
+  #sect-ai > h2 {
+    font-size: 1.4rem;
+    padding-top: 8px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 768px) {
+    #sect-ai > h2 {
+      font-size: 1.25rem;
+    }
+  }
