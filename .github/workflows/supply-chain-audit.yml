@@ -1,0 +1,67 @@
+name: Weekly Supply Chain Audit
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # Every Monday at 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  audit-python:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit
+        id: pip-audit
+        continue-on-error: true
+        run: |
+          pip-audit -r requirements.txt 2>&1 | tee /tmp/pip-audit.txt
+
+      - name: Create issue on failure
+        if: steps.pip-audit.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## Weekly Supply Chain Audit — Python Vulnerabilities Found\n\n';
+            body += `**Run:** [${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n`;
+            body += `**Date:** ${new Date().toISOString().slice(0, 10)}\n\n`;
+
+            try {
+              const report = fs.readFileSync('/tmp/pip-audit.txt', 'utf8');
+              body += '### pip-audit results\n```\n' + report.slice(0, 3000) + '\n```\n\n';
+            } catch (e) {
+              body += '_Could not read audit output._\n';
+            }
+
+            body += '### Next steps\n';
+            body += '1. Review the vulnerabilities listed above\n';
+            body += '2. Update affected packages in `requirements.txt`\n';
+            body += '3. Re-run this workflow to verify the fix\n';
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🔒 Supply Chain Vulnerabilities (Python) — ${new Date().toISOString().slice(0, 10)}`,
+              body: body,
+              labels: ['security', 'supply-chain']
+            });
+
+      - name: Fail workflow if vulnerabilities found
+        if: steps.pip-audit.outcome == 'failure'
+        run: |
+          echo "❌ Python supply chain vulnerabilities detected. See created issue."
+          exit 1
