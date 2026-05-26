@@ -196,3 +196,17 @@
   #sect-history {
     scroll-margin-top: 140px;
   }
+
+  /* AI Visibility section header: default .card h2 is 1.15rem (1rem on
+     mobile) which is too small to register as a section break when
+     scrolling past the Results card. Bump size so it stands out. */
+  #sect-ai > h2 {
+    font-size: 1.4rem;
+    padding-top: 8px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 768px) {
+    #sect-ai > h2 {
+      font-size: 1.25rem;
+    }
+  }
