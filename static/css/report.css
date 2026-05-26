@@ -210,3 +210,10 @@
       font-size: 1.25rem;
     }
   }
+
+  /* Prominent AI section: accent border-top + larger margin so the card
+     boundary and header are impossible to miss while scrolling on mobile. */
+  #sect-ai {
+    border-top: 3px solid #6366f1;
+    margin-top: 32px;
+  }
