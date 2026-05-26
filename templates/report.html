@@ -408,9 +408,9 @@
   </div>
 </div>
 
-<!-- -- AI Visibility Dashboard ----------------------------------- -->
+<!-- -- AI Visibility Results ----------------------------------- -->
 <div class="card" id="sect-ai">
-  <h2>AI Visibility Dashboard</h2>
+  <h2>AI Visibility Results</h2>
   {% if report.ai_visibility and report.ai_visibility.overall_score is defined %}
   {% set ai = report.ai_visibility %}
 
@@ -474,7 +474,7 @@
       <button class="btn btn-primary u-white-space-nowrap" type="button" id="custom-ai-btn" aria-label="Run custom AI query">Run Query</button>
     </div>
     <div class="u-hidden u-mt-3 u-color-muted u-text-085" id="custom-ai-status">
-      <span style="display:inline-block;animation:spin 1s linear infinite;">⏳</span>
+      <span class="btn-spinner loading-spinner-sm"></span>
       Querying AI platforms...
     </div>
     <div class="u-hidden u-mt-3 u-color-red u-text-085" id="custom-ai-error"></div>
@@ -495,7 +495,7 @@
           <p class="u-m-0" style="color:#94a3b8;font-size:1rem;">Search across all AI models with custom queries to find exactly what you need</p>
         </div>
       </div>
-      <a class="u-no-decoration" style="display:inline-flex;align-items:center;background:#6366f1;color:#fff;font-weight:500;padding:10px 18px;border-radius:8px;font-size:15px;" href="https://api.website-auditor.io/admin_portal/?return_to={{ return_to_url|urlencode }}"
+      <a class="u-no-decoration" style="display:inline-flex;align-items:center;background:#6366f1;color:#fff;font-weight:500;padding:10px 18px;border-radius:8px;font-size:15px;" href="https://api.website-auditor.io/admin_portal/"
         
          onmouseover="this.style.background='#4f46e5'"
          onmouseout="this.style.background='#6366f1'">
