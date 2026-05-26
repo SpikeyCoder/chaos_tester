@@ -184,3 +184,15 @@
   .guidance-toggle.expanded .guidance-icon {
     transform: rotate(180deg);
   }
+  /* Scroll-margin for report sections: the sticky navbar (~64px) plus
+     the sticky TOC bar (~52px + 24px margin) sit above the content.
+     Without scroll-margin, clicking a TOC link scrolls the section
+     header behind these overlays, hiding it on mobile especially. */
+  #sect-fix-first,
+  #sect-summary,
+  #sect-performance,
+  #sect-results,
+  #sect-ai,
+  #sect-history {
+    scroll-margin-top: 140px;
+  }
