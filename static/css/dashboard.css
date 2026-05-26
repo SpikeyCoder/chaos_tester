@@ -45,19 +45,23 @@
 
   /* Loading indicator overlay: sits below the hero-search bar without
      affecting button position or causing layout shift. */
+  /* Hidden by default via .u-hidden (display:none). JS removes
+     .u-hidden when loading starts; :not(.u-hidden) activates flex. */
   .loading-indicator-overlay {
     position: absolute;
     left: 0;
     right: 0;
     top: 100%;
     margin-top: 12px;
-    display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     font-size: 0.9rem;
     font-weight: 600;
     pointer-events: none;
+  }
+  .loading-indicator-overlay:not(.u-hidden) {
+    display: flex;
   }
 
   /* Smaller spinner variant used inside the loading indicator text */
