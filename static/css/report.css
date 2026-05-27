@@ -220,18 +220,19 @@
     border-bottom: 1px solid rgba(148,163,184,0.12);
   }
 
-  /* Make the AI section h2 sticky so it stays visible below the TOC
-     as the user scrolls through the section, rather than disappearing
-     behind the sticky navbar+TOC. top = 56px navbar + 52px TOC. */
+
+
+  /* Sticky AI Visibility h2: stays pinned below the TOC (navbar 56px +
+     TOC ~52px = 108px) so it never scrolls into the dead zone.
+     Rounded top corners match the parent card border-radius. */
   #sect-ai > h2 {
+    font-size: 1.25rem;
     position: sticky;
     top: 108px;
     z-index: 35;
-    background: rgba(30,41,59,0.95);
-    backdrop-filter: blur(8px);
-    margin-left: -14px;
-    margin-right: -14px;
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--border);
-    border-radius: 0;
+    background: #1e293b;
+    margin: -14px -14px 20px;
+    padding: 14px;
+    border-bottom: 1px solid rgba(148,163,184,0.12);
+    border-radius: 16px 16px 0 0;
   }
