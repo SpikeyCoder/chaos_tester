@@ -599,7 +599,9 @@ document.getElementById('runForm').addEventListener('submit', function(e) {
   e.preventDefault();
   hideRateLimitMessage();
   var indicator = document.getElementById('loading-indicator');
-  if (indicator) indicator.style.display = 'block';
+  if (indicator) indicator.classList.remove('u-hidden');
+  /* A11y: announce the busy state to assistive tech (WCAG 4.1.3). */
+  this.setAttribute('aria-busy', 'true');
   showAuditSpinner();
 
   var form = this;
@@ -621,11 +623,13 @@ document.getElementById('runForm').addEventListener('submit', function(e) {
   .then(function(r) {
     if (r.status === 429) {
       r.json().then(function(body) {
-        if (indicator) indicator.style.display = 'none';
+        if (indicator) indicator.classList.add('u-hidden');
+        form.removeAttribute('aria-busy');
         hideAuditSpinner();
         showRateLimitMessage(body.message || 'Too many requests. Please try again in a moment.');
       }).catch(function() {
-        if (indicator) indicator.style.display = 'none';
+        if (indicator) indicator.classList.add('u-hidden');
+        form.removeAttribute('aria-busy');
         hideAuditSpinner();
         showRateLimitMessage('Too many requests. Please try again in a moment.');
       });
@@ -637,17 +641,20 @@ document.getElementById('runForm').addEventListener('submit', function(e) {
     }
     /* Other errors: surface server message in the same banner. */
     r.json().then(function(body) {
-      if (indicator) indicator.style.display = 'none';
+      if (indicator) indicator.classList.add('u-hidden');
+      form.removeAttribute('aria-busy');
       hideAuditSpinner();
       showRateLimitMessage((body && (body.message || body.error)) || 'Failed to start audit. Please try again.');
     }).catch(function() {
-      if (indicator) indicator.style.display = 'none';
+      if (indicator) indicator.classList.add('u-hidden');
+      form.removeAttribute('aria-busy');
       hideAuditSpinner();
       showRateLimitMessage('Failed to start audit. Please try again.');
     });
   })
   .catch(function() {
-    if (indicator) indicator.style.display = 'none';
+    if (indicator) indicator.classList.add('u-hidden');
+    form.removeAttribute('aria-busy');
     hideAuditSpinner();
     showRateLimitMessage('Network error. Please check your connection and try again.');
   });
