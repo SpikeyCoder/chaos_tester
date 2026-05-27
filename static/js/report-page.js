@@ -533,7 +533,7 @@ function renderAIRecommendations() {
     var botList = blockedBots.slice(0, 4).join(', ') +
                   (blockedBots.length > 4 ? ' and ' + (blockedBots.length - 4) + ' more' : '');
     recs.push({
-   //   title: 'Unblock AI crawlers in robots.txt',
+      title: 'Unblock AI crawlers in robots.txt',
       why: 'Your robots.txt currently disallows ' + botList + ', so AI models can\'t index ' +
            business + ' while those user-agents are blocked.',
       action: 'Edit robots.txt and add an explicit "Allow: /" rule for each of these crawlers, ' +
@@ -543,7 +543,7 @@ function renderAIRecommendations() {
   }
   if (signals.has_structured_data === false) {
     recs.push({
-   //   title: 'Add JSON-LD structured data to your homepage',
+      title: 'Add JSON-LD structured data to your homepage',
       why: 'No schema.org markup was found on ' + business + '\'s homepage, so AI models have no ' +
            'machine-readable description of who you are or what you do.',
       action: 'Add a JSON-LD script block describing your business as "LocalBusiness" (or the ' +
@@ -553,7 +553,7 @@ function renderAIRecommendations() {
   } else if (signals.has_local_business_schema === false) {
     var foundTypes = (signals.structured_data_types || []).slice(0, 3).join(', ') || 'generic types';
     recs.push({
-     // title: 'Strengthen structured data with a LocalBusiness schema',
+      title: 'Strengthen structured data with a LocalBusiness schema',
       why: 'You have structured data (' + foundTypes + ') but no LocalBusiness or Organization ' +
            'schema, which is the type AI assistants weigh most for "near me" queries.',
       action: 'Add a LocalBusiness JSON-LD block with NAP (name, address, phone), opening hours, ' +
@@ -563,7 +563,7 @@ function renderAIRecommendations() {
   }
   if (signals.sitemap_present === false) {
     recs.push({
-   //   title: 'Publish a sitemap.xml',
+      title: 'Publish a sitemap.xml',
       why: 'No sitemap.xml was found at /sitemap.xml and none is referenced in robots.txt, so AI ' +
            'crawlers have to discover every page on ' + business + '\'s site by following links.',
       action: 'Generate a sitemap that lists every public URL, then add a "Sitemap: https://…/sitemap.xml" ' +
@@ -573,7 +573,7 @@ function renderAIRecommendations() {
   }
   if (signals.has_meta_description === false) {
     recs.push({
-     // title: 'Add a meta description to your homepage',
+      title: 'Add a meta description to your homepage',
       why: 'Your homepage is missing a meta description tag, and AI summaries frequently quote ' +
            'this string verbatim when describing a business.',
       action: 'Write a concise 140–160 character pitch for ' + business + ' that includes what you ' +
@@ -583,7 +583,7 @@ function renderAIRecommendations() {
   }
   if (signals.has_open_graph === false) {
     recs.push({
-    //  title: 'Add Open Graph tags so AI tools can preview your site',
+      title: 'Add Open Graph tags so AI tools can preview your site',
       why: 'No Open Graph meta tags were detected, so AI chat tools and social previews can\'t ' +
            'render a rich, accurate card when someone shares ' + business + '.',
       action: 'Add og:title, og:description, og:image, and og:url tags to your homepage head.',
@@ -593,7 +593,7 @@ function renderAIRecommendations() {
 
   if (weakPlatforms.length > 0) {
     recs.push({
-    //  title: 'Improve visibility on ' + weakPlatforms.join(' & '),
+      title: 'Improve visibility on ' + weakPlatforms.join(' & '),
       why: business + ' scores below 30% on ' + weakPlatforms.join(', ') + '. Each platform weighs ' +
            'reviews, citations, and structured data differently, so a gap on one usually points ' +
            'at a missing signal source.',
@@ -605,7 +605,7 @@ function renderAIRecommendations() {
   if (noAppearCount > total * 0.5) {
     var loc = (ai.business_info || {}).location || 'your city';
     recs.push({
-   //   title: 'Publish content targeting your real customer queries',
+      title: 'Publish content targeting your real customer queries',
       why: 'AI models did not recommend ' + business + ' for ' + noAppearCount + ' of ' + total +
            ' "' + sector + '" queries we ran, which usually means your site doesn\'t use the ' +
            'phrasing customers and AI models actually search with.',
@@ -616,7 +616,7 @@ function renderAIRecommendations() {
   }
   if (lowPosCount > 3) {
     recs.push({
-    //  title: 'Boost ranking position with stronger authority signals',
+      title: 'Boost ranking position with stronger authority signals',
       why: business + ' appears in AI results but usually below position 3, which means the model ' +
            'sees you as relevant but not the most trusted option.',
       action: 'Grow review count (volume and recency both matter), pursue local press mentions, ' +
@@ -626,7 +626,7 @@ function renderAIRecommendations() {
   }
   if (score < 25 && recs.length < 3) {
     recs.push({
-    //  title: 'Strengthen ' + business + '\'s online presence',
+      title: 'Strengthen ' + business + '\'s online presence',
       why: 'Overall AI visibility is only ' + score + '%, so ' + business + ' is effectively ' +
            'invisible to AI assistants today.',
       action: 'Focus on the three biggest levers: a complete Google Business Profile, fresh ' +
@@ -636,7 +636,7 @@ function renderAIRecommendations() {
   }
   if (score >= 50 && strongPlatforms.length >= 2 && recs.length < 3) {
     recs.push({
-   //   title: 'Maintain your lead on ' + strongPlatforms.join(', '),
+      title: 'Maintain your lead on ' + strongPlatforms.join(', '),
       why: business + ' already performs well on ' + strongPlatforms.join(', ') + ' — losing ' +
            'this position is easier than rebuilding it.',
       action: 'Refresh listings quarterly and keep publishing dated content so AI models continue ' +
@@ -647,7 +647,7 @@ function renderAIRecommendations() {
 
   if (recs.length === 0) {
     recs.push({
-    //  title: 'Keep ' + business + ' visible to AI assistants',
+      title: 'Keep ' + business + ' visible to AI assistants',
       why: 'Your site already has the basics in place, but AI visibility decays quickly when ' +
            'signals stop being refreshed.',
       action: 'Keep structured data accurate, add service pages as your offering grows, and ' +
