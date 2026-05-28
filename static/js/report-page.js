@@ -666,33 +666,18 @@ function renderAIRecommendations() {
   for (var j = 0; j < n; j++) {
     var r = recs[j];
     html +=
-      '<article class="ai-action-card" style="' +
-        'background:var(--surface);' +
-        'border:1px solid var(--border);' +
-        'border-radius:10px;' +
-        'padding:14px 16px;' +
-        'margin-bottom:10px;' +
-      '">' +
-        '<header style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">' +
-          '<span aria-hidden="true" style="' +
-            'display:inline-flex;align-items:center;justify-content:center;' +
-            'width:26px;height:26px;border-radius:50%;' +
-            'background:var(--accent, #6366f1);color:#fff;' +
-            'font-size:0.85rem;font-weight:700;flex:0 0 26px;' +
-          '">' + (j + 1) + '</span>' +
-          '<h4 style="margin:0;font-size:0.95rem;font-weight:600;color:var(--text);line-height:1.3;">' +
-            _escHtml(r.title) +
-          '</h4>' +
-        '</header>' +
-        '<p style="margin:0 0 8px 0;color:var(--text-muted);font-size:0.82rem;line-height:1.5;">' +
-          '<strong style="color:var(--text);">Why it matters:</strong> ' +
+      '<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);">' +
+        '<p style="margin:0 0 4px 0;font-size:0.9rem;font-weight:600;color:var(--text);">' +
+          _escHtml(r.title) +
+        '</p>' +
+        '<p style="margin:0 0 4px 0;color:var(--text-muted);font-size:0.82rem;line-height:1.5;">' +
           _escHtml(r.why) +
         '</p>' +
-        '<p style="margin:0;color:var(--text);font-size:0.85rem;line-height:1.5;">' +
+        '<p style="margin:0;color:var(--text);font-size:0.82rem;line-height:1.5;">' +
           '<strong style="color:var(--accent, #6366f1);">Action:</strong> ' +
           _escHtml(r.action) +
         '</p>' +
-      '</article>';
+      '</div>';
   }
   container.innerHTML = html;
 }
