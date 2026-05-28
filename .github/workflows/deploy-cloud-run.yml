@@ -67,6 +67,10 @@ jobs:
         run: |
           sed -i "s/^ARG CACHE_BUST=.*/ARG CACHE_BUST=$(date +%s)/" Dockerfile
 
+      - name: Clear secret-type env vars from failed Secret Manager migration
+        run: |
+          gcloud run services update ${{ env.SERVICE }}             --region ${{ env.REGION }}             --remove-secrets "SUPABASE_SERVICE_KEY,PERPLEXITY_API_KEY,GOOGLE_PLACES_API_KEY,GOOGLE_PSI_API_KEY,WA_SHARED_SECRET,CHAOS_TESTER_SECRET_KEY,TRELLO_API_KEY,TRELLO_TOKEN,TRELLO_LIST_ID,SUPABASE_ANON_KEY"             --quiet 2>/dev/null || true
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE }} \
