@@ -91,17 +91,7 @@ jobs:
             --source . \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-secrets "\
-SUPABASE_SERVICE_KEY=chaos-tester-supabase-service-key:latest,\
-PERPLEXITY_API_KEY=chaos-tester-perplexity-api-key:latest,\
-GOOGLE_PLACES_API_KEY=chaos-tester-google-places-api-key:latest,\
-GOOGLE_PSI_API_KEY=chaos-tester-google-psi-api-key:latest,\
-WA_SHARED_SECRET=chaos-tester-wa-shared-secret:latest,\
-CHAOS_TESTER_SECRET_KEY=chaos-tester-flask-secret-key:latest,\
-TRELLO_API_KEY=chaos-tester-trello-api-key:latest,\
-TRELLO_TOKEN=chaos-tester-trello-token:latest,\
-TRELLO_LIST_ID=chaos-tester-trello-list-id:latest,\
-SUPABASE_ANON_KEY=chaos-tester-supabase-anon-key:latest" \
+            --set-secrets "SUPABASE_SERVICE_KEY=chaos-tester-supabase-service-key:latest,PERPLEXITY_API_KEY=chaos-tester-perplexity-api-key:latest,GOOGLE_PLACES_API_KEY=chaos-tester-google-places-api-key:latest,GOOGLE_PSI_API_KEY=chaos-tester-google-psi-api-key:latest,WA_SHARED_SECRET=chaos-tester-wa-shared-secret:latest,CHAOS_TESTER_SECRET_KEY=chaos-tester-flask-secret-key:latest,TRELLO_API_KEY=chaos-tester-trello-api-key:latest,TRELLO_TOKEN=chaos-tester-trello-token:latest,TRELLO_LIST_ID=chaos-tester-trello-list-id:latest,SUPABASE_ANON_KEY=chaos-tester-supabase-anon-key:latest" \
             --quiet
 
       - name: Set CORS allowed origins
