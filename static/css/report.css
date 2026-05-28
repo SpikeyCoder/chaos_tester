@@ -222,24 +222,20 @@
 
 
 
-  /* Sticky AI Visibility h2: stays pinned below the TOC (navbar 56px +
-     TOC ~52px = 108px) so it never scrolls into the dead zone.
-     Rounded top corners match the parent card border-radius. */
+  /* Sticky AI Visibility h2: pins below the navbar at top:56px.
+     The TOC (z-index:40) overlays the top portion, so the visible
+     text appears below the TOC.  The opaque background extends from
+     56px to ~170px, covering the full gap between the TOC bottom
+     and the h2 text — this prevents the previous section's content
+     from bleeding through as you scroll. */
   #sect-ai > h2 {
     font-size: 1.25rem;
     position: sticky;
-    top: 108px;
+    top: 56px;
     z-index: 35;
     background: #1e293b;
     margin: -14px -14px 20px;
-    padding: 14px;
+    padding: 66px 14px 14px;
     border-bottom: 1px solid rgba(148,163,184,0.12);
     border-radius: 16px 16px 0 0;
-  }
-
-  /* Hide the AI recommendations cards — the numbered cards were
-     overlapping the sticky AI Visibility section header on mobile.
-     The JS still runs but nothing is visible. */
-  #ai-recommendations {
-    display: none;
   }
