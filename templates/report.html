@@ -441,6 +441,11 @@
     </div>
   </div>
 
+  <!-- AI Visibility Recommendations (embedded below summary) -->
+  <div id="ai-recommendations" style="margin-bottom:20px;">
+    <div id="ai-recs-list"></div>
+  </div>
+
   <!-- Platform Scores -->
   <div class="u-grid-180">
     {% for pname, pdata in ai.platform_scores.items() %}
@@ -456,11 +461,6 @@
       </div>
     </div>
     {% endfor %}
-  </div>
-
-  <!-- AI Visibility Recommendations (no title box — cards render directly) -->
-  <div class="u-mb-6-no-semi" id="ai-recommendations">
-    <div id="ai-recs-list"></div>
   </div>
 
   <!-- Custom AI Query -->
