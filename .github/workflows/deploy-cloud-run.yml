@@ -85,6 +85,13 @@ jobs:
       #     Manager takes effect on the next Cloud Run revision without
       #     touching this workflow or GitHub Actions secrets.
       # Closes Armstrong HoldCo pen-test 2026-05-28 finding WA-2026-05-28-01.
+      - name: Clear old env vars (one-time migration to Secret Manager)
+        run: |
+          gcloud run services update ${{ env.SERVICE }} \
+            --region ${{ env.REGION }} \
+            --remove-env-vars "SUPABASE_SERVICE_KEY,PERPLEXITY_API_KEY,GOOGLE_PLACES_API_KEY,GOOGLE_PSI_API_KEY,WA_SHARED_SECRET,CHAOS_TESTER_SECRET_KEY,TRELLO_API_KEY,TRELLO_TOKEN,TRELLO_LIST_ID,SUPABASE_ANON_KEY" \
+            --quiet || true
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE }} \
