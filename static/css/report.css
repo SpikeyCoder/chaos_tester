@@ -239,3 +239,9 @@
     border-bottom: 1px solid rgba(148,163,184,0.12);
     border-radius: 16px 16px 0 0;
   }
+
+  /* Hide AI recommendation cards — they overlap the section header
+     area on mobile and cause visual confusion with Fix First items. */
+  #ai-recommendations {
+    display: none !important;
+  }
