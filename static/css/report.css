@@ -204,25 +204,7 @@
     margin-top: 32px;
   }
 
-  /* Sticky sub-header: the h2 was invisible on mobile because the
-     sticky navbar (56px) + sticky TOC (~52px) = 108px of dead zone at
-     the top of the viewport.  The h2 would scroll through that zone
-     and never be seen.  Making it position:sticky with a solid opaque
-     background keeps it pinned below the TOC while in the AI section. */
-  #sect-ai > h2 {
-    font-size: 1.25rem;
-    position: sticky;
-    top: 108px;
-    z-index: 35;
-    background: #1e293b;
-    margin: -14px -14px 20px;
-    padding: 14px;
-    border-bottom: 1px solid rgba(148,163,184,0.12);
-  }
-
-
-
-  /* AI Visibility section header — anchored at the top of the card. */
+  /* AI Visibility section header — static, anchored at the top of the card. */
   #sect-ai > h2 {
     font-size: 1.25rem;
     margin-bottom: 20px;
