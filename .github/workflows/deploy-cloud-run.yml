@@ -67,20 +67,59 @@ jobs:
         run: |
           sed -i "s/^ARG CACHE_BUST=.*/ARG CACHE_BUST=$(date +%s)/" Dockerfile
 
+      - name: Seed secrets into Secret Manager (idempotent)
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          GOOGLE_PSI_API_KEY: ${{ secrets.GOOGLE_PSI_API_KEY }}
+          WA_SHARED_SECRET: ${{ secrets.WA_SHARED_SECRET }}
+          CHAOS_TESTER_SECRET_KEY: ${{ secrets.CHAOS_TESTER_SECRET_KEY }}
+          TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
+          TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
+          TRELLO_LIST_ID: ${{ secrets.TRELLO_LIST_ID }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          declare -A SECRETS=(
+            [chaos-tester-supabase-service-key]="$SUPABASE_SERVICE_KEY"
+            [chaos-tester-perplexity-api-key]="$PERPLEXITY_API_KEY"
+            [chaos-tester-google-places-api-key]="$GOOGLE_PLACES_API_KEY"
+            [chaos-tester-google-psi-api-key]="$GOOGLE_PSI_API_KEY"
+            [chaos-tester-wa-shared-secret]="$WA_SHARED_SECRET"
+            [chaos-tester-flask-secret-key]="$CHAOS_TESTER_SECRET_KEY"
+            [chaos-tester-trello-api-key]="$TRELLO_API_KEY"
+            [chaos-tester-trello-token]="$TRELLO_TOKEN"
+            [chaos-tester-trello-list-id]="$TRELLO_LIST_ID"
+            [chaos-tester-supabase-anon-key]="$SUPABASE_ANON_KEY"
+          )
+          for name in "${!SECRETS[@]}"; do
+            if ! gcloud secrets describe "$name" --project=${{ env.PROJECT_ID }} >/dev/null 2>&1; then
+              echo "Creating secret: $name"
+              printf '%s' "${SECRETS[$name]}" | gcloud secrets create "$name" --data-file=- --project=${{ env.PROJECT_ID }}
+            else
+              echo "Secret $name exists — adding new version"
+              printf '%s' "${SECRETS[$name]}" | gcloud secrets versions add "$name" --data-file=- --project=${{ env.PROJECT_ID }}
+            fi
+          done
+
+      - name: Clear old env vars and secret refs (one-time migration cleanup)
+        run: |
+          gcloud run services update ${{ env.SERVICE }} \
+            --region ${{ env.REGION }} \
+            --remove-env-vars "SUPABASE_SERVICE_KEY,PERPLEXITY_API_KEY,GOOGLE_PLACES_API_KEY,GOOGLE_PSI_API_KEY,WA_SHARED_SECRET,CHAOS_TESTER_SECRET_KEY,TRELLO_API_KEY,TRELLO_TOKEN,TRELLO_LIST_ID,SUPABASE_ANON_KEY" \
+            --quiet 2>/dev/null || true
+          gcloud run services update ${{ env.SERVICE }} \
+            --region ${{ env.REGION }} \
+            --remove-secrets "SUPABASE_SERVICE_KEY,PERPLEXITY_API_KEY,GOOGLE_PLACES_API_KEY,GOOGLE_PSI_API_KEY,WA_SHARED_SECRET,CHAOS_TESTER_SECRET_KEY,TRELLO_API_KEY,TRELLO_TOKEN,TRELLO_LIST_ID,SUPABASE_ANON_KEY" \
+            --quiet 2>/dev/null || true
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE }} \
             --source . \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-env-vars "SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }},PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }},GOOGLE_PLACES_API_KEY=${{ secrets.GOOGLE_PLACES_API_KEY }},GOOGLE_PSI_API_KEY=${{ secrets.GOOGLE_PSI_API_KEY }},WA_SHARED_SECRET=${{ secrets.WA_SHARED_SECRET }},CHAOS_TESTER_SECRET_KEY=${{ secrets.CHAOS_TESTER_SECRET_KEY }}" \
-            --quiet
-
-      - name: Append Trello env vars to Cloud Run
-        run: |
-          gcloud run services update ${{ env.SERVICE }} \
-            --region ${{ env.REGION }} \
-            --update-env-vars "TRELLO_API_KEY=${{ secrets.TRELLO_API_KEY }},TRELLO_TOKEN=${{ secrets.TRELLO_TOKEN }},TRELLO_LIST_ID=${{ secrets.TRELLO_LIST_ID }}" \
+            --set-secrets "SUPABASE_SERVICE_KEY=chaos-tester-supabase-service-key:latest,PERPLEXITY_API_KEY=chaos-tester-perplexity-api-key:latest,GOOGLE_PLACES_API_KEY=chaos-tester-google-places-api-key:latest,GOOGLE_PSI_API_KEY=chaos-tester-google-psi-api-key:latest,WA_SHARED_SECRET=chaos-tester-wa-shared-secret:latest,CHAOS_TESTER_SECRET_KEY=chaos-tester-flask-secret-key:latest,TRELLO_API_KEY=chaos-tester-trello-api-key:latest,TRELLO_TOKEN=chaos-tester-trello-token:latest,TRELLO_LIST_ID=chaos-tester-trello-list-id:latest,SUPABASE_ANON_KEY=chaos-tester-supabase-anon-key:latest" \
             --quiet
 
       - name: Set CORS allowed origins
@@ -88,11 +127,4 @@ jobs:
           gcloud run services update ${{ env.SERVICE }} \
             --region ${{ env.REGION }} \
             --update-env-vars "^@^CORS_ALLOWED_ORIGINS=https://website-auditor.io,https://spikeycoder.github.io" \
-            --quiet
-
-      - name: Set Supabase anon key
-        run: |
-          gcloud run services update ${{ env.SERVICE }} \
-            --region ${{ env.REGION }} \
-            --update-env-vars "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" \
             --quiet
