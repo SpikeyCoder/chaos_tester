@@ -67,46 +67,32 @@ jobs:
         run: |
           sed -i "s/^ARG CACHE_BUST=.*/ARG CACHE_BUST=$(date +%s)/" Dockerfile
 
-      # WA-2026-05-28-01: secrets now live in Google Secret Manager and
-      # are referenced via --set-secrets. The Cloud Run runtime mounts
-      # the latest version of each secret as an env var, so application
-      # code does not change. Compared to the previous --set-env-vars
-      # flow, this:
-      #   * removes secret material from the gcloud command-line audit
-      #     trail (Cloud Audit Logs previously captured the resolved
-      #     values in admin-activity log entries on every deploy),
-      #   * removes secret material from the GitHub Actions deploy log
-      #     even with debug logging enabled (Actions only masks the
-      #     literal `${{ secrets.* }}` references — once they're
-      #     interpolated into a gcloud flag they are shell-visible),
-      #   * gives the operator IAM-scoped read/rotate controls and a
-      #     versioned audit history per secret,
-      #   * enables zero-downtime rotation: a new version in Secret
-      #     Manager takes effect on the next Cloud Run revision without
-      #     touching this workflow or GitHub Actions secrets.
-      # Closes Armstrong HoldCo pen-test 2026-05-28 finding WA-2026-05-28-01.
-      - name: Clear old env vars (one-time migration to Secret Manager)
-        run: |
-          gcloud run services update ${{ env.SERVICE }} \
-            --region ${{ env.REGION }} \
-            --remove-env-vars "SUPABASE_SERVICE_KEY,PERPLEXITY_API_KEY,GOOGLE_PLACES_API_KEY,GOOGLE_PSI_API_KEY,WA_SHARED_SECRET,CHAOS_TESTER_SECRET_KEY,TRELLO_API_KEY,TRELLO_TOKEN,TRELLO_LIST_ID,SUPABASE_ANON_KEY" \
-            --quiet || true
-
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE }} \
             --source . \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-secrets "SUPABASE_SERVICE_KEY=chaos-tester-supabase-service-key:latest,PERPLEXITY_API_KEY=chaos-tester-perplexity-api-key:latest,GOOGLE_PLACES_API_KEY=chaos-tester-google-places-api-key:latest,GOOGLE_PSI_API_KEY=chaos-tester-google-psi-api-key:latest,WA_SHARED_SECRET=chaos-tester-wa-shared-secret:latest,CHAOS_TESTER_SECRET_KEY=chaos-tester-flask-secret-key:latest,TRELLO_API_KEY=chaos-tester-trello-api-key:latest,TRELLO_TOKEN=chaos-tester-trello-token:latest,TRELLO_LIST_ID=chaos-tester-trello-list-id:latest,SUPABASE_ANON_KEY=chaos-tester-supabase-anon-key:latest" \
+            --set-env-vars "SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }},PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }},GOOGLE_PLACES_API_KEY=${{ secrets.GOOGLE_PLACES_API_KEY }},GOOGLE_PSI_API_KEY=${{ secrets.GOOGLE_PSI_API_KEY }},WA_SHARED_SECRET=${{ secrets.WA_SHARED_SECRET }},CHAOS_TESTER_SECRET_KEY=${{ secrets.CHAOS_TESTER_SECRET_KEY }}" \
+            --quiet
+
+      - name: Append Trello env vars to Cloud Run
+        run: |
+          gcloud run services update ${{ env.SERVICE }} \
+            --region ${{ env.REGION }} \
+            --update-env-vars "TRELLO_API_KEY=${{ secrets.TRELLO_API_KEY }},TRELLO_TOKEN=${{ secrets.TRELLO_TOKEN }},TRELLO_LIST_ID=${{ secrets.TRELLO_LIST_ID }}" \
             --quiet
 
       - name: Set CORS allowed origins
-        # CORS_ALLOWED_ORIGINS is a non-secret runtime config string;
-        # leaving it as a normal env var keeps it greppable in the
-        # Cloud Run console alongside the other deploy-time policy.
         run: |
           gcloud run services update ${{ env.SERVICE }} \
             --region ${{ env.REGION }} \
             --update-env-vars "^@^CORS_ALLOWED_ORIGINS=https://website-auditor.io,https://spikeycoder.github.io" \
+            --quiet
+
+      - name: Set Supabase anon key
+        run: |
+          gcloud run services update ${{ env.SERVICE }} \
+            --region ${{ env.REGION }} \
+            --update-env-vars "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" \
             --quiet
