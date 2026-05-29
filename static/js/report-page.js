@@ -666,15 +666,10 @@ function renderAIRecommendations() {
   for (var j = 0; j < n; j++) {
     var r = recs[j];
     html +=
-      '<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);">' +
-        '<p style="margin:0 0 6px 0;font-size:1rem;color:var(--text);">' +
-          '<strong>' + _escHtml(r.title) + '</strong>' +
-        '</p>' +
-        '<p style="margin:0 0 4px 0;color:var(--text-muted);font-size:0.82rem;line-height:1.5;">' +
-          _escHtml(r.why) +
-        '</p>' +
-        '<p style="margin:0;color:var(--text);font-size:0.82rem;line-height:1.5;">' +
-          '<strong style="color:var(--accent, #6366f1);">Action:</strong> ' +
+      '<div class="ai-rec">' +
+        '<p class="ai-rec-title"><strong>' + _escHtml(r.title) + '</strong></p>' +
+        '<p class="ai-rec-why">' + _escHtml(r.why) + '</p>' +
+        '<p class="ai-rec-action"><strong class="ai-rec-action-label">Action:</strong> ' +
           _escHtml(r.action) +
         '</p>' +
       '</div>';
