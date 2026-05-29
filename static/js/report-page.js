@@ -667,8 +667,8 @@ function renderAIRecommendations() {
     var r = recs[j];
     html +=
       '<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);">' +
-        '<p style="margin:0 0 4px 0;font-size:0.95rem;font-weight:700;color:var(--text);">' +
-          _escHtml(r.title) +
+        '<p style="margin:0 0 6px 0;font-size:1rem;color:var(--text);">' +
+          '<strong>' + _escHtml(r.title) + '</strong>' +
         '</p>' +
         '<p style="margin:0 0 4px 0;color:var(--text-muted);font-size:0.82rem;line-height:1.5;">' +
           _escHtml(r.why) +
