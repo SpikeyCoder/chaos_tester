@@ -1494,6 +1494,29 @@ def main():
     args = parser.parse_args()
 
     if args.debug:
+        # WA-2026-05-29-01 (pen-test, Low / CWE-489 Active Debug Code):
+        # Werkzeug's interactive debugger is an unauthenticated RCE
+        # surface. If the dev server is ever bound to a non-loopback
+        # address with --debug, anyone reachable on the network can pop
+        # the debugger PIN prompt and execute Python on the host. Same
+        # applies to a misconfigured Cloud Run override that swaps the
+        # gunicorn entrypoint for `python app.py --debug`. Production
+        # always uses gunicorn, never this code path, so the guard is
+        # zero impact on the happy path.
+        _loopback = {"127.0.0.1", "localhost", "::1"}
+        if os.environ.get("K_SERVICE"):
+            raise SystemExit(
+                "Refusing to start with --debug while K_SERVICE is set. "
+                "The Werkzeug debugger is an unauthenticated RCE surface. "
+                "Production must use the gunicorn entrypoint."
+            )
+        if args.host not in _loopback:
+            raise SystemExit(
+                f"Refusing to start with --debug on a non-loopback bind "
+                f"(--host={args.host!r}). The Werkzeug debugger is an "
+                "unauthenticated RCE surface. Use --host 127.0.0.1 for "
+                "local debugging."
+            )
         logger.warning(
             "Running in DEBUG mode -- do not use in production. "
             "Debug mode exposes a debugger and auto-reloads."
