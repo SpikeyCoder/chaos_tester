@@ -209,3 +209,11 @@
     font-size: 1.25rem;
     margin-bottom: 20px;
   }
+
+  /* AI Visibility recommendation cards — CSS classes instead of inline
+     styles so they aren't stripped by the CSP style-src-attr hash list. */
+  .ai-rec { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(148,163,184,0.35); }
+  .ai-rec-title { margin: 0 0 6px 0; font-size: 1rem; color: var(--text); }
+  .ai-rec-why { margin: 0 0 4px 0; color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; }
+  .ai-rec-action { margin: 0; color: var(--text); font-size: 0.82rem; line-height: 1.5; }
+  .ai-rec-action-label { color: var(--accent, #6366f1); }
