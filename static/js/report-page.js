@@ -1053,7 +1053,7 @@ function downloadCSV() {
 async function downloadPDF() {
   var btn = document.querySelector('.pill-btn.pill-pdf');
   var origText = btn ? btn.innerHTML : '';
-  if (btn) { btn.innerHTML = '⏳ Generating PDF…'; btn.disabled = true; }
+  if (btn) { btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span> Generating PDF…'; btn.disabled = true; }
 
   try {
     /* Dynamically load jsPDF + autoTable if not present */
