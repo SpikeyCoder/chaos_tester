@@ -294,6 +294,7 @@ function toggleResultDetail(row) {
 function toggleAIResults() {
   _aiExpanded = !_aiExpanded;
   var btn = document.getElementById('ai-toggle-btn');
+  btn.setAttribute('aria-expanded', _aiExpanded ? 'true' : 'false');
   btn.textContent = _aiExpanded ? 'Show First 4 Results \u25B2' : 'Show All 32 Results \u25BC';
   document.querySelectorAll('.ai-result-row').forEach(function(row, i) {
     row.style.display = _aiExpanded ? '' : (i < 4 ? '' : 'none');
