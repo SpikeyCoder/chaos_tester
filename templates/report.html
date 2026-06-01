@@ -267,7 +267,7 @@
   </div>
   {% for strategy in ["mobile","desktop"] %}
   {% set sdata = perf.get(strategy, {}) %}
-  <div class="perf-panel" id="panel-{{strategy}}" style="{% if strategy=='desktop' %}display:none{% endif %};">
+  <div class="perf-panel" id="panel-{{strategy}}" role="tabpanel" aria-labelledby="tab-{{strategy}}" style="{% if strategy=='desktop' %}display:none{% endif %};">
     {% if sdata and sdata.get("score") is not none %}
     <!-- Overall Score Gauge -->
     <div class="u-text-center-mb-5">

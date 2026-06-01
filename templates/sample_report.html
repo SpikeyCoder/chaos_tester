@@ -122,7 +122,7 @@
     <button type="button" role="tab" class="perf-tab" id="tab-desktop" aria-selected="false" aria-controls="panel-desktop" tabindex="-1">&#x1F5A5; Desktop</button>
   </div>
   <!-- Mobile panel -->
-  <div class="perf-panel" id="panel-mobile">
+  <div class="perf-panel" id="panel-mobile" role="tabpanel" aria-labelledby="tab-mobile">
     <div class="u-text-center-mb-5">
       <div class="gauge-container gauge-main"
            data-type="overall"
@@ -191,7 +191,7 @@
     </div>
   </div>
   <!-- Desktop panel (hidden by default) -->
-  <div class="perf-panel u-hidden" id="panel-desktop">
+  <div class="perf-panel u-hidden" id="panel-desktop" role="tabpanel" aria-labelledby="tab-desktop">
     <div class="u-text-center-mb-5">
       <div class="gauge-container gauge-main"
            data-type="overall"
@@ -683,7 +683,7 @@
       </table>
     </div>
     <div class="u-text-center" id="ai-show-more-bar">
-      <button type="button" class="btn btn-secondary text-sm" id="ai-toggle-btn">
+      <button type="button" class="btn btn-secondary text-sm" id="ai-toggle-btn" aria-expanded="false" aria-controls="aiResultsTable">
         Show All 32 Results &#x25BC;
       </button>
     </div>

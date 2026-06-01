@@ -64,6 +64,7 @@ function enableAuditBtn() {
   var btn = document.getElementById('auditBtn');
   if (!btn) return;
   btn.disabled = false;
+  btn.classList.remove('u-cursor-disabled');
   btn.style.opacity = '1';
   btn.style.cursor = 'pointer';
   updateAuditCtaHint();
