@@ -52,7 +52,7 @@ packaging==26.2
     #   limits
 pygments==2.20.0
     # via rich
-pyjwt==2.12.1
+pyjwt==2.13.0
     # via -r requirements.in
 requests==2.33.1
     # via -r requirements.in
