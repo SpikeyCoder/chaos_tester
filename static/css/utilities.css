@@ -781,7 +781,9 @@
   margin: 0;
 }
 .ai-action-label        { color: var(--text);              font-weight: 600; }
-.ai-action-label-accent { color: var(--accent, #6366f1);   font-weight: 600; }
+/* AUD-001 (2026-06-05): bumped accent from var(--accent) (=#3b82f6, 4.32:1 on
+   #192234) to #60a5fa which clears WCAG AA 4.5:1 on the dark surface. */
+.ai-action-label-accent { color: #60a5fa;                   font-weight: 600; }
 
 /* 40×40 purple icon tile (2 occurrences — report.html + sample_report.html). */
 .icon-tile-40-purple {
