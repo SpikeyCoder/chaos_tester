@@ -117,6 +117,19 @@ class BrokenLinkScanner(BaseModule):
 
     def _check_resource(self, url: str, res_type: str):
         """HEAD-check a resource URL."""
+        # Skip non-HTTP protocols before attempting a request
+        parsed_scheme = urlparse(url).scheme
+        if parsed_scheme in ("mailto", "tel", "javascript", "data", "ftp"):
+            self.add_result(
+                name=f"Non-HTTP {res_type}: {self._short_url(url)}",
+                description=f"Non-HTTP link ({parsed_scheme}:) -- not a broken link",
+                status=TestStatus.PASSED,
+                severity=Severity.INFO,
+                url=url,
+                details=f"Protocol {parsed_scheme}: is not checked for reachability.",
+                duration_ms=0,
+            )
+            return
         try:
             resp, dt = self._timed(
                 self.session.head, url,
