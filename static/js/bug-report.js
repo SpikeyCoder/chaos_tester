@@ -38,9 +38,15 @@ var bugReport = (function() {
         try {
             if (typeof html2canvas === 'undefined') {
                 /* dynamically load html2canvas */
+                // WA-2026-06-08-01: pin runtime-loaded cdnjs script with SRI so a
+                // compromised CDN cannot inject arbitrary JS into the bug-report
+                // capture path. Closes WA-2026-06-06-01.
                 await new Promise(function(resolve, reject) {
                     var s = document.createElement('script');
                     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                    s.integrity = 'sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H';
+                    s.crossOrigin = 'anonymous';
+                    s.referrerPolicy = 'no-referrer';
                     s.onload = resolve;
                     s.onerror = reject;
                     document.head.appendChild(s);

@@ -1059,16 +1059,26 @@ async function downloadPDF() {
     /* Dynamically load jsPDF + autoTable if not present */
     if (typeof window.jspdf === 'undefined') {
       await new Promise(function(resolve, reject) {
+        // WA-2026-06-08-01: pin runtime-loaded cdnjs scripts with SRI so a
+        // compromised CDN or tampered version cannot inject arbitrary JS into
+        // the report page. Closes pen-test 2026-06-06 finding WA-2026-06-06-01.
         var s = document.createElement('script');
         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.integrity = 'sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk';
+        s.crossOrigin = 'anonymous';
+        s.referrerPolicy = 'no-referrer';
         s.onload = resolve; s.onerror = reject;
         document.head.appendChild(s);
       });
     }
     if (typeof window.jspdf.jsPDF.API.autoTable === 'undefined') {
       await new Promise(function(resolve, reject) {
+        // WA-2026-06-08-01: SRI pin (see note above).
         var s = document.createElement('script');
         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+        s.integrity = 'sha384-fCAW/rDWORTbQXSiB7mOg0QtQ5c+r0f544y6XoKjuVva0nMBlCpNUjiFeG5iMdS3';
+        s.crossOrigin = 'anonymous';
+        s.referrerPolicy = 'no-referrer';
         s.onload = resolve; s.onerror = reject;
         document.head.appendChild(s);
       });
