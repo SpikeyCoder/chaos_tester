@@ -44,6 +44,13 @@ class TestResult:
     duration_ms: float = 0
     timestamp: str = ""
     logs: list = field(default_factory=list)
+    # Premium fix fields (populated by fix_generator post-processing)
+    fix_snippet: str = ""
+    fix_filename: str = ""
+    fix_instructions: str = ""
+    has_fix: bool = False
+    impact_pages: int = 0
+    impact_estimate: int = 0
 
     def __post_init__(self):
         if not self.test_id:
@@ -52,7 +59,7 @@ class TestResult:
             self.timestamp = datetime.utcnow().isoformat()
 
     def to_dict(self):
-        return {
+        d = {
             "test_id": self.test_id,
             "module": self.module,
             "name": self.name,
@@ -67,6 +74,17 @@ class TestResult:
             "timestamp": self.timestamp,
             "logs": self.logs,
         }
+        # Include fix fields only when populated (keeps report size down
+        # for findings without fixes)
+        if self.has_fix:
+            d["has_fix"] = True
+            d["fix_snippet"] = self.fix_snippet
+            d["fix_filename"] = self.fix_filename
+            d["fix_instructions"] = self.fix_instructions
+        if self.impact_estimate > 0:
+            d["impact_pages"] = self.impact_pages
+            d["impact_estimate"] = self.impact_estimate
+        return d
 
 
 @dataclass
@@ -88,6 +106,10 @@ class TestRun:
             self.started_at = datetime.utcnow().isoformat()
         self.performance_metrics = {}
         self.ai_visibility = {}
+        # Premium fix fields
+        self.platform = {}
+        self.total_annual_impact = 0
+        self.total_pages_audited = 1
 
     @property
     def passed(self):
@@ -118,7 +140,7 @@ class TestRun:
         }
 
     def to_dict(self):
-        return {
+        d = {
             "run_id": self.run_id,
             "base_url": self.base_url,
             "environment": self.environment,
@@ -131,3 +153,10 @@ class TestRun:
             "performance_metrics": self.performance_metrics,
             "ai_visibility": self.ai_visibility,
         }
+        # Include premium fix data when present
+        if self.platform:
+            d["platform"] = self.platform
+        if self.total_annual_impact > 0:
+            d["total_annual_impact"] = self.total_annual_impact
+            d["total_pages_audited"] = self.total_pages_audited
+        return d
