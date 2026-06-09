@@ -1730,3 +1730,123 @@ function fallbackCopy(text, btn) {
     window.location.href = '/';
   });
 })();
+
+/* ====== Premium Fix Handlers ====== */
+
+/* Copy-to-clipboard handler for fix code snippets */
+(function initFixCopyButtons() {
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.fix-copy-btn');
+    if (!btn || btn.disabled) return;
+
+    var targetId = btn.getAttribute('data-copy-target');
+    var codeEl = document.getElementById(targetId);
+    if (!codeEl) return;
+
+    var text = codeEl.textContent || codeEl.innerText;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        var origText = btn.innerHTML;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+        setTimeout(function() { btn.innerHTML = origText; }, 2000);
+      }).catch(function() {
+        _fallbackCopyFix(text, btn);
+      });
+    } else {
+      _fallbackCopyFix(text, btn);
+    }
+  });
+
+  function _fallbackCopyFix(text, btn) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      var origText = btn.innerHTML;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+      setTimeout(function() { btn.innerHTML = origText; }, 2000);
+    } catch(err) {
+      /* Silent fail */
+    }
+    document.body.removeChild(ta);
+  }
+})();
+
+/* Per-finding download handler: creates and downloads the fix file */
+(function initFixDownloadButtons() {
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.fix-download-btn');
+    if (!btn || btn.disabled) return;
+
+    var filename = btn.getAttribute('data-download-name') || 'fix.txt';
+    var contentId = btn.getAttribute('data-download-content');
+    var codeEl = document.getElementById(contentId);
+    if (!codeEl) return;
+
+    var text = codeEl.textContent || codeEl.innerText;
+    var blob = new Blob([text], { type: 'text/plain' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+})();
+
+/* Fix icon button in results table: scroll to and expand the fix panel */
+(function initFixIconButtons() {
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.fix-icon-btn-active');
+    if (!btn) return;
+
+    var fixIdx = btn.getAttribute('data-fix-idx');
+    if (!fixIdx) return;
+
+    var row = document.getElementById('result-row-' + fixIdx);
+    if (!row) return;
+
+    // Make row visible
+    row.style.display = '';
+
+    // Expand detail cell if not already expanded
+    var detailCell = row.querySelector('.result-detail-cell');
+    if (detailCell && detailCell.style.display === 'none') {
+      if (typeof toggleResultDetail === 'function') {
+        toggleResultDetail(row);
+      }
+    }
+
+    // Scroll to the fix panel
+    var fixPanel = row.querySelector('.fix-panel');
+    if (fixPanel) {
+      fixPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Brief highlight
+      fixPanel.style.transition = 'box-shadow 0.4s ease';
+      fixPanel.style.boxShadow = '0 0 0 2px #6366f1, 0 0 20px rgba(99,102,241,0.3)';
+      setTimeout(function() { fixPanel.style.boxShadow = ''; }, 2000);
+    }
+  });
+})();
+
+/* "Download All Fixes" .zip handler via the /fixes.zip endpoint */
+(function initDownloadAllFixes() {
+  var btn = document.getElementById('download-all-fixes-btn');
+  if (!btn) return;
+
+  btn.addEventListener('click', function(e) {
+    // The href already points to the .zip endpoint; let the default
+    // navigation handle the download. We just add a loading state.
+    var origHTML = btn.innerHTML;
+    btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span> Generating...';
+    setTimeout(function() {
+      btn.innerHTML = origHTML;
+    }, 5000);
+  });
+})();
