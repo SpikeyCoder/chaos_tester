@@ -217,3 +217,341 @@
   .ai-rec-why { margin: 0 0 4px 0; color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; }
   .ai-rec-action { margin: 0; color: var(--text); font-size: 0.82rem; line-height: 1.5; }
   .ai-rec-action-label { color: var(--accent, #6366f1); }
+
+/* ====== Premium Fix Styles ====== */
+
+/* Fix panel inside expanded finding details */
+.fix-panel {
+  background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(168,85,247,0.06));
+  border: 1px solid rgba(99,102,241,0.25);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 14px;
+}
+
+.fix-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.fix-panel-platform {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99,102,241,0.15);
+  color: #a78bfa;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* Fix code snippet block */
+.fix-snippet {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  position: relative;
+}
+
+.fix-snippet-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.fix-copy-btn,
+.fix-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.fix-copy-btn {
+  background: rgba(99,102,241,0.18);
+  color: #a78bfa;
+}
+
+.fix-copy-btn:hover {
+  background: rgba(99,102,241,0.30);
+}
+
+.fix-download-btn {
+  background: rgba(99,102,241,0.90);
+  color: #fff;
+}
+
+.fix-download-btn:hover {
+  background: #6366f1;
+}
+
+.fix-instructions {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.fix-instructions-label {
+  color: #a78bfa;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* Locked fix panel (free users) */
+.fix-panel-locked {
+  position: relative;
+  overflow: hidden;
+}
+
+.fix-panel-locked .fix-panel-inner {
+  filter: blur(4px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.fix-panel-lock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15,23,42,0.65);
+  border-radius: 12px;
+  z-index: 2;
+}
+
+.fix-panel-lock-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(99,102,241,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.fix-panel-lock-text {
+  color: #e2e8f0;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.fix-panel-lock-sub {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+}
+
+.fix-panel-unlock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #6366f1;
+  color: #fff;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.fix-panel-unlock-btn:hover {
+  background: #4f46e5;
+}
+
+/* Impact badge in results table */
+.impact-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.impact-badge-active {
+  background: rgba(74,222,128,0.15);
+  color: #4ade80;
+}
+
+.impact-badge-locked {
+  background: rgba(148,163,184,0.12);
+  color: #64748b;
+}
+
+/* Fix icon button in results table */
+.fix-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fix-icon-btn-active {
+  background: rgba(99,102,241,0.18);
+  color: #a78bfa;
+}
+
+.fix-icon-btn-active:hover {
+  background: rgba(99,102,241,0.30);
+}
+
+.fix-icon-btn-locked {
+  background: rgba(148,163,184,0.08);
+  color: #475569;
+  cursor: default;
+}
+
+/* Upsell fixes banner */
+.upsell-fixes-banner {
+  background: linear-gradient(to right, rgba(99,102,241,0.10) 0%, rgba(168,85,247,0.10) 50%, rgba(236,72,153,0.10) 100%);
+  border: 1px solid rgba(99,102,241,0.20);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-top: 24px;
+  text-align: center;
+}
+
+.upsell-fixes-banner-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(99,102,241,0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.upsell-fixes-banner h3 {
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.upsell-fixes-banner-impact {
+  color: #4ade80;
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 10px 0;
+}
+
+.upsell-fixes-banner-desc {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin-bottom: 18px;
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.upsell-fixes-banner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #6366f1;
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.upsell-fixes-banner-btn:hover {
+  background: #4f46e5;
+}
+
+/* Download all fixes button */
+.download-all-fixes-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-weight: 600;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+.download-all-fixes-btn:hover {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  transform: translateY(-1px);
+}
+
+/* Platform detection badge */
+.platform-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99,102,241,0.12);
+  color: #a78bfa;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .upsell-fixes-banner {
+    padding: 20px 16px;
+  }
+  .upsell-fixes-banner h3 {
+    font-size: 1.1rem;
+  }
+  .upsell-fixes-banner-impact {
+    font-size: 1.5rem;
+  }
+  .fix-snippet-actions {
+    flex-direction: column;
+  }
+}
