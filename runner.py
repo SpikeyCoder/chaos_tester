@@ -5,6 +5,7 @@ Orchestrates all test modules with concurrent execution:
   - Phase 1 (availability) runs first to discover pages
   - Phase 2 runs all remaining modules concurrently:
     links, forms, chaos, auth, security, performance, AI visibility
+  - Phase 3 (post-processing): platform detection + fix generation
 """
 
 import time
@@ -24,6 +25,8 @@ from .modules.auth import AuthTester
 from .modules.security import SecurityScanner
 from .modules.performance import fetch_performance_metrics
 from .modules.ai_visibility import AIVisibilityScanner
+from .modules.platform_detector import detect_platform_from_crawl
+from .modules.fix_generator import generate_fixes_for_report
 
 logger = logging.getLogger("chaos_tester")
 
@@ -39,6 +42,7 @@ class ChaosTestRunner:
         self.test_run: Optional[TestRun] = None
         self._progress_callback = None
         self._results_lock = threading.Lock()
+        self._page_cache: dict = {}
 
     def on_progress(self, callback):
         """Register a callback: callback(module_name, pct, message)"""
@@ -161,7 +165,16 @@ class ChaosTestRunner:
                     if r.module == "availability" and "Page load" in r.name and r.status.value == "passed"
                 })
                 page_cache = scanner.page_cache
+                self._page_cache = page_cache
                 self._emit("availability", 20, f"Done -- {len(discovered_pages)} pages OK, {len(results)} checks.")
+
+            # -- Platform detection (runs right after availability) --
+            try:
+                platform = detect_platform_from_crawl(page_cache)
+                self._emit("runner", 22, f"Platform detected: {platform.get('display', 'unknown')}")
+            except Exception as exc:
+                logger.warning("Platform detection failed: %s", exc)
+                platform = {"name": "unknown", "display": "Generic Web Server", "fix_file": "server-config"}
 
             # -- Phase 2: Page-dependent modules concurrently ----------
             page_tasks = []
@@ -207,6 +220,29 @@ class ChaosTestRunner:
             # Running them concurrently with other modules caused timeouts
             # due to connection pool contention on Cloud Run.
             self._run_performance()
+
+            # -- Phase 3: Post-processing (fix generation + impact scoring) --
+            try:
+                self._emit("runner", 98, "Generating platform-specific fixes...")
+                report_dict = self.test_run.to_dict()
+                generate_fixes_for_report(report_dict, platform)
+                # Write enriched data back to the test_run results
+                for i, result in enumerate(self.test_run.results):
+                    if i < len(report_dict.get("results", [])):
+                        enriched = report_dict["results"][i]
+                        result.fix_snippet = enriched.get("fix_snippet", "")
+                        result.fix_filename = enriched.get("fix_filename", "")
+                        result.fix_instructions = enriched.get("fix_instructions", "")
+                        result.has_fix = enriched.get("has_fix", False)
+                        result.impact_pages = enriched.get("impact_pages", 0)
+                        result.impact_estimate = enriched.get("impact_estimate", 0)
+                # Store platform and total impact on the test run
+                self.test_run.platform = platform
+                self.test_run.total_annual_impact = report_dict.get("total_annual_impact", 0)
+                self.test_run.total_pages_audited = report_dict.get("total_pages_audited", 1)
+                self._emit("runner", 99, "Fix generation complete.")
+            except Exception as exc:
+                logger.warning("Fix generation failed: %s", exc)
 
             self.test_run.status = "completed"
 
