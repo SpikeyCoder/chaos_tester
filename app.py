@@ -14,6 +14,7 @@ import hashlib
 import hmac
 import io
 import csv
+import zipfile
 import json
 import os
 import re
@@ -843,6 +844,12 @@ def view_report(run_id):
         public_host = "website-auditor.io"
     return_to_url = f"https://{public_host}{request.full_path.rstrip('?')}"
 
+    # Extract premium fix data for the template
+    platform = report.get("platform", {})
+    total_annual_impact = report.get("total_annual_impact", 0)
+    total_pages_audited = report.get("total_pages_audited", 1)
+    fix_count = sum(1 for r in report.get("results", []) if r.get("has_fix"))
+
     return render_template(
         "report.html",
         report=report,
@@ -850,6 +857,10 @@ def view_report(run_id):
         domain=domain,
         ai_query_entitled=entitlement is not None,
         return_to_url=return_to_url,
+        platform=platform,
+        total_annual_impact=total_annual_impact,
+        total_pages_audited=total_pages_audited,
+        fix_count=fix_count,
     )
 
 
@@ -916,6 +927,72 @@ def report_download_csv(run_id):
         )
         return resp
     return jsonify({"error": "Not found"}), 404
+
+
+
+@app.route("/report/<run_id>/fixes.zip")
+def report_download_fixes(run_id):
+    """Download all generated fix files as a zip archive.
+
+    Gated behind wa_auth entitlement -- only paid subscribers can
+    download fix files. Free users see the locked UI in the template.
+    """
+    _validate_run_id(run_id)
+
+    if not wa_auth.is_entitled(request):
+        return jsonify({
+            "error": "subscription_required",
+            "message": "Fix downloads require an active subscription.",
+            "upgrade_url": "https://api.website-auditor.io/admin_portal/",
+        }), 403
+
+    report = _resolve_report(run_id)
+    if not report:
+        return jsonify({"error": "Not found"}), 404
+
+    platform = report.get("platform", {})
+    results = report.get("results", [])
+    fix_results = [r for r in results if r.get("has_fix") and r.get("fix_snippet")]
+
+    if not fix_results:
+        return jsonify({"error": "No fixes available for this report"}), 404
+
+    # Group fixes by filename to combine snippets for the same file
+    file_groups = {}
+    for r in fix_results:
+        fname = r.get("fix_filename", "fix.txt")
+        if fname not in file_groups:
+            file_groups[fname] = []
+        header = "# Fix for: " + r.get("name", "unknown issue")
+        file_groups[fname].append(header + "\n" + r.get("fix_snippet", ""))
+
+    # Build zip in memory
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for fname, snippets in file_groups.items():
+            combined = "\n\n".join(snippets)
+            zf.writestr(fname, combined)
+
+        # Add a README
+        domain = report.get("base_url", "").replace("https://", "").replace("http://", "")
+        readme = (
+            f"Website Auditor -- Fix Files\n"
+            f"============================\n\n"
+            f"Generated for: {domain}\n"
+            f"Platform: {platform.get('display', 'Unknown')}\n"
+            f"Total fixes: {len(fix_results)}\n\n"
+            f"Apply these files to your project to resolve the audit findings.\n"
+            f"See each file for specific instructions.\n"
+        )
+        zf.writestr("README.txt", readme)
+
+    buf.seek(0)
+    resp = make_response(buf.read())
+    resp.headers["Content-Type"] = "application/zip"
+    resp.headers["Content-Disposition"] = (
+        f'attachment; filename="audit_fixes_{run_id}.zip"'
+    )
+    return resp
 
 
 @app.route("/latest")
