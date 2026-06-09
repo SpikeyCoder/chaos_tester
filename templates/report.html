@@ -456,7 +456,7 @@
           <td data-label="Impact">
             {% if r.impact_estimate is defined and r.impact_estimate > 0 %}
               {% if ai_query_entitled %}
-                <span class="impact-badge impact-badge-active">${{ r.impact_estimate }}/yr</span>
+                <span class="impact-badge impact-badge-active">${{ "{:,}".format(r.impact_estimate|int) }}/yr</span>
               {% else %}
                 <span class="impact-badge impact-badge-locked">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -519,7 +519,7 @@
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
     </div>
     <h3>These issues could be costing you</h3>
-    <div class="upsell-fixes-banner-impact">${{ total_annual_impact|int }}/year</div>
+    <div class="upsell-fixes-banner-impact">${{ "{:,}".format(total_annual_impact|int) }}/year</div>
     <div class="upsell-fixes-banner-desc">
       We found {{ fix_count }} fixable issue{{ 's' if fix_count != 1 }} across {{ total_pages_audited }} page{{ 's' if total_pages_audited != 1 }}.
       Unlock 1-click fix files tailored to your platform{% if platform and platform.display is defined %} ({{ platform.display }}){% endif %}.
