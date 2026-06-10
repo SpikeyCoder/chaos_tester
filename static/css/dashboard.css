@@ -39,6 +39,15 @@
     animation: spin 0.6s linear infinite;
     vertical-align: middle;
   }
+  /* WAO-MOB-001 (2026-06-09 audit): "Not the right business?" button
+     measured 141x29 on the dashboard. WCAG 2.5.5 (AAA) recommends 44x44;
+     AA minimum is 24x24 so it technically passes — but bumping to 32 with
+     comfortable padding makes the toggle reliably tappable on phones
+     without enlarging the layout. */
+  #biz-name-wrong-btn {
+    min-height: 32px;
+    padding: 4px 8px;
+  }
   #biz-name-wrong-btn:hover {
     color: var(--text);
   }
