@@ -12,27 +12,80 @@ from typing import Optional
 from urllib.parse import urlparse
 
 
+# Cloud metadata endpoints (GCP, AWS IMDSv1/v2, Azure, Oracle, Aliyun, etc.)
+# plus their IPv6 forms. Matched both literally on the host string AND on
+# every resolved IP — see _is_private_or_reserved() below.
+#
+# Pen-test 2026-06-10 finding WA-2026-06-10-01: the previous string-match
+# was bypassed when an attacker-controlled hostname resolved (or was
+# DNS-rebound) to one of these literals — `100.100.100.200`, for example,
+# is not flagged by Python's `is_private`/`is_reserved` checks, so the
+# Aliyun IMDS address would slip through unless we compared the resolved
+# IP against the set as well.
+_BLOCKED_METADATA_HOSTS: frozenset[str] = frozenset({
+    "metadata.google.internal",
+    "169.254.169.254",
+    "metadata",
+    "fd00:ec2::254",
+    "100.100.100.200",
+    # IPv4-mapped IPv6 form of the AWS/GCP IMDS — Python reports
+    # is_private=True so the addr check catches it, but include the
+    # literal here for defense-in-depth.
+    "::ffff:169.254.169.254",
+})
+
+# IP-literal metadata endpoints, parsed once. Resolved IPs are compared
+# against this set in _is_private_or_reserved() so the cloud-IMDS block
+# is enforced by IP, not by hostname string.
+_BLOCKED_METADATA_IPS: frozenset[ipaddress._BaseAddress] = frozenset(
+    {
+        ipaddress.ip_address("169.254.169.254"),
+        ipaddress.ip_address("100.100.100.200"),   # Aliyun ECS IMDS
+        ipaddress.ip_address("fd00:ec2::254"),     # AWS IMDSv2 IPv6
+        ipaddress.ip_address("::ffff:169.254.169.254"),
+    }
+)
+
+# Additional networks that Python's stdlib does NOT flag as private/reserved
+# but we want to refuse to fetch from. RFC 6598 carrier-grade NAT space
+# (used by some VPN overlays such as Tailscale) is the most common gap.
+# Pen-test 2026-06-10 finding WA-2026-06-10-02.
+_BLOCKED_EXTRA_NETWORKS: tuple[ipaddress._BaseNetwork, ...] = (
+    ipaddress.ip_network("100.64.0.0/10"),   # CGNAT (RFC 6598)
+    ipaddress.ip_network("64:ff9b::/96"),    # NAT64 well-known prefix
+    ipaddress.ip_network("64:ff9b:1::/48"),  # NAT64 local-use prefix
+)
+
+
 def _is_private_or_reserved(hostname: str) -> bool:
     """Return True if *hostname* resolves to a private, loopback, or
-    link-local address -- or to a well-known cloud metadata endpoint.
-    This provides SSRF protection by blocking requests to internal services."""
-    # Cloud metadata endpoints (GCP, AWS IMDSv1/v2, Azure, Oracle, etc.)
-    # plus their IPv6 forms.
-    BLOCKED_HOSTS = {
-        "metadata.google.internal",
-        "169.254.169.254",
-        "metadata",
-        "fd00:ec2::254",
-        "100.100.100.200",
-    }
-    if hostname.lower() in BLOCKED_HOSTS:
+    link-local address — or to a well-known cloud metadata endpoint
+    (by literal hostname OR by resolved IP), or to a CGNAT / NAT64 range.
+
+    Pen-test hardening 2026-06-10 (WA-2026-06-10-01 / WA-2026-06-10-02):
+    Cloud-metadata blocking is now enforced on every resolved IP, not
+    just the literal hostname string, and CGNAT (100.64.0.0/10) is
+    explicitly blocked because `ipaddress.is_private` does not flag it.
+    """
+    if hostname.lower() in _BLOCKED_METADATA_HOSTS:
         return True
     try:
         infos = socket.getaddrinfo(hostname, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
         for _family, _type, _proto, _canonname, sockaddr in infos:
             addr = ipaddress.ip_address(sockaddr[0])
+            # Stdlib-known private / reserved space.
             if addr.is_private or addr.is_loopback or addr.is_link_local or addr.is_reserved:
                 return True
+            # Cloud-metadata literals, matched by RESOLVED IP so an
+            # attacker-controlled DNS record pointing to e.g.
+            # 100.100.100.200 is also blocked.
+            if addr in _BLOCKED_METADATA_IPS:
+                return True
+            # CGNAT (RFC 6598) and NAT64 — not flagged by stdlib but
+            # commonly route to internal infrastructure.
+            for net in _BLOCKED_EXTRA_NETWORKS:
+                if addr.version == net.version and addr in net:
+                    return True
     except (socket.gaierror, ValueError, OSError):
         # DNS resolution failed -- allow the request (the HTTP client
         # will surface its own connection error later).
