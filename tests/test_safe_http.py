@@ -71,3 +71,32 @@ def test_allows_public_address(monkeypatch):
         r = s.get("http://example.com/")
     assert r.status_code == 200
     assert captured["url"] == "http://example.com/"
+
+
+# ── Pen-test 2026-06-10 (WA-2026-06-10-01 / -02) regression tests ─────────
+
+@pytest.mark.parametrize("addr", [
+    "100.100.100.200",   # Aliyun ECS IMDS (not is_private under stdlib)
+    "100.64.0.1",        # CGNAT (RFC 6598)
+    "100.127.255.254",   # CGNAT upper edge
+])
+def test_blocks_resolved_metadata_and_cgnat(addr):
+    """Hostname that resolves to a cloud-IMDS literal or CGNAT must be
+    refused even though Python stdlib does not flag the address as
+    private or reserved.
+
+    Pen-test 2026-06-10 finding WA-2026-06-10-01 (metadata by resolved IP)
+    and WA-2026-06-10-02 (CGNAT coverage gap).
+    """
+    s = SafeSession()
+    with _patch_resolution([addr]):
+        with pytest.raises(SSRFBlockedError):
+            s.get("http://attacker.example.com/")
+
+
+def test_blocks_when_metadata_hostname_supplied_directly():
+    """The literal cloud-IMDS hostname must be refused regardless of
+    DNS resolution."""
+    s = SafeSession()
+    with pytest.raises(SSRFBlockedError):
+        s.get("http://metadata.google.internal/")
