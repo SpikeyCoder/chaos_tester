@@ -429,7 +429,7 @@
 }
 
 /* Standard CTA button padding pairs. */
-.u-btn-padding-lg { padding: 12px 28px; }
+.u-btn-padding-lg { padding: 12px 28px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; }
 .u-btn-padding-md { padding: 14px 36px; font-size: 1.05rem; }
 
 /* Border-left accent (collapsible-section heading style). */
