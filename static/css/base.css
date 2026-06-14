@@ -524,7 +524,7 @@ footer a:hover { color: #fff; }
     z-index: 999; padding: 10px 20px; background: var(--accent); color: var(--bg); font-weight: 600;
     border-radius: 0 0 6px 0;
 }
-.skip-link:focus { left: 0; width: auto; height: auto; }
+.skip-link:focus { left: 0; width: auto; height: auto; min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; }
 
 /* -- Hamburger menu --------------------------------------- */
 .hamburger {
