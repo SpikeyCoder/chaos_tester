@@ -28,14 +28,14 @@
     <meta name="twitter:description" content="One-click website audit for AI visibility, security, broken links & performance. Free and instant.">
     <meta name="twitter:image" content="https://website-auditor.io/static/og-image.png">
 
-    <!-- JSON-LD Schema -->
+    <!-- JSON-LD Schema: SoftwareApplication -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
+        "@type": "SoftwareApplication",
         "name": "Website Auditor",
         "url": "https://website-auditor.io",
-        "description": "Free website audit tool that checks AI visibility, broken links, security, forms, and performance in one click.",
+        "description": "Free website audit tool that checks AI visibility, broken links, security, and performance in one click. See how your business appears in ChatGPT and other AI tools.",
         "applicationCategory": "WebApplication",
         "operatingSystem": "Web",
         "offers": {
@@ -43,10 +43,24 @@
             "price": "0",
             "priceCurrency": "USD"
         },
-        "creator": {
-            "@type": "Organization",
-            "name": "Website Auditor"
-        }
+        "featureList": [
+            "AI visibility scoring",
+            "Broken link detection",
+            "Security header analysis",
+            "Performance metrics",
+            "SEO audit",
+            "Platform detection"
+        ]
+    }
+    </script>
+    <!-- JSON-LD Schema: Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Website Auditor",
+        "url": "https://website-auditor.io",
+        "logo": "https://website-auditor.io/static/logo.svg"
     }
     </script>
     {% block extra_schema %}{% endblock %}
