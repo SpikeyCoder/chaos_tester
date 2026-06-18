@@ -1518,12 +1518,12 @@ async function downloadPDF() {
         head: [['Status', 'Severity', 'Module', 'Check', 'Details', 'Recommendation']],
         body: tableBody,
         columnStyles: {
-          0: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
-          1: { cellWidth: 16, halign: 'center', fontStyle: 'bold' },
+          0: { cellWidth: 16, halign: 'center', fontStyle: 'bold' },
+          1: { cellWidth: 19, halign: 'center', fontStyle: 'bold' },
           2: { cellWidth: 18 },
-          3: { cellWidth: 32 },
-          4: { cellWidth: 50 },
-          5: { cellWidth: usable - 14 - 16 - 18 - 32 - 50 }
+          3: { cellWidth: 30 },
+          4: { cellWidth: 47 },
+          5: { cellWidth: usable - 16 - 19 - 18 - 30 - 47 }
         },
         didParseCell: function(data) {
           if (data.section !== 'body') return;
