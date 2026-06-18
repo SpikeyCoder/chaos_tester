@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 
 from .base import BaseModule
 from ..models import TestResult, TestStatus, Severity
+from ..spa_detection import is_spa_catchall
 
 logger = logging.getLogger("chaos_tester")
 
@@ -124,6 +125,22 @@ class AuthTester(BaseModule):
                         status=TestStatus.PASSED,
                         severity=Severity.INFO,
                         url=url,
+                    )
+                elif is_spa_catchall(resp.text, path):
+                    # SPA catch-all: the server returned its index.html
+                    # shell, not actual server-rendered content for this
+                    # route.  Client-side routing handles access control.
+                    self.add_result(
+                        name=f"SPA catch-all (client route): {path}",
+                        description=f"Path returns SPA shell, not server-rendered content",
+                        status=TestStatus.PASSED,
+                        severity=Severity.INFO,
+                        url=url,
+                        details=(
+                            f"HTTP 200 for {path}, but the response is the SPA "
+                            f"application shell (catch-all routing). Auth is "
+                            f"likely enforced client-side or via API calls."
+                        ),
                     )
                 else:
                     self.add_result(
@@ -289,15 +306,31 @@ class AuthTester(BaseModule):
                     allow_redirects=False,
                 )
                 if resp.status_code in (200, 201, 204):
-                    self.add_result(
-                        name=f"{method} accepted: {path}",
-                        description=f"{method} request accepted on {path}",
-                        status=TestStatus.FAILED,
-                        severity=Severity.HIGH,
-                        url=url,
-                        details=f"{method} {path} returned {resp.status_code} -- may allow unintended modifications.",
-                        recommendation=f"Restrict {method} on {path} or require authentication.",
-                    )
+                    # SPA catch-all: the server returned its HTML shell
+                    # for this method + path, not a real API response.
+                    if is_spa_catchall(resp.text, path):
+                        self.add_result(
+                            name=f"SPA catch-all ({method}): {path}",
+                            description=f"{method} returned SPA shell, not a real API response",
+                            status=TestStatus.PASSED,
+                            severity=Severity.INFO,
+                            url=url,
+                            details=(
+                                f"{method} {path} returned {resp.status_code} "
+                                f"with SPA shell HTML. The server is not "
+                                f"actually processing {method} requests."
+                            ),
+                        )
+                    else:
+                        self.add_result(
+                            name=f"{method} accepted: {path}",
+                            description=f"{method} request accepted on {path}",
+                            status=TestStatus.FAILED,
+                            severity=Severity.HIGH,
+                            url=url,
+                            details=f"{method} {path} returned {resp.status_code} -- may allow unintended modifications.",
+                            recommendation=f"Restrict {method} on {path} or require authentication.",
+                        )
                 elif resp.status_code == 405:
                     self.add_result(
                         name=f"{method} blocked: {path}",
