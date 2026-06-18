@@ -19,6 +19,7 @@ from urllib.parse import urljoin
 
 from .base import BaseModule
 from ..models import TestResult, TestStatus, Severity
+from ..spa_detection import is_spa_catchall
 
 logger = logging.getLogger("chaos_tester")
 
@@ -204,6 +205,25 @@ class SecurityScanner(BaseModule):
                 return
             content_type = resp.headers.get("content-type", "").lower()
             body_preview = resp.text[:200]
+
+            # --- SPA catch-all detection ---
+            # SPAs serve their index.html shell for every path. If the
+            # response body looks like a generic SPA shell rather than
+            # the actual file content, this is a false positive.
+            if is_spa_catchall(resp.text, path):
+                self.add_result(
+                    name=f"SPA catch-all (not exposed): {path}",
+                    description=f"{path} returns SPA shell, not actual file content",
+                    status=TestStatus.PASSED,
+                    severity=Severity.INFO,
+                    url=url,
+                    details=(
+                        f"HTTP 200 for {path}, but response is the SPA application "
+                        f"shell (catch-all routing), not the real file."
+                    ),
+                )
+                return
+
             if path in ("/robots.txt", "/sitemap.xml", "/.well-known/security.txt"):
                 self.add_result(
                     name=f"Public file: {path}",
@@ -227,7 +247,7 @@ class SecurityScanner(BaseModule):
             sev = Severity.CRITICAL if any(s in path for s in [".env", ".git"]) else Severity.HIGH
             self.add_result(
                 name=f"Sensitive file exposed: {path}",
-                description=f"⚠ '{path}' is publicly accessible!",
+                description=f"'{path}' is publicly accessible!",
                 status=TestStatus.FAILED,
                 severity=sev,
                 url=url,
