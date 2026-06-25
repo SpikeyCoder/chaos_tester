@@ -32,6 +32,51 @@ SEVERITY_MULTIPLIER = {
     "info": 0.1,
 }
 
+# ---------- Build-time-to-fix estimation (developer minutes) ----------
+#
+# Concrete, tunable companion to compute_impact(). It deliberately reuses the
+# SAME finding inputs as compute_impact (module, severity, status) instead of
+# introducing a parallel scoring model, so the two stay in lock-step.
+#
+# BUILD_TIME_BASE_MINUTES = typical hands-on developer minutes to implement the
+# DOMINANT fix type for each module, assuming the engineer has the fix snippet
+# in hand (which the report provides). Assumptions, per module:
+#   security     : add/adjust HTTP security headers via platform config —
+#                  well-trodden copy-paste, but needs a deploy + re-scan.
+#   auth         : session/login/cookie config changes — must be done carefully
+#                  and the full auth flow re-tested, so noticeably longer.
+#   accessibility: per-element markup edits (alt text, form labels) — simple but
+#                  repetitive; real effort scales with how many elements.
+#   chaos        : performance / resilience work — profiling plus code changes,
+#                  the most open-ended category.
+#   forms        : markup + validation fixes on a form — moderate.
+#   links        : update or redirect broken URLs — quick edits.
+#   availability : chase down 5xx / timeout pages — variable, infra-adjacent.
+#
+# Tune these two tables to recalibrate; nothing else needs to change.
+BUILD_TIME_BASE_MINUTES = {
+    "security": 20,
+    "auth": 60,
+    "accessibility": 25,
+    "chaos": 120,
+    "forms": 30,
+    "links": 15,
+    "availability": 90,
+}
+
+# Severity scales the base effort: a critical instance usually means more
+# occurrences and more careful implementation + verification than a low one.
+BUILD_TIME_SEVERITY_MULTIPLIER = {
+    "critical": 2.0,
+    "high": 1.5,
+    "medium": 1.0,
+    "low": 0.6,
+    "info": 0.4,
+}
+
+# Fallback hands-on minutes for an unrecognised module.
+BUILD_TIME_DEFAULT_MINUTES = 30
+
 # ---------- Fix templates per platform ----------
 
 def _csp_fix(platform_name):
@@ -398,6 +443,64 @@ def compute_impact(result: dict, total_pages: int) -> dict:
     return result
 
 
+def _humanize_minutes(minutes: int) -> str:
+    """Render a minutes estimate as a tidy, human-friendly label.
+
+    < 1 hour  -> "~N min"  (rounded to the nearest 5 minutes)
+    < 8 hours -> "~N hr(s)" (rounded to the nearest half hour)
+    >= 8 hrs  -> "~N day(s)" (rounded to the nearest half, 8-hour day)
+    """
+    if minutes <= 0:
+        return ""
+    if minutes < 60:
+        rounded = max(5, int(round(minutes / 5.0)) * 5)
+        return f"~{rounded} min"
+    hours = minutes / 60.0
+    if hours < 8:
+        half = round(hours * 2) / 2
+        if half == int(half):
+            n = int(half)
+            return f"~{n} hr" if n == 1 else f"~{n} hrs"
+        return f"~{half} hrs"
+    days = hours / 8.0  # assume an 8-hour engineering day
+    half = round(days * 2) / 2
+    if half == int(half):
+        n = int(half)
+        return f"~{n} day" if n == 1 else f"~{n} days"
+    return f"~{half} days"
+
+
+def estimate_build_time(result: dict) -> dict:
+    """Estimate developer time-to-implement for a single finding's fix.
+
+    Concrete, per-finding companion to compute_impact(). Reuses the same
+    inputs (module, severity, status) rather than introducing a new model.
+    Mutates the result dict in place, adding:
+      build_time_minutes : int  estimated hands-on minutes (0 for passing)
+      build_time_label   : str  human label, e.g. "~30 min" / "~2 hrs"
+
+    Returns the result dict for chaining.
+    """
+    module = result.get("module", "")
+    severity = result.get("severity", "info")
+    status = result.get("status", "passed")
+
+    # No work to do for passing/skipped checks — mirrors compute_impact().
+    if status in ("passed", "skipped"):
+        result["build_time_minutes"] = 0
+        result["build_time_label"] = ""
+        return result
+
+    base = BUILD_TIME_BASE_MINUTES.get(module, BUILD_TIME_DEFAULT_MINUTES)
+    multiplier = BUILD_TIME_SEVERITY_MULTIPLIER.get(severity, 1.0)
+    minutes = max(5, int(round(base * multiplier)))
+
+    result["build_time_minutes"] = minutes
+    result["build_time_label"] = _humanize_minutes(minutes)
+
+    return result
+
+
 def generate_fixes_for_report(report_data: dict, platform: dict) -> dict:
     """Post-process a full report: add fixes and impact to every result.
 
@@ -420,6 +523,7 @@ def generate_fixes_for_report(report_data: dict, platform: dict) -> dict:
     for result in results:
         generate_fix_for_result(result, platform)
         compute_impact(result, total_pages)
+        estimate_build_time(result)
         total_impact += result.get("impact_estimate", 0)
 
     report_data["total_annual_impact"] = total_impact

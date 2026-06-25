@@ -413,6 +413,18 @@
   color: #64748b;
 }
 
+/* Build-time-to-fix estimate, shown under the $ impact for every finding */
+.build-time-estimate {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
 /* Fix icon button in results table */
 .fix-icon-btn {
   display: inline-flex;
