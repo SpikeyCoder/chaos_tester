@@ -53,8 +53,12 @@ class AuthTester(BaseModule):
 
     def _test_unauthenticated_access(self, discovered_pages: list):
         """Hit protected routes without auth and check we get 401/403."""
-        import requests
-        unauth_session = requests.Session()
+        # Use the SSRF-aware session so these probes are gated by the same
+        # deny-list as every other outbound request (see chaos_tester/safe_http.py).
+        # A bare SafeSession carries no auth header / cookies, so the probes
+        # remain unauthenticated as intended.
+        from ..safe_http import SafeSession
+        unauth_session = SafeSession()
         unauth_session.headers.update({"User-Agent": self.config.user_agent})
         probe_timeout = 5
 

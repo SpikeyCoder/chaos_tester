@@ -5,11 +5,14 @@ Chaos Tester -- Configuration
 """
 
 import ipaddress
+import logging
 import os
 import socket
 from dataclasses import dataclass, field
 from typing import Optional
 from urllib.parse import urlparse
+
+logger = logging.getLogger("chaos_tester.config")
 
 
 # Cloud metadata endpoints (GCP, AWS IMDSv1/v2, Azure, Oracle, Aliyun, etc.)
@@ -86,10 +89,16 @@ def _is_private_or_reserved(hostname: str) -> bool:
             for net in _BLOCKED_EXTRA_NETWORKS:
                 if addr.version == net.version and addr in net:
                     return True
-    except (socket.gaierror, ValueError, OSError):
-        # DNS resolution failed -- allow the request (the HTTP client
-        # will surface its own connection error later).
-        pass
+    except (socket.gaierror, ValueError, OSError) as exc:
+        # Fail CLOSED: if we cannot resolve / parse the address, refuse the
+        # request rather than letting it through. A resolver quirk here could
+        # differ from the connect-time resolver, and a security gate should
+        # not default to "allow" when its check is inconclusive.
+        logger.warning(
+            "SSRF guard: blocking host %r because address check failed: %s",
+            hostname, exc,
+        )
+        return True
     return False
 
 
