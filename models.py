@@ -11,6 +11,12 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
+from .impact_estimator import (
+    estimate_dollar_impact,
+    estimate_fix_time,
+    format_dollar_impact,
+)
+
 
 class Severity(str, Enum):
     CRITICAL = "critical"
@@ -52,13 +58,20 @@ class TestResult:
             self.timestamp = datetime.utcnow().isoformat()
 
     def to_dict(self):
+        # Business-impact & fix-effort estimates, derived from severity + module.
+        # See impact_estimator.py for the (tunable, documented) model. These are
+        # what the report UI shows as a finding's "$ impact" and "build time to
+        # fix" -- the latter REPLACES showing raw test execution time.
+        sev = self.severity.value
+        dollar_impact = estimate_dollar_impact(sev, self.module)
+        fix = estimate_fix_time(sev, self.module)
         return {
             "test_id": self.test_id,
             "module": self.module,
             "name": self.name,
             "description": self.description,
             "status": self.status.value,
-            "severity": self.severity.value,
+            "severity": sev,
             "url": self.url,
             "details": self.details,
             "recommendation": self.recommendation,
@@ -66,6 +79,11 @@ class TestResult:
             "duration_ms": round(self.duration_ms, 1),
             "timestamp": self.timestamp,
             "logs": self.logs,
+            # --- estimates (see impact_estimator.py) ---
+            "dollar_impact": dollar_impact,
+            "dollar_impact_display": format_dollar_impact(dollar_impact),
+            "fix_time": fix["label"],
+            "fix_time_minutes": fix["minutes"],
         }
 
 

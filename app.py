@@ -843,6 +843,15 @@ def view_report(run_id):
         public_host = "website-auditor.io"
     return_to_url = f"https://{public_host}{request.full_path.rstrip('?')}"
 
+    # Premium gate for the per-finding "See the fix" reveal. Each finding always
+    # shows its estimated $ impact and build-time to fix; only the step-by-step
+    # fix text (the `recommendation`) sits behind this single flag. Kept False so
+    # the lock shows by design. To wire real entitlement, set this to
+    # `entitlement is not None`; to unlock for everyone, set it to True. No
+    # billing logic is added here -- this is just the on/off switch.
+    fixes_unlocked = False
+    fix_unlock_url = "https://api.website-auditor.io/admin_portal/"
+
     return render_template(
         "report.html",
         report=report,
@@ -850,6 +859,8 @@ def view_report(run_id):
         domain=domain,
         ai_query_entitled=entitlement is not None,
         return_to_url=return_to_url,
+        fixes_unlocked=fixes_unlocked,
+        fix_unlock_url=fix_unlock_url,
     )
 
 

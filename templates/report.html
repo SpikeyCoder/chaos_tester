@@ -387,11 +387,35 @@
               {{ r.name }}
             </div>
             {% if r.description %}<div class="text-muted text-sm u-wordwrap-break">{{ r.description }}</div>{% endif %}
+            {# Estimated $ impact + build-time to fix (see impact_estimator.py). #}
+            {% if is_issue %}
+            <div class="finding-estimates" aria-label="Estimated impact and fix effort">
+              <span class="estimate-chip estimate-impact" title="Estimated annual revenue at risk if left unfixed (see report methodology)">{{ r.dollar_impact_display }} impact</span>
+              <span class="estimate-chip estimate-effort" title="Estimated developer time to build the fix">{{ r.fix_time }} to fix</span>
+            </div>
+            {% endif %}
           </td>
           <td class="text-sm cell-details result-detail-cell u-hidden" data-label="">
             {% if r.details %}<div class="u-mb-1 u-wordwrap-break">{{ r.details }}</div>{% endif %}
             {% if r.recommendation %}
-            <div class="u-text-xs-accent u-wordwrap-break">Tip: {{ r.recommendation }}</div>
+              {% if fixes_unlocked %}
+              {# Premium gate is open: reveal the step-by-step fix inline. #}
+              <div class="fix-reveal">
+                <div class="fix-reveal-label">Recommended fix</div>
+                <div class="u-text-xs-accent u-wordwrap-break">{{ r.recommendation }}</div>
+              </div>
+              {% else %}
+              {# Premium gate (by design): the $ impact and build-time above stay
+                 visible; only the fix text is locked. The recommendation is NOT
+                 rendered into the DOM while locked, so the gate is real. Flip
+                 `fixes_unlocked` in app.py (e.g. to the subscription entitlement)
+                 to reveal it inline. #}
+              <a class="fix-lock-btn u-no-decoration" href="{{ fix_unlock_url }}" target="_blank" rel="noopener" aria-label="Unlock the recommended fix for this finding">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>See the fix</span>
+                <span class="fix-lock-tag">Pro</span>
+              </a>
+              {% endif %}
             {% endif %}
             {% if r.url %}<div class="text-muted u-text-mono-tiny">{{ r.url }}</div>{% endif %}
           </td>

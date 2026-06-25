@@ -217,3 +217,35 @@
   .ai-rec-why { margin: 0 0 4px 0; color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; }
   .ai-rec-action { margin: 0; color: var(--text); font-size: 0.82rem; line-height: 1.5; }
   .ai-rec-action-label { color: var(--accent, #6366f1); }
+
+  /* Per-finding estimates ($ impact + build-time to fix) and the premium
+     "See the fix" gate. The estimate chips are always visible; only the fix
+     text sits behind the lock. Values come from impact_estimator.py. */
+  .finding-estimates { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .estimate-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 6px;
+    font-size: 0.72rem; font-weight: 600; line-height: 1.4; white-space: nowrap;
+  }
+  .estimate-impact { background: rgba(74,222,128,0.12); color: #4ade80; }
+  .estimate-effort { background: rgba(249,115,22,0.12); color: #fb923c; }
+
+  .fix-reveal { margin-top: 4px; }
+  .fix-reveal-label {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 2px;
+  }
+  .fix-lock-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 4px; padding: 6px 12px;
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.35);
+    border-radius: 8px;
+    color: #818cf8; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  }
+  .fix-lock-btn:hover { background: rgba(99,102,241,0.2); }
+  .fix-lock-tag {
+    background: #6366f1; color: #fff; font-size: 0.62rem; font-weight: 700;
+    padding: 1px 6px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
