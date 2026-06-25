@@ -51,6 +51,8 @@ class TestResult:
     has_fix: bool = False
     impact_pages: int = 0
     impact_estimate: int = 0
+    build_time_minutes: int = 0
+    build_time_label: str = ""
 
     def __post_init__(self):
         if not self.test_id:
@@ -84,6 +86,9 @@ class TestResult:
         if self.impact_estimate > 0:
             d["impact_pages"] = self.impact_pages
             d["impact_estimate"] = self.impact_estimate
+        if self.build_time_minutes > 0:
+            d["build_time_minutes"] = self.build_time_minutes
+            d["build_time_label"] = self.build_time_label
         return d
 
 

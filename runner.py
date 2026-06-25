@@ -236,6 +236,8 @@ class ChaosTestRunner:
                         result.has_fix = enriched.get("has_fix", False)
                         result.impact_pages = enriched.get("impact_pages", 0)
                         result.impact_estimate = enriched.get("impact_estimate", 0)
+                        result.build_time_minutes = enriched.get("build_time_minutes", 0)
+                        result.build_time_label = enriched.get("build_time_label", "")
                 # Store platform and total impact on the test run
                 self.test_run.platform = platform
                 self.test_run.total_annual_impact = report_dict.get("total_annual_impact", 0)
