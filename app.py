@@ -35,6 +35,7 @@ from flask import (
 from .config import ChaosConfig
 from .runner import ChaosTestRunner
 from .models import TestRun
+from .modules.fix_generator import redact_fix_content
 from . import supabase_client as supa
 
 # Build-time-computed sha256 hashes of every inline `style="..."` attribute
@@ -824,6 +825,13 @@ def view_report(run_id):
     # paid/trial subscription on api.website-auditor.io. None ⇒ show banner.
     entitlement = wa_auth.get_current_entitlement(request)
 
+    # SECURITY: strip the Pro-only fix-solution fields BEFORE anything (the
+    # rendered rows AND the `{{ report | tojson }}` data island) can see them.
+    # Free users keep the $ impact, build-time and the locked "Unlock with Pro"
+    # UI, but the raw fix content never reaches page source. Returns a copy;
+    # the cached report object is left untouched for entitled requests.
+    report = redact_fix_content(report, entitlement is not None)
+
     # Build an absolute https return_to URL for the upsell banner. We can't
     # trust request.url here because the app runs behind a Cloud Run proxy
     # that rewrites Host to the *.run.app backend hostname. The Node-side
@@ -870,6 +878,10 @@ def report_json(run_id):
     _validate_run_id(run_id)
     report = _resolve_report(run_id)
     if report:
+        # Same entitlement gate as the HTML view: never expose raw fix content
+        # to non-subscribers via the JSON API.
+        entitlement = wa_auth.get_current_entitlement(request)
+        report = redact_fix_content(report, entitlement is not None)
         return jsonify(report)
     return jsonify({"error": "Not found"}), 404
 
@@ -880,6 +892,9 @@ def report_download_json(run_id):
     _validate_run_id(run_id)
     report = _resolve_report(run_id)
     if report:
+        # Same entitlement gate: strip Pro-only fix content for free users.
+        entitlement = wa_auth.get_current_entitlement(request)
+        report = redact_fix_content(report, entitlement is not None)
         payload = json.dumps(report, indent=2)
         resp = make_response(payload)
         resp.headers["Content-Type"] = "application/json"
