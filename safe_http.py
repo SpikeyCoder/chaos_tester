@@ -23,6 +23,12 @@ from .config import _is_private_or_reserved
 
 logger = logging.getLogger("chaos_tester.safe_http")
 
+# Cap how many redirect hops we will follow at all. Each hop is still
+# re-validated by SafeSession.send(); this simply bounds the chain so a
+# hostile target cannot make us follow an unbounded redirect sequence.
+# requests' own default is 30; 10 is ample for legitimate sites.
+DEFAULT_MAX_REDIRECTS = 10
+
 
 class SSRFBlockedError(requests.RequestException):
     """Raised when an outbound request targets a private / reserved address."""
@@ -38,6 +44,11 @@ class SafeSession(requests.Session):
     target — `requests.Session.resolve_redirects()` calls `self.send()`
     again for each hop, so this same `send()` will gate every redirect.
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Bound redirect chains (defence-in-depth against resource abuse).
+        self.max_redirects = DEFAULT_MAX_REDIRECTS
 
     def send(self, request, **kwargs):  # type: ignore[override]
         hostname = urlparse(request.url).hostname or ""
