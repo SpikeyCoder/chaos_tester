@@ -501,6 +501,45 @@ def estimate_build_time(result: dict) -> dict:
     return result
 
 
+# ---------- Entitlement-aware redaction (server-side fix gating) ----------
+#
+# The actual platform-specific fix *solution* lives in these per-result fields.
+# They are Pro-only: they must never reach a non-entitled client, whether via
+# the rendered HTML, the embedded `{{ report | tojson }}` data island, or the
+# JSON API endpoints. `has_fix` is deliberately NOT in this set, so the locked
+# "Unlock with Pro" UI still renders for free users.
+FIX_CONTENT_FIELDS = ("fix_snippet", "fix_filename", "fix_instructions")
+
+
+def redact_fix_content(report_data: dict, entitled: bool) -> dict:
+    """Return a report dict safe to expose at the given entitlement level.
+
+    When `entitled` is True the report is returned unchanged. When False, a
+    copy is returned with the fix-solution fields (FIX_CONTENT_FIELDS) removed
+    from every result, so raw fix content never reaches a free user. The $
+    impact, build-time, severity, module, finding name/description and the
+    has_fix flag are all preserved.
+
+    The original report_data and its nested result dicts are never mutated, so
+    the cached/shared report object stays intact for entitled requests. Guards
+    against missing/None/malformed shapes (returns the input unchanged).
+    """
+    if entitled or not isinstance(report_data, dict):
+        return report_data
+
+    results = report_data.get("results")
+    if not isinstance(results, list):
+        return report_data
+
+    sanitized = dict(report_data)
+    sanitized["results"] = [
+        {k: v for k, v in r.items() if k not in FIX_CONTENT_FIELDS}
+        if isinstance(r, dict) else r
+        for r in results
+    ]
+    return sanitized
+
+
 def generate_fixes_for_report(report_data: dict, platform: dict) -> dict:
     """Post-process a full report: add fixes and impact to every result.
 
