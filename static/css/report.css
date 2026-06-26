@@ -93,22 +93,35 @@
     z-index: 2;
   }
 
-  /* Results table - prevent Details column overflow */
+  /* Results table column sizing + cell alignment.
+     Columns: 1=# 2=Status 3=Severity 4=Module 5=Test 6=Details
+              7=Impact 8=Fix 9=Time.
+     Content-based (auto) layout so the Details cell — which is empty/
+     collapsed until a row is expanded — doesn't reserve a wide empty column
+     between the Test text and the Impact/Fix/Time metric cells (that was the
+     "huge gap" before Impact). When a row is expanded the Details cell grows
+     to fit the fix panel; long strings still wrap via the word-break rule
+     below, so dropping the old fixed layout won't blow the table out. */
   #resultsTable {
-    table-layout: fixed;
     width: 100%;
   }
-  #resultsTable th:nth-child(1) { width: 40px; }
-  #resultsTable th:nth-child(2) { width: 100px; }
-  #resultsTable th:nth-child(3) { width: 100px; }
-  #resultsTable th:nth-child(4) { width: 110px; }
-    #resultsTable td:nth-child(4) {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  #resultsTable th:nth-child(5) { width: 28%; }
-  #resultsTable th:nth-child(7) { width: 60px; }
+  #resultsTable th:nth-child(1) { width: 44px; }   /* # */
+  #resultsTable th:nth-child(2) { width: 88px; }   /* Status */
+  #resultsTable th:nth-child(3) { width: 92px; }   /* Severity */
+  #resultsTable th:nth-child(4) { width: 130px; }  /* Module */
+  #resultsTable th:nth-child(7) { width: 96px; }   /* Impact */
+  /* Fix column: wide enough for the padlock + "Sign up to unlock" CTA so it
+     isn't crushed to one word per line. */
+  #resultsTable th:nth-child(8) { width: 156px; }
+  #resultsTable th:nth-child(9) { width: 104px; }  /* Time */
+  /* Line up the three metric cells on a shared centre line so the $ impact
+     badge, the Fix padlock/CTA, and the build-time value don't sit at
+     mismatched heights. */
+  #resultsTable td:nth-child(7),
+  #resultsTable td:nth-child(8),
+  #resultsTable td:nth-child(9) {
+    vertical-align: middle;
+  }
   #resultsTable td {
     overflow-wrap: break-word;
     word-break: break-word;
