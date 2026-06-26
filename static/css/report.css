@@ -447,10 +447,36 @@
   background: rgba(99,102,241,0.30);
 }
 
-.fix-icon-btn-locked {
-  background: rgba(148,163,184,0.08);
-  color: #475569;
-  cursor: default;
+/* Locked-fix upsell CTA for free/non-entitled users in the Fix column.
+   A real link to the subscription flow. Must NOT reuse the fixed 30px
+   .fix-icon-btn sizing, which crushes the text to one word per line and
+   clips it ("...ck"). It renders on a single line wherever there's room
+   (e.g. the mobile stacked card), and wraps cleanly on whole words —
+   never overflowing into the adjacent Time cell — in the dense desktop
+   table where the column is narrow. */
+.fix-signup-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
+  background: rgba(99,102,241,0.12);
+  color: #a78bfa;
+  border: 1px solid rgba(99,102,241,0.30);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.fix-signup-link:hover {
+  background: rgba(99,102,241,0.22);
+  border-color: rgba(99,102,241,0.50);
 }
 
 /* Upsell fixes banner */
