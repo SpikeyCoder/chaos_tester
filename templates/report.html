@@ -393,7 +393,8 @@
             </div>
             {% if r.description %}<div class="text-muted text-sm u-wordwrap-break">{{ r.description }}</div>{% endif %}
           </td>
-          <td class="text-sm cell-details result-detail-cell u-hidden" data-label="">
+          <td class="text-sm cell-details" data-label="Details">
+            <div class="result-detail-cell" style="display:none;">
             {% if r.details %}<div class="u-mb-1 u-wordwrap-break">{{ r.details }}</div>{% endif %}
             {% if r.recommendation %}
             <div class="u-text-xs-accent u-wordwrap-break">Tip: {{ r.recommendation }}</div>
@@ -455,6 +456,7 @@
               </div>
               {% endif %}
             {% endif %}
+            </div>
           </td>
           <td data-label="Impact">
             {# $ impact is shown to EVERYONE (free and Pro). The build-time      #}
