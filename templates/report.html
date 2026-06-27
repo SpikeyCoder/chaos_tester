@@ -394,7 +394,11 @@
             {% if r.description %}<div class="text-muted text-sm u-wordwrap-break">{{ r.description }}</div>{% endif %}
           </td>
           <td class="text-sm cell-details" data-label="Details">
-            <div class="result-detail-cell" style="display:none;">
+            <button type="button" class="detail-expand-btn" aria-expanded="false" aria-controls="result-detail-{{ loop.index }}">
+              <span class="detail-expand-caret" aria-hidden="true">&#9656;</span>
+              <span class="detail-expand-label">View</span>
+            </button>
+            <div class="result-detail-cell" id="result-detail-{{ loop.index }}" style="display:none;">
             {% if r.details %}<div class="u-mb-1 u-wordwrap-break">{{ r.details }}</div>{% endif %}
             {% if r.recommendation %}
             <div class="u-text-xs-accent u-wordwrap-break">Tip: {{ r.recommendation }}</div>
