@@ -124,7 +124,28 @@ function toggleResultDetail(row) {
   var isOpen = detailCell.style.display !== 'none';
   detailCell.style.display = isOpen ? 'none' : '';
   if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+  /* Keep the Details-column expand affordance in sync regardless of which
+     path opened the row (row affordance, fix icon, or scroll-to-result). */
+  var expandBtn = row.querySelector('.detail-expand-btn');
+  if (expandBtn) {
+    expandBtn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    expandBtn.classList.toggle('is-open', !isOpen);
+    var label = expandBtn.querySelector('.detail-expand-label');
+    if (label) label.textContent = isOpen ? 'View' : 'Hide';
+  }
 }
+
+/* Details column: click the caret/"View" affordance to expand the row's
+   detail content. Delegated + addEventListener (no inline onclick) to stay
+   within the page CSP (script-src 'self'). Reuses toggleResultDetail so it
+   shares the same reveal logic as the fix-icon and scroll-to-result paths. */
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('.detail-expand-btn');
+  if (!btn) return;
+  e.stopPropagation();
+  var row = btn.closest('.result-row');
+  if (row && typeof toggleResultDetail === 'function') toggleResultDetail(row);
+});
 
 function scrollToResults(filter) {
   /* Optionally apply a filter before scrolling */
