@@ -1,0 +1,45 @@
+/* AI Website Audit landing page — layout styles (scoped to .aiq-*) */
+.aiq-hero { padding: 56px 0 44px; }
+.aiq-eyebrow { color: var(--accent); font-weight: 600; font-size: .8rem;
+  letter-spacing: .09em; text-transform: uppercase; margin: 0 0 14px; }
+.aiq-h1 { font-size: clamp(2rem, 4.6vw, 3.25rem); line-height: 1.1; font-weight: 800;
+  letter-spacing: -0.01em; margin: 0 0 18px; max-width: 18ch; }
+.aiq-sub { font-size: 1.15rem; line-height: 1.6; color: var(--text-muted);
+  max-width: 760px; margin: 0 0 28px; }
+
+.aiq-section { padding: 56px 0; border-top: 1px solid var(--border-subtle); }
+.aiq-section > h2 { font-size: clamp(1.5rem, 2.6vw, 2rem); font-weight: 700; margin: 0 0 28px; }
+.aiq-prose { color: var(--text-muted); line-height: 1.7; max-width: 780px; font-size: 1.05rem; margin: 0; }
+
+.aiq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.aiq-card { background: var(--bg-elevated); border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md); padding: 24px 26px; }
+.aiq-card h3 { font-size: 1.15rem; font-weight: 600; margin: 0 0 8px; }
+.aiq-card p { color: var(--text-muted); line-height: 1.55; margin: 0; }
+
+.aiq-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.aiq-step { background: var(--bg-alt); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 24px; }
+.aiq-step .num { display: block; font-size: 1.6rem; font-weight: 800; color: var(--accent); line-height: 1; }
+.aiq-step h3 { font-size: 1.1rem; font-weight: 600; margin: 12px 0 6px; }
+.aiq-step p { color: var(--text-muted); line-height: 1.5; margin: 0; }
+
+.aiq-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.aiq-list li { display: flex; gap: 12px; align-items: flex-start; line-height: 1.5; }
+.aiq-list .chk { color: var(--success); font-weight: 700; flex: 0 0 auto; }
+
+.aiq-faq { display: grid; gap: 16px; }
+.aiq-faqcard { background: var(--bg-elevated); border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md); padding: 20px 24px; }
+.aiq-faqcard h3 { font-size: 1.05rem; font-weight: 600; margin: 0 0 6px; }
+.aiq-faqcard p { color: var(--text-muted); line-height: 1.55; margin: 0; }
+
+.aiq-ctaband { text-align: center; background: linear-gradient(180deg, #0f1b33, #142a4a);
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+  padding: 52px 24px; margin: 52px 0 8px; }
+.aiq-ctaband h2 { font-size: clamp(1.5rem, 2.6vw, 2rem); font-weight: 800; margin: 0 0 10px; }
+.aiq-ctaband p { color: var(--text-muted); margin: 0 0 22px; }
+
+@media (max-width: 760px) {
+  .aiq-grid, .aiq-steps { grid-template-columns: 1fr; }
+}
