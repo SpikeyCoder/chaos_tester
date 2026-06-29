@@ -3,6 +3,8 @@
 {% block robots %}noindex, nofollow{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/report.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/badge.css') }}">
+<script defer src="{{ url_for('static', filename='js/badge.js') }}"></script>
 {% endblock %}
 {% block content %}
 <!-- Breadcrumb Navigation -->
@@ -763,6 +765,19 @@
   {% endif %}
 </div>
 {% endif %}
+
+<div class="badge-wrap u-mt-3">
+  <h2>Show off your audit</h2>
+  <p class="text-muted">Add the "Audited by Website Auditor" badge to your site — paste this into your footer or about page. It links back so visitors can run their own free audit.</p>
+  <div class="badge-preview"><img src="{{ url_for('static', filename='badge/audited-by-website-auditor.svg') }}" alt="Audited by Website Auditor" width="220" height="52"></div>
+  <div class="badge-embed-box">
+    <label for="badge-embed">Embed code</label>
+    <textarea id="badge-embed" readonly>&lt;a href="https://website-auditor.io/" target="_blank" rel="noopener"&gt;
+  &lt;img src="https://website-auditor.io/static/badge/audited-by-website-auditor.svg" alt="Audited by Website Auditor" width="220" height="52" loading="lazy"&gt;
+&lt;/a&gt;</textarea>
+    <button type="button" id="badge-copy" class="btn btn-primary">Copy code</button>
+  </div>
+</div>
 
 <script id="reportData-data" type="application/json">{{ report | tojson }}</script>
 
