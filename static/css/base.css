@@ -1047,3 +1047,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .bug-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid transparent;
     border-top-color: var(--bg); border-radius: 50%; animation: bugSpin .6s linear infinite; }
 @keyframes bugSpin { to { transform: rotate(360deg); } }
+
+
+/* P4: Product Hunt badge (footer) */
+.ph-badge { display: inline-flex; align-items: center; gap: 10px; margin-top: 14px; padding: 8px 14px;
+  border: 1px solid var(--border-medium); border-radius: 10px; background: var(--bg-elevated); width: max-content; }
+.ph-badge:hover { border-color: var(--border-hover); }
+.ph-badge-logo { width: 28px; height: 28px; flex: 0 0 auto; }
+.ph-badge-text { display: flex; flex-direction: column; line-height: 1.15; }
+.ph-badge-eyebrow { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.ph-badge-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
