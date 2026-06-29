@@ -9,6 +9,7 @@
 <div class="landing-hero fade-up" id="audit">
   <h1>Does ChatGPT recommend your business?</h1>
   <p class="hero-subtitle">By 2028, 50% of your customers will find your competitors through AI instead of Google, <a class="hero-cite-link" href="https://www.gartner.com/en/articles/strategic-predictions-for-2026" target="_blank" rel="noopener">according to Gartner</a>. See if AI recommends you in under a minute.</p>
+  <p class="hero-tagline">Website Auditor is a free website audit tool — check your AI visibility, SEO, security, and performance in one click.</p>
 
   <form method="POST" action="/run" id="runForm" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -226,6 +227,23 @@
 <hr class="section-divider">
 
 <!-- ── CTA Section ───────────────────────────────────────────── -->
+<!-- ── FAQ Section ──────────────────────── -->
+<div class="section-block fade-up" id="faq">
+  <div class="section-header">
+    <h2>Frequently asked questions</h2>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item"><h3>Is Website Auditor free?</h3><p>Yes. The core website audit is free, runs in one click, and needs no account. A Pro plan (7-day free trial, then $10/month) adds downloadable fix files, custom AI visibility queries, and API access.</p></div>
+    <div class="faq-item"><h3>What does Website Auditor check?</h3><p>AI visibility, SEO, security headers, performance and speed, broken links, privacy setup, and accessibility — in a single report.</p></div>
+    <div class="faq-item"><h3>What is an AI visibility check?</h3><p>It measures how AI tools like ChatGPT and Perplexity find, describe, and recommend your business, so you can see whether you show up when customers ask AI for a recommendation.</p></div>
+    <div class="faq-item"><h3>How is Website Auditor different from other website audit tools?</h3><p>Most audit tools only measure traditional SEO. Website Auditor adds AI visibility — how AI assistants represent your business — alongside the usual security, performance, and SEO checks.</p></div>
+    <div class="faq-item"><h3>Do I need an account to run a free website audit?</h3><p>No. Enter a URL and run the audit — no login or credit card required.</p></div>
+    <div class="faq-item"><h3>Is there an API?</h3><p>Yes. The API runs up to 5 automated audits per day and is included with Pro at $10/month.</p></div>
+  </div>
+</div>
+
+<hr class="section-divider">
+
 <div class="cta-section fade-up">
   <div class="cta-label">Start improving your AI visibility today</div>
   <h2>Ready to Improve Your Website?</h2>
@@ -261,4 +279,21 @@
 </section>
 
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
+
+{% block extra_schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Is Website Auditor free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The core website audit is free, runs in one click, and needs no account. A Pro plan (7-day free trial, then $10/month) adds downloadable fix files, custom AI visibility queries, and API access." } },
+    { "@type": "Question", "name": "What does Website Auditor check?", "acceptedAnswer": { "@type": "Answer", "text": "AI visibility, SEO, security headers, performance and speed, broken links, privacy setup, and accessibility, in a single report." } },
+    { "@type": "Question", "name": "What is an AI visibility check?", "acceptedAnswer": { "@type": "Answer", "text": "It measures how AI tools like ChatGPT and Perplexity find, describe, and recommend your business, so you can see whether you show up when customers ask AI for a recommendation." } },
+    { "@type": "Question", "name": "How is Website Auditor different from other website audit tools?", "acceptedAnswer": { "@type": "Answer", "text": "Most audit tools only measure traditional SEO. Website Auditor adds AI visibility, how AI assistants represent your business, alongside the usual security, performance, and SEO checks." } },
+    { "@type": "Question", "name": "Do I need an account to run a free website audit?", "acceptedAnswer": { "@type": "Answer", "text": "No. Enter a URL and run the audit with no login or credit card required." } },
+    { "@type": "Question", "name": "Is there an API?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The API runs up to 5 automated audits per day and is included with Pro at $10/month." } }
+  ]
+}
+</script>
 {% endblock %}
