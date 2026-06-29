@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}AI Website Audit — See If ChatGPT Recommends Your Business | Website Auditor{% endblock %}
+{% block meta_description %}Free AI website audit. Check how your business appears in ChatGPT, Perplexity, and other AI tools, alongside security, performance, and broken-link checks. No login required.{% endblock %}
+{% block og_title %}AI Website Audit — See If ChatGPT Recommends Your Business{% endblock %}
+{% block og_description %}Run a free AI website audit and see how your business shows up when customers ask ChatGPT and other AI tools for a recommendation.{% endblock %}
+
+{% block content %}
+<article class="u-padding-y">
+  <h1>AI website audit: see if ChatGPT recommends your business</h1>
+  <p class="u-text-1-rem-white">More customers now ask ChatGPT, Perplexity, and Google's AI for a recommendation before they ever click a search result. An AI website audit checks whether those tools can find your business, understand what you do, and recommend you, then shows you what to fix. It is free, runs in one click, and needs no login.</p>
+
+  <p><a class="btn btn-primary u-cta-padding-md" href="/#audit">Run a free AI audit →</a></p>
+
+  <h2>What an AI website audit checks</h2>
+  <ul>
+    <li><strong>AI visibility:</strong> whether ChatGPT and other assistants can describe your business correctly and recommend it for the things you do.</li>
+    <li><strong>Crawlability:</strong> whether AI crawlers can read your pages, or whether a JavaScript-only shell hides your content from them.</li>
+    <li><strong>Structured data:</strong> whether your business name, services, and contact details are marked up in a way machines can parse.</li>
+    <li><strong>Security and performance:</strong> headers, broken links, and load speed, since a slow or insecure page weakens how often you get surfaced.</li>
+  </ul>
+
+  <h2>How the check works</h2>
+  <p>You enter a URL and the audit fetches your site the way an AI crawler would. It reads your content, inspects your structured data and metadata, and then asks live AI models how they describe and rank your business for queries a customer might use. The result is a plain-language report: where you show up, where you do not, and the specific changes that move the needle.</p>
+
+  <h2>Why AI visibility matters now</h2>
+  <p>Search is shifting from a list of links to a single answer. When someone asks an assistant "who is the best plumber near me" or "what tool audits a website," the model names a few options and skips the rest. If your site is hard for a model to read or your information is thin, you are invisible at the exact moment a customer is deciding. An AI website audit measures that gap before it costs you the lead.</p>
+
+  <h2>What you get</h2>
+  <ul>
+    <li>An AI visibility score with the prompts and answers behind it.</li>
+    <li>A prioritized list of fixes, from structured data to crawlability.</li>
+    <li>Security, performance, and broken-link findings in the same report.</li>
+    <li>A shareable report, with no account required.</li>
+  </ul>
+
+  <p><a class="btn btn-primary u-cta-padding-md" href="/#audit">Audit my website free →</a></p>
+
+  <h2>Frequently asked questions</h2>
+
+  <h3>What is an AI website audit?</h3>
+  <p>An AI website audit checks how AI tools like ChatGPT and Perplexity find, read, and recommend your business, then reports the specific changes that improve how you appear. It also covers security, performance, and broken links.</p>
+
+  <h3>How do I check if ChatGPT recommends my business?</h3>
+  <p>Enter your website URL and run the free audit. It queries live AI models with realistic customer questions and shows you how your business is described and whether it is recommended.</p>
+
+  <h3>Is the AI website audit free?</h3>
+  <p>Yes. The audit is free, runs in one click, and does not require a login or a credit card.</p>
+
+  <h3>How is this different from a normal SEO audit?</h3>
+  <p>A normal SEO audit measures how you rank in traditional search results. This audit adds AI visibility, measuring how AI assistants describe and recommend you, which is where a growing share of customers now start.</p>
+</article>
+{% endblock %}
+
+{% block extra_schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is an AI website audit?",
+      "acceptedAnswer": { "@type": "Answer", "text": "An AI website audit checks how AI tools like ChatGPT and Perplexity find, read, and recommend your business, then reports the specific changes that improve how you appear. It also covers security, performance, and broken links." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I check if ChatGPT recommends my business?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Enter your website URL and run the free audit. It queries live AI models with realistic customer questions and shows you how your business is described and whether it is recommended." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the AI website audit free?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. The audit is free, runs in one click, and does not require a login or a credit card." }
+    },
+    {
+      "@type": "Question",
+      "name": "How is this different from a normal SEO audit?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A normal SEO audit measures how you rank in traditional search results. This audit adds AI visibility, measuring how AI assistants describe and recommend you, which is where a growing share of customers now start." }
+    }
+  ]
+}
+</script>
+{% endblock %}

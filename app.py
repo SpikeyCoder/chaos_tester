@@ -1689,6 +1689,7 @@ def sitemap_xml():
     today = datetime.utcnow().strftime("%Y-%m-%d")
     pages = [
         {"loc": "https://website-auditor.io/", "priority": "1.0", "changefreq": "weekly", "lastmod": today},
+        {"loc": "https://website-auditor.io/ai-website-audit", "priority": "0.9", "changefreq": "monthly", "lastmod": today},
         {"loc": "https://website-auditor.io/sample-report", "priority": "0.7", "changefreq": "monthly", "lastmod": "2026-03-14"},
         {"loc": "https://website-auditor.io/latest", "priority": "0.6", "changefreq": "daily", "lastmod": today},
         {"loc": "https://website-auditor.io/api", "priority": "0.7", "changefreq": "monthly", "lastmod": today},
@@ -1749,6 +1750,19 @@ def status_page():
 @app.route("/changelog")
 def changelog_page():
     return render_template("changelog.html")
+
+
+@app.route("/ai-website-audit")
+def ai_website_audit_page():
+    return render_template("ai_website_audit.html")
+
+
+# These pages were intentionally removed. Return 410 Gone so search engines
+# de-index them promptly instead of treating them as lingering soft-404s.
+@app.route("/features")
+@app.route("/how-it-works")
+def removed_pages_gone():
+    return Response("This page has been removed.", status=410, mimetype="text/plain")
 
 
 if __name__ == "__main__":
