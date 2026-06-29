@@ -95,6 +95,7 @@
                 <span></span><span></span><span></span>
             </button>
             <nav id="mainNav" aria-label="Main navigation">
+                <a href="/ai-website-audit"{% if request.path == '/ai-website-audit' %} aria-current="page"{% endif %}>AI Audit</a>
                 <a href="/sample-report"{% if request.path == '/sample-report' %} aria-current="page"{% endif %}>Sample Report</a>
                 <a href="/api"{% if request.path == '/api' %} aria-current="page"{% endif %}>API</a>
                 <a href="/contact"{% if request.path == '/contact' %} aria-current="page"{% endif %}>Contact</a>
@@ -129,6 +130,7 @@
                 </div>
                 <div class="footer-col">
                     <div class="footer-col-title">Product</div>
+                    <a href="/ai-website-audit"{% if request.path == '/ai-website-audit' %} aria-current="page"{% endif %}>AI Website Audit</a>
                     <a href="/sample-report"{% if request.path == '/sample-report' %} aria-current="page"{% endif %}>Sample Report</a>
                     <a href="/api"{% if request.path == '/api' %} aria-current="page"{% endif %}>API Docs</a>
                     <a href="https://github.com/SpikeyCoder/chaos_tester" rel="noopener" target="_blank">GitHub</a>
