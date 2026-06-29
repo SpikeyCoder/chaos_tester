@@ -40,6 +40,24 @@
 .aiq-ctaband h2 { font-size: clamp(1.5rem, 2.6vw, 2rem); font-weight: 800; margin: 0 0 10px; }
 .aiq-ctaband p { color: var(--text-muted); margin: 0 0 22px; }
 
+
+/* Free vs Pro plan split */
+.aiq-plans { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; align-items: stretch; }
+.aiq-plan { background: var(--bg-elevated); border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md); padding: 28px 26px; display: flex; flex-direction: column; }
+.aiq-plan--pro { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.aiq-badge { align-self: flex-start; background: rgba(59,130,246,0.15); color: var(--accent);
+  font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px; margin: 0 0 12px; }
+.aiq-plan-name { font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-muted); margin: 0; }
+.aiq-plan-price { font-size: 1.9rem; font-weight: 800; margin: 6px 0 2px; }
+.aiq-plan-price .per { font-size: .95rem; font-weight: 500; color: var(--text-muted); }
+.aiq-plan-note { color: var(--text-muted); font-size: .9rem; margin: 0 0 18px; }
+.aiq-plan-plus { font-weight: 600; margin: 0 0 12px; }
+.aiq-plan .aiq-list { margin-bottom: 20px; }
+.aiq-plan .btn { margin-top: auto; align-self: flex-start; }
+
 @media (max-width: 760px) {
-  .aiq-grid, .aiq-steps { grid-template-columns: 1fr; }
+  .aiq-grid, .aiq-steps, .aiq-plans { grid-template-columns: 1fr; }
 }
