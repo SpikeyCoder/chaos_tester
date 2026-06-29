@@ -28,11 +28,12 @@
     <meta name="twitter:description" content="One-click website audit for AI visibility, security, broken links & performance. Free and instant.">
     <meta name="twitter:image" content="https://website-auditor.io/static/og-image.png">
 
-    <!-- JSON-LD Schema: SoftwareApplication -->
+    <!-- JSON-LD Schema: SoftwareApplication (product: Website Auditor) -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
+        "@id": "https://website-auditor.io/#software",
         "name": "Website Auditor",
         "url": "https://website-auditor.io",
         "description": "Free website audit tool that checks AI visibility, broken links, security, and performance in one click. See how your business appears in ChatGPT and other AI tools.",
@@ -50,17 +51,41 @@
             "Performance metrics",
             "SEO audit",
             "Platform detection"
-        ]
+        ],
+        "sameAs": [
+            "https://www.producthunt.com/products/seo-website-auditor"
+        ],
+        "publisher": { "@id": "https://website-auditor.io/#organization" }
     }
     </script>
-    <!-- JSON-LD Schema: Organization -->
+    <!-- JSON-LD Schema: WebSite (brand: Website Auditor) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": "https://website-auditor.io/#website",
+        "name": "Website Auditor",
+        "alternateName": ["WebSite Auditor", "Website Auditor Tool"],
+        "url": "https://website-auditor.io",
+        "sameAs": [
+            "https://www.producthunt.com/products/seo-website-auditor"
+        ],
+        "publisher": { "@id": "https://website-auditor.io/#organization" }
+    }
+    </script>
+    <!-- JSON-LD Schema: Organization (publisher: Armstrong HoldCo LLC) -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "Organization",
+        "@id": "https://website-auditor.io/#organization",
         "name": "Armstrong HoldCo LLC",
         "url": "https://website-auditor.io",
-        "logo": "https://website-auditor.io/static/logo.svg"
+        "logo": "https://website-auditor.io/static/logo.svg",
+        "sameAs": [
+            "https://www.linkedin.com/company/armstrong-holdco-llc/",
+            "https://github.com/SpikeyCoder"
+        ]
     }
     </script>
     {% block extra_schema %}{% endblock %}
