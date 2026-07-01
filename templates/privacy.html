@@ -1,29 +1,86 @@
 {% extends "base.html" %}
 {% block title %}Privacy Policy - Website Auditor{% endblock %}
 {% block meta_description %}Website Auditor privacy policy. How we handle your data when you run a website audit.{% endblock %}
+{% block body_class %}legal-doc{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/legal.css') }}">{% endblock %}
 {% block content %}
-<div class="section-block fade-up">
-  <h1 class="section-header">Privacy Policy</h1>
+<div class="legal-page fade-up">
+  <div class="legal-header">
+    <span class="legal-eyebrow">Last updated April 2026</span>
+    <h1>Privacy Policy</h1>
+    <p class="legal-lede">We built Website Auditor to collect as little data as possible. No tracking cookies, we never sell your data, and auditing on the web needs no login.</p>
+  </div>
 
-  <div class="card">
-    <p><strong>Last Updated:</strong> April 2026</p>
+  <ul class="legal-summary">
+    <li class="legal-summary-item">
+      <span class="legal-summary-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </span>
+      <span class="legal-summary-text">No login needed for web audits</span>
+    </li>
+    <li class="legal-summary-item">
+      <span class="legal-summary-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </span>
+      <span class="legal-summary-text">No tracking cookies</span>
+    </li>
+    <li class="legal-summary-item">
+      <span class="legal-summary-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </span>
+      <span class="legal-summary-text">We never sell or share your data</span>
+    </li>
+    <li class="legal-summary-item">
+      <span class="legal-summary-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </span>
+      <span class="legal-summary-text">All traffic encrypted over HTTPS</span>
+    </li>
+  </ul>
 
-    <h2>Data Collection</h2>
-    <p>We collect minimal data. Website Auditor does not require account creation or login.</p>
+  <div class="legal-body">
+    <section class="legal-section">
+      <h2>Data Collection</h2>
+      <p>We collect minimal data. Auditing a website through our website does not require account creation or login. Programmatic access through our API and MCP server does require an account and API key — see <strong>AI Tools &amp; MCP Access</strong> below.</p>
+    </section>
 
-    <h2>Analytics</h2>
-    <p>We use <strong>GoatCounter</strong> for analytics, which is privacy-friendly and does not use cookies. GoatCounter collects only aggregate usage data without tracking individual users.</p>
+    <section class="legal-section">
+      <h2>Analytics</h2>
+      <p>We use <strong>GoatCounter</strong> for analytics, which is privacy-friendly and does not use cookies. GoatCounter collects only aggregate usage data without tracking individual users.</p>
+    </section>
 
-    <h2>Audit Reports</h2>
-    <p>When you audit a website, we temporarily store the report to deliver results. Reports are not permanently retained and are not shared with third parties.</p>
+    <section class="legal-section">
+      <h2>Audit Reports</h2>
+      <p>When you audit a website, we temporarily store the report to deliver results. Reports are not permanently retained and are not shared with third parties.</p>
+    </section>
 
-    <h2>Data Sharing</h2>
-    <p>We do not sell your data. We do not share audit results with third parties. We do not use tracking cookies.</p>
+    <section class="legal-section">
+      <h2>AI Tools &amp; MCP Access</h2>
+      <p>Website Auditor is available as a Model Context Protocol (MCP) server and API, so you and the AI assistants you authorize can run audits programmatically. This works differently from our website, and this section explains how.</p>
+      <p><strong>Account and API key:</strong> Unlike the website, API and MCP access requires a free Website Auditor account and a personal API key. We identify each request by that key so we can apply your plan, enforce quotas, and secure your account.</p>
+      <p><strong>What we receive:</strong> When an AI client calls our MCP tools, we receive only the tool inputs — the website domain you want to audit, and for some tools items such as competitor domains. We do not receive your conversation history, prompts, or any other context from the AI application.</p>
+      <p><strong>What we store:</strong> To operate the service we keep records tied to your API key, including the domains you audit, the resulting scores and reports, request timestamps, and basic usage telemetry (which MCP client and tool were used, whether the call succeeded, and how long it took). We use this to run and secure the service, enforce rate limits, apply your subscription, and improve the product. We do not log your IP address for API or MCP requests.</p>
+      <p><strong>Retention:</strong> We keep this data for as long as your account is active. You can revoke an API key at any time from your account to stop further use of it, and you can request deletion of your data by contacting us at <a href="mailto:support@website-auditor.io">support@website-auditor.io</a>. We never sell this data or share it with third parties.</p>
+      <p><strong>Third-party AI clients:</strong> The AI assistant or host application that connects to our MCP server is operated by a third party (for example, the AI platform you use). Anything you share within that assistant is governed by that provider's privacy policy, not ours.</p>
+    </section>
 
-    <h2>Security</h2>
-    <p>All communications with Website Auditor use HTTPS encryption. We take reasonable measures to protect the integrity of our service.</p>
+    <section class="legal-section">
+      <h2>Data Sharing</h2>
+      <p>We do not sell your data. We do not share audit results with third parties. We do not use tracking cookies.</p>
+    </section>
 
-    <p>If you have privacy concerns, please contact us at <a href="mailto:support@website-auditor.io">support@website-auditor.io</a>.</p>
+    <section class="legal-section">
+      <h2>Security</h2>
+      <p>All communications with Website Auditor use HTTPS encryption. We take reasonable measures to protect the integrity of our service.</p>
+    </section>
+  </div>
+
+  <div class="legal-contact">
+    <div>
+      <div class="legal-contact-title">Questions about your privacy?</div>
+      <div class="legal-contact-desc">We're happy to help clarify how your data is handled.</div>
+    </div>
+    <a class="btn btn-primary" href="mailto:support@website-auditor.io">Contact us</a>
   </div>
 </div>
 {% endblock %}

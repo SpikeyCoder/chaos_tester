@@ -1,34 +1,56 @@
 {% extends "base.html" %}
 {% block title %}Terms of Service - Website Auditor{% endblock %}
 {% block meta_description %}Website Auditor terms of service. Usage terms for the free website audit tool.{% endblock %}
+{% block body_class %}legal-doc{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/legal.css') }}">{% endblock %}
 {% block content %}
-<div class="section-block fade-up">
-  <h1 class="section-header">Terms of Service</h1>
+<div class="legal-page fade-up">
+  <div class="legal-header">
+    <span class="legal-eyebrow">Last updated April 2026</span>
+    <h1>Terms of Service</h1>
+    <p class="legal-lede">Website Auditor is a free tool you can use through our website, API, or MCP server. By using it, you agree to these terms.</p>
+  </div>
 
-  <div class="card">
-    <p><strong>Last Updated:</strong> April 2026</p>
+  <div class="legal-body">
+    <section class="legal-section">
+      <h2>Use License</h2>
+      <p>Website Auditor is provided free of charge as-is. You agree to use this tool only for lawful purposes and in ways that do not infringe upon the rights of others or restrict their use and enjoyment.</p>
+    </section>
 
-    <h2>Use License</h2>
-    <p>Website Auditor is provided free of charge as-is. You agree to use this tool only for lawful purposes and in ways that do not infringe upon the rights of others or restrict their use and enjoyment.</p>
+    <section class="legal-section">
+      <h2>Prohibited Use</h2>
+      <p>You may not use Website Auditor — through our website, API, or MCP server — to:</p>
+      <ul>
+        <li>Scan or audit websites you do not own or have explicit permission to audit</li>
+        <li>Perform security testing or attacks on systems you do not own</li>
+        <li>Bypass security measures or terms of service of third-party systems</li>
+      </ul>
+    </section>
 
-    <h2>Prohibited Use</h2>
-    <p>You may not use Website Auditor to:</p>
-    <ul>
-      <li>Scan or audit websites you do not own or have explicit permission to audit</li>
-      <li>Perform security testing or attacks on systems you do not own</li>
-      <li>Bypass security measures or terms of service of third-party systems</li>
-    </ul>
+    <section class="legal-section">
+      <h2>API &amp; MCP Access</h2>
+      <p>Website Auditor is available programmatically through our API and as a Model Context Protocol (MCP) server, so you and the AI assistants you authorize can run audits automatically. Programmatic access requires a free account and a personal API key.</p>
+      <p>Automated and AI-driven access is held to the same rules as manual use: you remain responsible for every audit run under your API key, including those initiated by an AI agent on your behalf, and you may only audit websites you own or have permission to audit.</p>
+      <p>You are responsible for keeping your API key secure and for all activity performed with it. Access is subject to rate limits to ensure fair usage and service stability; excessive requests may result in temporary rate limiting. Some capabilities require an active subscription.</p>
+    </section>
 
-    <h2>API Usage</h2>
-    <p>API access is subject to rate limits to ensure fair usage and service stability. Excessive requests may result in temporary rate limiting.</p>
+    <section class="legal-section">
+      <h2>Disclaimer</h2>
+      <p>Website Auditor is provided without warranty of any kind, express or implied. We are not responsible for any damages or losses resulting from your use of this tool.</p>
+    </section>
 
-    <h2>Disclaimer</h2>
-    <p>Website Auditor is provided without warranty of any kind, express or implied. We are not responsible for any damages or losses resulting from your use of this tool.</p>
+    <section class="legal-section">
+      <h2>Service Provider</h2>
+      <p>Website Auditor is operated by <strong>Armstrong HoldCo LLC</strong>.</p>
+    </section>
+  </div>
 
-    <h2>Service Provider</h2>
-    <p><strong>Armstrong HoldCo LLC</strong></p>
-
-    <p>For questions about these terms, contact us at <a href="mailto:support@website-auditor.io">support@website-auditor.io</a>.</p>
+  <div class="legal-contact">
+    <div>
+      <div class="legal-contact-title">Questions about these terms?</div>
+      <div class="legal-contact-desc">Reach out and we'll be glad to help.</div>
+    </div>
+    <a class="btn btn-primary" href="mailto:support@website-auditor.io">Contact us</a>
   </div>
 </div>
 {% endblock %}
