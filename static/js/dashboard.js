@@ -4,6 +4,7 @@ var _blurTimer = null;
 var _lastDetectedUrl = '';
 var _overrideListenerAdded = false;
 var _detectInFlight = false;
+var _detectSeq = 0;  /* generation counter -- stale detect responses are discarded */
 var _isMobile = /Mobi|Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || ('ontouchstart' in window);
 
 /* State tracking for business detection */
@@ -284,6 +285,10 @@ document.getElementById('base_url').addEventListener('blur', function() {
 document.getElementById('base_url').addEventListener('input', function() {
   clearTimeout(_detectTimer);
   clearTimeout(_blurTimer);
+  /* Net-zero edit (stray keystroke reverted, autocorrect toggle): the field
+     still holds the URL we already detected -- keep the current state and any
+     override the user has typed instead of wiping and re-detecting. */
+  if (this.value.trim() && this.value.trim() === _lastDetectedUrl) return;
   _lastDetectedUrl = '';
   /* Only reset UI if no API call is in flight -- otherwise the response
      handler will take care of it when it lands. */
@@ -299,11 +304,12 @@ document.getElementById('base_url').addEventListener('focus', function() {
   clearTimeout(_blurTimer);
 });
 
-/* Detect on page load if URL is already filled */
+/* Detect on page load if URL is already filled. Stored in _detectTimer so a
+   user edit can cancel it before it fires. */
 (function() {
   var url = document.getElementById('base_url').value.trim();
   if (url) {
-    setTimeout(function() { detectBusiness(); }, 300);
+    _detectTimer = setTimeout(function() { detectBusiness(); }, 300);
   }
 })();
 
@@ -327,6 +333,10 @@ function detectBusiness() {
   if (!url) return;
   /* Allow re-detection of the same URL (e.g. user re-enters after a run) */
   _lastDetectedUrl = url;
+  /* Each call gets a generation number; when a response lands after a newer
+     detection started, it is stale and must not touch the form state --
+     otherwise a slow response can overwrite a correction the user typed. */
+  var seq = ++_detectSeq;
 
   /* Funnel: user has entered a URL and we are starting business detection.
      Fire once per page load so the count represents unique funnel entries. */
@@ -354,6 +364,7 @@ function detectBusiness() {
   .then(function(r) {
     if (r.status === 429) {
       return r.json().then(function(body) {
+        if (seq !== _detectSeq) return null;  /* stale: a newer detection owns the UI */
         _detectInFlight = false;
         if (document.getElementById('base_url').value.trim() !== url) return null;
         hideAuditSpinner();
@@ -366,6 +377,7 @@ function detectBusiness() {
   })
   .then(function(data) {
     if (!data) return;
+    if (seq !== _detectSeq) return;  /* stale: a newer detection owns the UI */
     _detectInFlight = false;
     /* If the URL changed while the request was in flight, discard this result */
     if (document.getElementById('base_url').value.trim() !== url) return;
@@ -413,6 +425,7 @@ function detectBusiness() {
     }
   })
   .catch(function(err) {
+    if (seq !== _detectSeq) return;  /* stale: a newer detection owns the UI */
     _detectInFlight = false;
     console.error('Detect failed:', err);
     if (document.getElementById('base_url').value.trim() !== url) return;
@@ -604,6 +617,18 @@ document.getElementById('runForm').addEventListener('submit', function(e) {
   /* A11y: announce the busy state to assistive tech (WCAG 4.1.3). */
   this.setAttribute('aria-busy', 'true');
   showAuditSpinner();
+
+  /* The override inputs are the source of truth when filled in: re-sync them
+     into the hidden fields at submit time so a late detection response can
+     never submit a name the user has already corrected on screen. */
+  var overrideName = document.getElementById('override_biz_name');
+  if (overrideName && overrideName.value.trim()) {
+    document.getElementById('business_name').value = overrideName.value.trim();
+  }
+  var overrideCity = document.getElementById('override_biz_city');
+  if (overrideCity && overrideCity.value.trim()) {
+    document.getElementById('business_location').value = overrideCity.value.trim();
+  }
 
   var form = this;
   var payload = {};
