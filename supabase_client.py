@@ -45,7 +45,13 @@ def _is_configured() -> bool:
 
 
 def _read_headers() -> dict:
-    """Headers for anonymous (public) reads."""
+    """Headers for anonymous (public) reads via the anon key.
+
+    Currently unused: all ``reports`` reads (``load_report``,
+    ``get_domain_history``) moved to the service-role key so the
+    public-read RLS policy on ``reports`` can be dropped. Kept for now in
+    case another anon-key read path is added.
+    """
     return {
         "apikey": SUPABASE_ANON_KEY,
         "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
@@ -153,14 +159,24 @@ def save_report(report_data: dict) -> str | None:
         return None
 
 
-# -- Read (anonymous, no service key needed) ---------------------------
+# -- Read (server-side, service key) ----------------------------------
+#
+# All reads of the ``reports`` table run server-side (the report and
+# history pages render on the backend), so ``load_report`` and
+# ``get_domain_history`` both authenticate with the service-role key.
+# This lets us drop the public-read RLS policy on ``reports`` and stop
+# the table being enumerable via the public anon key.
 
 def load_report(report_id: str) -> dict | None:
-    """Load a single report by its content-hash ID from Supabase."""
+    """Load a single report by its content-hash ID from Supabase.
+
+    Reads with the service-role key (runs server-side), so it does not
+    depend on a public-read RLS policy on ``reports``.
+    """
     try:
         resp = requests.get(
             f"{_REST_URL}/reports",
-            headers=_read_headers(),
+            headers=_write_headers(),
             params={
                 "id": f"eq.{report_id}",
                 "select": "report_json",
@@ -226,11 +242,13 @@ def get_domain_history(domain: str, limit: int = 10) -> list[dict]:
     Get recent audit history for a domain.
 
     Returns a list of summary dicts (no full report_json) sorted newest first.
+    Reads with the service-role key (runs server-side), so it does not depend
+    on a public-read RLS policy on ``reports``.
     """
     try:
         resp = requests.get(
             f"{_REST_URL}/reports",
-            headers=_read_headers(),
+            headers=_write_headers(),
             params={
                 "domain": f"eq.{domain}",
                 "select": "id,domain,base_url,started_at,finished_at,duration_s,status,overall_score,total_tests,passed,failed,warnings,errors",
