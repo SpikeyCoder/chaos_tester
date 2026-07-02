@@ -2,7 +2,7 @@
 {% block title %}Report {{ report.run_id }} -- Website Auditor{% endblock %}
 {% block robots %}noindex, nofollow{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/report.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/report.css') + '?v=20260701' }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/badge.css') }}">
 <script defer src="{{ url_for('static', filename='js/badge.js') }}"></script>
 {% endblock %}
