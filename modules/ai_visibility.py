@@ -165,7 +165,9 @@ class AIVisibilityScanner(BaseModule):
              JSON-LD @type, and page content keyword analysis
           6. Use HQ city + sector keywords in AI visibility queries
         """
-        # --- Check for user-provided location override -----------------
+        # --- Check for user-provided overrides -------------------------
+        user_name = getattr(self.config, "business_name", "") or ""
+        user_name = user_name.strip()
         user_location = getattr(self.config, "business_location", "") or ""
         user_location = user_location.strip()
 
@@ -183,10 +185,31 @@ class AIVisibilityScanner(BaseModule):
         except Exception as exc:
             logger.warning("BusinessIdentifier failed: %s -- falling back to domain parse", exc)
 
-        # --- User-provided location always wins ----------------------
+        # --- User-provided name and location always win ---------------
         if user_location:
             self.location = user_location
             logger.info("Using user-provided location: %r", user_location)
+
+        if user_name:
+            detected_name = (self.business_name or "").strip()
+            self.business_name = user_name
+            logger.info("Using user-provided business name: %r", user_name)
+
+            # The sector -- and possibly the HQ city -- were derived from the
+            # detected name. When the user corrects the name, re-derive them
+            # so the AI queries target the right business, not the mis-detected
+            # one. Page-based location sources are name-independent and kept;
+            # only name-keyed lookups (IRS EO, Google Places) are redone.
+            if user_name.lower() != detected_name.lower():
+                try:
+                    self.sector = self._identifier.detect_sector(user_name, page_content)
+                    lookup_source = self._identification_details.get("lookup_source", "")
+                    if not user_location and lookup_source in ("irs_eo", "google_places"):
+                        self.location, _ = self._identifier.lookup_headquarters(
+                            user_name, url, page_content
+                        )
+                except Exception as exc:
+                    logger.warning("Re-derivation for user business name failed: %s", exc)
 
         # Sanitize: strip any URL that may have been concatenated with the location
         if self.location and ("http://" in self.location or "https://" in self.location):

@@ -144,6 +144,7 @@ class ChaosConfig:
     run_auth: bool = True
     run_security: bool = True
     run_ai_visibility: bool = True
+    business_name: str = ""               # optional user-provided business name for AI queries
     business_location: str = ""           # optional user-provided city for AI queries
     perplexity_api_key: str = ""          # Perplexity API key for real AI visibility queries
 

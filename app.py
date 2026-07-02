@@ -730,8 +730,10 @@ def start_run():
     if config.environment == "production" and not config.allow_production:
         return jsonify({"error": "Production mode requires opt-in. Check the 'I understand and want to test production' checkbox."}), 400
 
-    # AI Visibility options
-    config.business_location = _get("business_location", "").strip()
+    # AI Visibility options (JSON bodies can carry non-string values; coerce
+    # so a null/number doesn't 500 the route before validation)
+    config.business_name = str(_get("business_name", "") or "").strip()
+    config.business_location = str(_get("business_location", "") or "").strip()
     config.perplexity_api_key = os.getenv("PERPLEXITY_API_KEY", "")
     seeds = _get("seed_urls", "").strip()
     if seeds:
