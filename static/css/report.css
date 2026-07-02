@@ -105,9 +105,12 @@
   #resultsTable {
     width: 100%;
   }
+  /* Status/Severity must fit their widest one-line badge ("⚠ warning",
+     "critical") — narrower hints push the auto table layout into breaking
+     the badge text mid-word. */
   #resultsTable th:nth-child(1) { width: 44px; }   /* # */
-  #resultsTable th:nth-child(2) { width: 88px; }   /* Status */
-  #resultsTable th:nth-child(3) { width: 92px; }   /* Severity */
+  #resultsTable th:nth-child(2) { width: 112px; }  /* Status */
+  #resultsTable th:nth-child(3) { width: 100px; }  /* Severity */
   #resultsTable th:nth-child(4) { width: 130px; }  /* Module */
   #resultsTable th:nth-child(7) { width: 96px; }   /* Impact */
   /* Fix column: wide enough for the padlock + "Sign up to unlock" CTA so it
@@ -503,6 +506,8 @@
 .fix-signup-link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 6px;
   max-width: 100%;
   white-space: normal;
